@@ -61,14 +61,14 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
   @Override
   public void configurePipeline(PipelineConfigurer pipelineConfigurer) {
     Schema inputSchema = pipelineConfigurer.getStageConfigurer().getInputSchema();
-    Schema mappedSchema = inputSchema == null ? null : getMappedSchema(conf.getColumnMapping(), inputSchema);
+    Schema mappedSchema = inputSchema == null ? null : getMappedSchema(conf.getColumnMapping(inputSchema), inputSchema);
     conf.validate(mappedSchema);
   }
 
   @Override
   public void prepareRun(BatchSinkContext batchSinkContext) {
     Schema inputSchema = batchSinkContext.getInputSchema();
-    Map<String, String> columnMapping = conf.getColumnMapping();
+    Map<String, String> columnMapping = conf.getColumnMapping(inputSchema);
     Schema mappedSchema = inputSchema == null ? null : getMappedSchema(columnMapping, inputSchema);
     conf.validate(mappedSchema);
 
@@ -117,8 +117,8 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
   @Override
   public void initialize(BatchRuntimeContext context) {
     // Ideally this wouldn't be needed, but the UI doesn't allow spaces in the field names
-    columnMapping = conf.getColumnMapping();
     Schema inputSchema = context.getInputSchema();
+    columnMapping = conf.getColumnMapping(inputSchema);
     mappedSchema = getMappedSchema(columnMapping, inputSchema);
   }
 

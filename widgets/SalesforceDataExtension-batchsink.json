@@ -2,6 +2,7 @@
   "metadata": {
     "spec-version": "1.5"
   },
+  "display-name": "Salesforce Marketing",
   "configuration-groups": [
     {
       "label": "Basic",
@@ -75,6 +76,25 @@
             "value-placeholder": "Data Extension Column",
             "kv-delimiter" : "=",
             "delimiter" : ";"
+          }
+        },
+        {
+          "widget-type": "radio-group",
+          "name" : "replaceWithSpaces",
+          "label" : "Replace Underscores With Spaces",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "false",
+            "options": [
+              {
+                "id": "true",
+                "label": "True"
+              },
+              {
+                "id": "false",
+                "label": "False"
+              }
+            ]
           }
         },
         {

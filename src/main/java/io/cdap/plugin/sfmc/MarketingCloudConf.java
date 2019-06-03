@@ -25,8 +25,13 @@ import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.validation.InvalidConfigPropertyException;
 import io.cdap.cdap.etl.api.validation.InvalidStageException;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
@@ -42,6 +47,7 @@ public class MarketingCloudConf extends PluginConfig {
   public static final String FAIL_ON_ERROR = "failOnError";
   public static final String OPERATION = "operation";
   public static final String COLUMN_MAPPING = "columnMapping";
+  public static final String REPLACE_WITH_SPACES = "replaceWithSpaces";
 
   @Description("This will be used to uniquely identify this sink for lineage, annotating metadata, etc.")
   private String referenceName;
@@ -95,6 +101,12 @@ public class MarketingCloudConf extends PluginConfig {
   @Description("Mapping from input field name to the corresponding data extension column name.")
   private String columnMapping;
 
+  @Macro
+  @Nullable
+  @Name(REPLACE_WITH_SPACES)
+  @Description("Whether to replace underscores in the input field names with spaces.")
+  private Boolean replaceWithSpaces;
+
   String getReferenceName() {
     return referenceName;
   }
@@ -127,22 +139,42 @@ public class MarketingCloudConf extends PluginConfig {
     return failOnError == null ? false : failOnError;
   }
 
+  boolean shouldReplaceWithSpaces() {
+    return replaceWithSpaces == null ? false : replaceWithSpaces;
+  }
+
   Operation getOperation() {
     return operation == null ? Operation.INSERT : Operation.valueOf(operation.toUpperCase());
   }
 
-  Map<String, String> getColumnMapping() {
+  Map<String, String> getColumnMapping(@Nullable Schema originalSchema) {
+    Set<String> fieldNames = originalSchema == null ? Collections.emptySet() :
+      originalSchema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toSet());
     Map<String, String> mapping = new HashMap<>();
-    if (columnMapping == null) {
-      return mapping;
-    }
-    for (String kv : columnMapping.split(";")) {
-      String[] parts = kv.split("=");
-      if (parts.length != 2) {
-        throw new InvalidConfigPropertyException(String.format("Invalid column mapping: %s", kv), COLUMN_MAPPING);
+
+    if (columnMapping != null) {
+      for (String kv : columnMapping.split(";")) {
+        String[] parts = kv.split("=");
+        if (parts.length != 2) {
+          throw new InvalidConfigPropertyException(String.format("Invalid column mapping: %s", kv), COLUMN_MAPPING);
+        }
+        if (fieldNames.contains(parts[0])) {
+          mapping.put(parts[0], parts[1]);
+        }
       }
-      mapping.put(parts[0], parts[1]);
     }
+
+    if (shouldReplaceWithSpaces()) {
+      for (String fieldName : fieldNames) {
+        if (mapping.containsKey(fieldName)) {
+          continue;
+        }
+        if (fieldName.contains("_")) {
+          mapping.put(fieldName, fieldName.replaceAll("_", " "));
+        }
+      }
+    }
+
     return mapping;
   }
 

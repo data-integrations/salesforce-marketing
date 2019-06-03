@@ -43,7 +43,9 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.validation.InvalidConfigPropertyException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -94,9 +96,14 @@ public class DataExtensionClient {
         throw new InvalidConfigPropertyException(String.format("Data extension '%s' does not exist", dataExtensionKey),
                                                  MarketingCloudConf.DATA_EXTENSION);
       }
+      Map<String, String> lowercaseToOriginal = schema.getFields().stream()
+        .map(Schema.Field::getName)
+        .collect(Collectors.toMap(String::toLowerCase, f -> f));
+
       for (ETDataExtensionColumn column : columns) {
         String columnName = column.getName();
-        Schema.Field schemaField = schema.getField(columnName);
+        String originalName = lowercaseToOriginal.get(columnName.toLowerCase());
+        Schema.Field schemaField = schema.getField(originalName);
         if (schemaField == null) {
           if (column.getIsRequired()) {
             throw new IllegalArgumentException(
@@ -123,7 +130,7 @@ public class DataExtensionClient {
               throw new IllegalArgumentException(
                 String.format("Column '%s' is a boolean in data extension '%s', but is a '%s' in the input schema. "
                                 + "Please change your pipeline to ensure it is a boolean or string type.",
-                              columnName, dataExtensionKey, schemaType));
+                              originalName, dataExtensionKey, schemaType));
             }
             break;
           case DECIMAL:
@@ -131,7 +138,7 @@ public class DataExtensionClient {
               throw new IllegalArgumentException(
                 String.format("Column '%s' is a decimal in data extension '%s', but is a '%s' in the input schema. "
                                 + "Please change your pipeline to ensure it is a decimal or string type.",
-                              columnName, dataExtensionKey, schemaType));
+                              originalName, dataExtensionKey, schemaType));
             }
             break;
           case PHONE:
@@ -139,15 +146,15 @@ public class DataExtensionClient {
           case EMAIL_ADDRESS:
           case LOCALE:
             throw new IllegalArgumentException(
-              String.format("Column '%s' is a boolean in data extension '%s', but is a '%s' in the input schema. "
+              String.format("Column '%s' is a %s in data extension '%s', but is a '%s' in the input schema. "
                               + "Please change your pipeline to ensure it is a string type.",
-                            columnName, dataExtensionKey, schemaType));
+                            originalName, column.getType().name().toLowerCase(), dataExtensionKey, schemaType));
           case DATE:
             if (fieldSchema.getLogicalType() != Schema.LogicalType.DATE) {
               throw new IllegalArgumentException(
-                String.format("Column '%s' is a number in data extension '%s', but is a '%s' in the input schema. "
+                String.format("Column '%s' is a date in data extension '%s', but is a '%s' in the input schema. "
                                 + "Please change your pipeline to ensure it is a date or string type.",
-                              columnName, dataExtensionKey, schemaType));
+                              originalName, dataExtensionKey, schemaType));
             }
             break;
           case NUMBER:
@@ -155,7 +162,7 @@ public class DataExtensionClient {
               throw new IllegalArgumentException(
                 String.format("Column '%s' is a number in data extension '%s', but is a '%s' in the input schema. "
                                 + "Please change your pipeline to ensure it is an integer or string type.",
-                              columnName, dataExtensionKey, schemaType));
+                              originalName, dataExtensionKey, schemaType));
             }
             break;
           default:

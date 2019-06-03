@@ -46,6 +46,10 @@ Configuration
 For example, this can be used to indicate that the input field named 'email' should be written to
 a column named 'customer email'.
 
+**Replace Underscores With Spaces:** Whether to replace underscores in the input field names with spaces
+when writing to the data extension. For example, if an input field is named 'User_ID', it will be written
+to the data extension column 'User ID'.
+
 **Max Batch Size:** Maximum number of records to batch together in a write. Batching is used to improve
 write performance. Records in a batch are not applied atomically. This means some records in a batch
 may be written successfully while others in the batch may fail.
