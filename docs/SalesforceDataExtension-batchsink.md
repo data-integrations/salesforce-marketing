@@ -23,16 +23,17 @@ Input fields must be of a type compatible with the column type in the Data Exten
   - If the column type is number, the input field must be an int or a string representing an int
   - If the column type is a decimal, the input field must be a decimal or a string representing a decimal
 
-The sink can be configured to either insert records or update records.
+The sink can be configured to either insert, update, or upsert records. An upsert is implemented as
+an attempted insert followed by an update for any record that failed due to a primary key constraint violation.
 
 Configuration
 -------------
 
 **Reference Name:** Name used to uniquely identify this sink for lineage, annotating metadata, etc.
 
-**Data Extension:** Data Extension to write to.
+**Data Extension External Key:** External key of the Data Extension to write to.
 
-**Operation:** Whether to insert or update records in the Data Extension.
+**Operation:** Whether to insert, update, or upsert records in the Data Extension.
 
 **Client ID:** OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.
 
@@ -42,9 +43,10 @@ Configuration
 
 **SOAP Base URI:** Authentication Base URL associated for the Server-to-Server API integration.
 
-**Column Mapping:** Mapping from input field name to its corresponding column in the Data Extension.
-For example, this can be used to indicate that the input field named 'email' should be written to
-a column named 'customer email'.
+**Truncate Text:** Whether to truncate text that is longer than the max length specified in the data extension column.
+
+**Fail On Error:** Whether to fail the pipeline if an error is encountered while inserting records into
+the Data Extension.
 
 **Replace Underscores With Spaces:** Whether to replace underscores in the input field names with spaces
 when writing to the data extension. For example, if an input field is named 'User_ID', it will be written
@@ -54,5 +56,6 @@ to the data extension column 'User ID'.
 write performance. Records in a batch are not applied atomically. This means some records in a batch
 may be written successfully while others in the batch may fail.
 
-**Fail On Error:** Whether to fail the pipeline if an error is encountered while inserting records into
-the Data Extension.
+**Column Mapping:** Mapping from input field name to its corresponding column in the Data Extension.
+For example, this can be used to indicate that the input field named 'email' should be written to
+a column named 'customer email'.

@@ -21,5 +21,6 @@ package io.cdap.plugin.sfmc;
  */
 public enum Operation {
   INSERT,
-  UPDATE
+  UPDATE,
+  UPSERT;
 }

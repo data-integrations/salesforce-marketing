@@ -40,6 +40,7 @@ public class DataExtensionOutputFormat extends OutputFormat<NullWritable, Struct
   public static final String MAX_BATCH_SIZE = "cdap.sfmc.max.batch.size";
   public static final String FAIL_ON_ERROR = "cdap.sfmc.fail.on.error";
   public static final String OPERATION = "cdap.sfmc.operation";
+  public static final String TRUNCATE = "cdap.sfmc.truncate";
 
   @Override
   public RecordWriter<NullWritable, StructuredRecord> getRecordWriter(TaskAttemptContext context) throws IOException {
@@ -52,10 +53,13 @@ public class DataExtensionOutputFormat extends OutputFormat<NullWritable, Struct
     Operation operation = Operation.valueOf(getOrError(conf, OPERATION));
     int maxBatchSize = Integer.parseInt(getOrError(conf, MAX_BATCH_SIZE));
     boolean failOnError = Boolean.parseBoolean(getOrError(conf, FAIL_ON_ERROR));
+    boolean shouldTruncate = Boolean.parseBoolean(getOrError(conf, TRUNCATE));
     try {
       DataExtensionClient client = DataExtensionClient.create(dataExtensionKey, clientId, clientSecret,
                                                               authEndpoint, soapEndpoint);
-      return new DataExtensionRecordWriter(client, operation, maxBatchSize, failOnError);
+      RecordDataExtensionRowConverter converter = new RecordDataExtensionRowConverter(client.getDataExtensionInfo(),
+                                                                                      shouldTruncate);
+      return new DataExtensionRecordWriter(client, converter, operation, maxBatchSize, failOnError);
     } catch (ETSdkException e) {
       throw new IOException("Unable to create Salesforce Marketing Cloud client.", e);
     }

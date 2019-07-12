@@ -16,6 +16,7 @@
 
 package io.cdap.plugin.sfmc;
 
+import com.exacttarget.fuelsdk.ETDataExtensionColumn;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
@@ -23,24 +24,41 @@ import io.cdap.cdap.api.data.schema.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Converts StructuredRecords into DataExtensionRows.
  */
 public class RecordDataExtensionRowConverter {
-  private final String dataExtensionKey;
+  private final DataExtensionInfo dataExtensionInfo;
   private final DateTimeFormatter dateTimeFormatter;
+  private final BiFunction<String, String, String> truncateFunction;
 
-  public RecordDataExtensionRowConverter(String dataExtensionKey) {
-    this.dataExtensionKey = dataExtensionKey;
+  public RecordDataExtensionRowConverter(DataExtensionInfo dataExtensionInfo, boolean shouldTruncate) {
+    this.dataExtensionInfo = dataExtensionInfo;
     this.dateTimeFormatter = DateTimeFormatter.ofPattern("MM/DD/yyyy");
+    this.truncateFunction = !shouldTruncate ? (fieldName, val) -> val :
+      (fieldName, val) -> {
+        ETDataExtensionColumn column = dataExtensionInfo.getColumn(fieldName);
+        if (column == null || column.getLength() == null) {
+          return val;
+        }
+        int maxLength = column.getLength();
+        return val.length() > maxLength ? val.substring(0, maxLength) : val;
+      };
   }
 
   public ETDataExtensionRow transform(StructuredRecord record) {
     ETDataExtensionRow row = new ETDataExtensionRow();
-    row.setDataExtensionKey(dataExtensionKey);
+    row.setDataExtensionKey(dataExtensionInfo.getExternalKey());
     for (Schema.Field field : record.getSchema().getFields()) {
       String fieldName = field.getName();
+      if (!dataExtensionInfo.hasColumn(fieldName)) {
+        continue;
+      }
+
       Schema fieldSchema = field.getSchema();
       if (fieldSchema.isNullable()) {
         fieldSchema = fieldSchema.getNonNullable();
@@ -86,7 +104,8 @@ public class RecordDataExtensionRowConverter {
       case DOUBLE:
         return String.valueOf(val);
       case STRING:
-        return (String) val;
+        String strVal = (String) val;
+        return truncateFunction.apply(fieldName, strVal);
       case ENUM:
         return ((Enum) val).name();
       default:

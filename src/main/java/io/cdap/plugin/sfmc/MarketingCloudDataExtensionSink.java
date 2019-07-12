@@ -26,6 +26,7 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.KeyValue;
 import io.cdap.cdap.api.lineage.field.EndPoint;
 import io.cdap.cdap.etl.api.Emitter;
+import io.cdap.cdap.etl.api.Engine;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.batch.BatchRuntimeContext;
 import io.cdap.cdap.etl.api.batch.BatchSink;
@@ -63,6 +64,19 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
     Schema inputSchema = pipelineConfigurer.getStageConfigurer().getInputSchema();
     Schema mappedSchema = inputSchema == null ? null : getMappedSchema(conf.getColumnMapping(inputSchema), inputSchema);
     conf.validate(mappedSchema);
+    // without this, there will be many confusing errors because a task will successfully insert some records,
+    // an unrelated record will cause a failure, causing the task to be retried,
+    // then the originally successful record will cause a failure due to duplicate primary key
+    if (conf.shouldFailOnError()) {
+      if (pipelineConfigurer.getEngine() == Engine.SPARK) {
+        pipelineConfigurer.setPipelineProperties(Collections.singletonMap("spark.task.maxFailures", "1"));
+      } else if (pipelineConfigurer.getEngine() == Engine.MAPREDUCE) {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("mapreduce.reduce.maxattempts", "1");
+        properties.put("mapreduce.map.maxattempts", "1");
+        pipelineConfigurer.setPipelineProperties(properties);
+      }
+    }
   }
 
   @Override
@@ -109,6 +123,7 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
         outputConfig.put(DataExtensionOutputFormat.FAIL_ON_ERROR, String.valueOf(conf.shouldFailOnError()));
         outputConfig.put(DataExtensionOutputFormat.OPERATION, conf.getOperation().name());
         outputConfig.put(DataExtensionOutputFormat.DATA_EXTENSION_KEY, conf.getDataExtension());
+        outputConfig.put(DataExtensionOutputFormat.TRUNCATE, String.valueOf(conf.shouldTruncateText()));
         return outputConfig;
       }
     }));

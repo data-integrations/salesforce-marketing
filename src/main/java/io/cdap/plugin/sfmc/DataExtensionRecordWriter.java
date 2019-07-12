@@ -17,6 +17,7 @@
 package io.cdap.plugin.sfmc;
 
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
+import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETResult;
 import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.format.StructuredRecord;
@@ -36,14 +37,16 @@ import java.util.List;
 public class DataExtensionRecordWriter extends RecordWriter<NullWritable, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(DataExtensionRecordWriter.class);
   private final DataExtensionClient client;
-  private final List<StructuredRecord> batch;
+  private final RecordDataExtensionRowConverter converter;
+  private final List<ETDataExtensionRow> batch;
   private final int maxBatchSize;
   private final boolean failOnError;
   private final Operation operation;
 
-  public DataExtensionRecordWriter(DataExtensionClient client, Operation operation,
-                                   int maxBatchSize, boolean failOnError) {
+  public DataExtensionRecordWriter(DataExtensionClient client, RecordDataExtensionRowConverter converter,
+                                   Operation operation, int maxBatchSize, boolean failOnError) {
     this.client = client;
+    this.converter = converter;
     this.operation = operation;
     this.maxBatchSize = maxBatchSize;
     this.failOnError = failOnError;
@@ -52,7 +55,13 @@ public class DataExtensionRecordWriter extends RecordWriter<NullWritable, Struct
 
   @Override
   public void write(NullWritable key, StructuredRecord value) throws IOException {
-    batch.add(value);
+    try {
+      batch.add(converter.transform(value));
+    } catch (Exception e) {
+      if (failOnError) {
+        throw new IOException("Failed to convert record into a Data Extension Row", e);
+      }
+    }
     if (batch.size() >= maxBatchSize) {
       writeBatch();
     }
@@ -69,25 +78,42 @@ public class DataExtensionRecordWriter extends RecordWriter<NullWritable, Struct
       List<ETResult<ETDataExtensionRow>> results;
       switch (operation) {
         case INSERT:
-          results = client.insert(batch);
+          ETResponse<ETDataExtensionRow> response = client.insert(batch);
+          LOG.debug("Requested {} of {} records with request id {}",
+                    operation.name(), batch.size(), response.getRequestId());
+          results = response.getResults();
           break;
         case UPDATE:
-          results = client.update(batch);
+          response = client.update(batch);
+          LOG.debug("Requested {} of {} records with request id {}",
+                    operation.name(), batch.size(), response.getRequestId());
+          results = response.getResults();
+          break;
+        case UPSERT:
+          results = client.upsert(batch);
           break;
         default:
           // should never happen
           throw new IllegalStateException("Unsupported operation " + operation);
       }
+
       for (ETResult<ETDataExtensionRow> result : results) {
         if (result.getStatus() == ETResult.Status.ERROR) {
           failed = true;
-          String errorMessage = String.format("Failed to %s record %s: %s", operation.name().toLowerCase(),
-                                              result.getObject().getColumns(), result.getErrorMessage());
+          Integer errorCode = result.getErrorCode();
+          String errorMessage = result.getErrorMessage() == null ? "" : result.getErrorMessage();
+          if (errorCode != null) {
+            errorMessage = String.format("[Error code %d] %s", errorCode, errorMessage);
+          }
+          errorMessage = String.format("Failed to %s record %s:%s",
+                                       operation.name().toLowerCase(), result.getObject().getColumns(), errorMessage);
           if (failOnError) {
             LOG.error(errorMessage);
           } else {
             LOG.warn(errorMessage);
           }
+        } else {
+          LOG.trace("Successfully wrote {}", result.getObject().getColumns());
         }
       }
       batch.clear();

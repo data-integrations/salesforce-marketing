@@ -38,12 +38,11 @@ import com.exacttarget.fuelsdk.internal.UpdateOptions;
 import com.exacttarget.fuelsdk.internal.UpdateRequest;
 import com.exacttarget.fuelsdk.internal.UpdateResponse;
 import com.exacttarget.fuelsdk.internal.UpdateResult;
-import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.validation.InvalidConfigPropertyException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,12 +53,10 @@ import java.util.stream.Collectors;
 public class DataExtensionClient {
   private final ETClient client;
   private final String dataExtensionKey;
-  private final RecordDataExtensionRowConverter converter;
 
   DataExtensionClient(ETClient client, String dataExtensionKey) {
     this.client = client;
     this.dataExtensionKey = dataExtensionKey;
-    this.converter = new RecordDataExtensionRowConverter(dataExtensionKey);
   }
 
   public static DataExtensionClient create(String dataExtensionKey, String clientId, String clientSecret,
@@ -91,7 +88,7 @@ public class DataExtensionClient {
    */
   public void validateSchemaCompatibility(Schema schema) throws ETSdkException {
     call(() -> {
-      List<ETDataExtensionColumn> columns = ETDataExtension.retrieveColumns(client, dataExtensionKey);
+      Collection<ETDataExtensionColumn> columns = getDataExtensionInfo().getColumnList();
       if (columns == null || columns.isEmpty()) {
         throw new InvalidConfigPropertyException(String.format("Data extension '%s' does not exist", dataExtensionKey),
                                                  MarketingCloudConf.DATA_EXTENSION);
@@ -124,13 +121,15 @@ public class DataExtensionClient {
           // If the value is malformed, it will fail at runtime.
           continue;
         }
+        String schemaTypeStr = fieldSchema.getLogicalType() != null ?
+          fieldSchema.getLogicalType().getToken() : schemaType.name().toLowerCase();
         switch (column.getType()) {
           case BOOLEAN:
             if (schemaType != Schema.Type.BOOLEAN) {
               throw new IllegalArgumentException(
                 String.format("Column '%s' is a boolean in data extension '%s', but is a '%s' in the input schema. "
                                 + "Please change your pipeline to ensure it is a boolean or string type.",
-                              originalName, dataExtensionKey, schemaType));
+                              originalName, dataExtensionKey, schemaTypeStr));
             }
             break;
           case DECIMAL:
@@ -138,7 +137,7 @@ public class DataExtensionClient {
               throw new IllegalArgumentException(
                 String.format("Column '%s' is a decimal in data extension '%s', but is a '%s' in the input schema. "
                                 + "Please change your pipeline to ensure it is a decimal or string type.",
-                              originalName, dataExtensionKey, schemaType));
+                              originalName, dataExtensionKey, schemaTypeStr));
             }
             break;
           case PHONE:
@@ -148,13 +147,13 @@ public class DataExtensionClient {
             throw new IllegalArgumentException(
               String.format("Column '%s' is a %s in data extension '%s', but is a '%s' in the input schema. "
                               + "Please change your pipeline to ensure it is a string type.",
-                            originalName, column.getType().name().toLowerCase(), dataExtensionKey, schemaType));
+                            originalName, column.getType().name().toLowerCase(), dataExtensionKey, schemaTypeStr));
           case DATE:
             if (fieldSchema.getLogicalType() != Schema.LogicalType.DATE) {
               throw new IllegalArgumentException(
                 String.format("Column '%s' is a date in data extension '%s', but is a '%s' in the input schema. "
                                 + "Please change your pipeline to ensure it is a date or string type.",
-                              originalName, dataExtensionKey, schemaType));
+                              originalName, dataExtensionKey, schemaTypeStr));
             }
             break;
           case NUMBER:
@@ -162,7 +161,7 @@ public class DataExtensionClient {
               throw new IllegalArgumentException(
                 String.format("Column '%s' is a number in data extension '%s', but is a '%s' in the input schema. "
                                 + "Please change your pipeline to ensure it is an integer or string type.",
-                              originalName, dataExtensionKey, schemaType));
+                              originalName, dataExtensionKey, schemaTypeStr));
             }
             break;
           default:
@@ -174,28 +173,51 @@ public class DataExtensionClient {
     });
   }
 
-  public List<ETDataExtensionColumn> getColumns() throws ETSdkException {
-    return call(() -> ETDataExtension.retrieveColumns(client, dataExtensionKey));
+  public DataExtensionInfo getDataExtensionInfo() throws ETSdkException {
+    return call(() -> {
+      List<ETDataExtensionColumn> columns = ETDataExtension.retrieveColumns(client, dataExtensionKey);
+      return new DataExtensionInfo(dataExtensionKey, columns);
+    });
   }
 
   public List<ETDataExtensionRow> scan() throws ETSdkException {
     return call(() -> ETDataExtension.select(client, "key=" + dataExtensionKey).getObjects());
   }
 
-  public List<ETResult<ETDataExtensionRow>> insert(List<StructuredRecord> records) throws ETSdkException {
-    return call(() -> {
-      List<ETDataExtensionRow> rows = records.stream().map(r -> converter.transform(r)).collect(Collectors.toList());
-      ETResponse<ETDataExtensionRow> response = create(client, rows);
-      return response.getResults();
-    });
+  public ETResponse<ETDataExtensionRow> insert(List<ETDataExtensionRow> rows) throws ETSdkException {
+    return call(() -> create(client, rows));
   }
 
-  public List<ETResult<ETDataExtensionRow>> update(List<StructuredRecord> records) throws ETSdkException {
-    return call(() -> {
-      List<ETDataExtensionRow> rows = records.stream().map(r -> converter.transform(r)).collect(Collectors.toList());
-      ETResponse<ETDataExtensionRow> response = update(client, rows);
-      return response.getResults();
-    });
+  public ETResponse<ETDataExtensionRow> update(List<ETDataExtensionRow> rows) throws ETSdkException {
+    return call(() -> update(client, rows));
+  }
+
+  public List<ETResult<ETDataExtensionRow>> upsert(List<ETDataExtensionRow> rows) throws ETSdkException {
+    ETResponse<ETDataExtensionRow> inserts = insert(rows);
+    List<ETResult<ETDataExtensionRow>> result = new ArrayList<>(rows.size());
+
+    List<ETDataExtensionRow> toUpdate = new ArrayList<>();
+    for (ETResult<ETDataExtensionRow> row : inserts.getResults()) {
+      // super hacky to check the error message... but there is no better way
+      if (row.getStatus() == ETResult.Status.ERROR && row.getErrorCode() == 2 && row.getErrorMessage() != null &&
+        row.getErrorMessage().toLowerCase().contains("primary key")) {
+        ETDataExtensionRow failed = row.getObject();
+        ETDataExtensionRow copy = new ETDataExtensionRow();
+        copy.setDataExtensionKey(failed.getDataExtensionKey());
+        for (String column : failed.getColumnNames()) {
+          copy.setColumn(column, failed.getColumn(column));
+        }
+        toUpdate.add(copy);
+      } else {
+        result.add(row);
+      }
+    }
+
+    if (!toUpdate.isEmpty()) {
+      ETResponse<ETDataExtensionRow> updates = update(client, toUpdate);
+      result.addAll(updates.getResults());
+    }
+    return result;
   }
 
   private <T> T call(SFMCCall<T> callable) throws ETSdkException {
@@ -461,10 +483,10 @@ public class DataExtensionClient {
     DataExtensionClient client = new DataExtensionClient(new ETClient(conf), key);
 
     if ("describe".equals(command)) {
-      List<ETDataExtensionColumn> columns = client.getColumns();
+      Collection<ETDataExtensionColumn> columns = client.getDataExtensionInfo().getColumnList();
       System.out.println(columns.stream().map(c -> c.getName() + " " + c.getType()).collect(Collectors.joining("\n")));
     } else if ("scan".equals(command)) {
-      List<ETDataExtensionColumn> columns = client.getColumns();
+      Collection<ETDataExtensionColumn> columns = client.getDataExtensionInfo().getColumnList();
       List<String> columnNames = columns.stream().map(ETDataExtensionColumn::getName).collect(Collectors.toList());
       System.out.println(String.join(", ", columnNames));
       for (ETDataExtensionRow row : client.scan()) {

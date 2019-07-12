@@ -14,7 +14,7 @@
         },
         {
           "widget-type": "textbox",
-          "label": "Data Extension",
+          "label": "Data Extension External Key",
           "name": "dataExtension"
         },
         {
@@ -32,6 +32,10 @@
               {
                 "id": "update",
                 "label": "Update"
+              },
+              {
+                "id": "upsert",
+                "label": "Upsert"
               }
             ]
           }
@@ -67,15 +71,41 @@
       "label": "Advanced",
       "properties": [
         {
-          "widget-type": "keyvalue",
-          "label": "Column Mapping",
-          "name": "columnMapping",
+          "widget-type": "radio-group",
+          "name" : "truncateText",
+          "label" : "Truncate Text",
           "widget-attributes": {
-            "showDelimiter": "false",
-            "key-placeholder": "Input Field",
-            "value-placeholder": "Data Extension Column",
-            "kv-delimiter" : "=",
-            "delimiter" : ";"
+            "layout": "inline",
+            "default": "true",
+            "options": [
+              {
+                "id": "true",
+                "label": "True"
+              },
+              {
+                "id": "false",
+                "label": "False"
+              }
+            ]
+          }
+        },
+        {
+          "widget-type": "radio-group",
+          "name" : "failOnError",
+          "label" : "Fail On Error",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "false",
+            "options": [
+              {
+                "id": "true",
+                "label": "True"
+              },
+              {
+                "id": "false",
+                "label": "False"
+              }
+            ]
           }
         },
         {
@@ -106,22 +136,15 @@
           }
         },
         {
-          "widget-type": "radio-group",
-          "name" : "failOnError",
-          "label" : "Fail On Error",
+          "widget-type": "keyvalue",
+          "label": "Column Mapping",
+          "name": "columnMapping",
           "widget-attributes": {
-            "layout": "inline",
-            "default": "false",
-            "options": [
-              {
-                "id": "true",
-                "label": "True"
-              },
-              {
-                "id": "false",
-                "label": "False"
-              }
-            ]
+            "showDelimiter": "false",
+            "key-placeholder": "Input Field",
+            "value-placeholder": "Data Extension Column",
+            "kv-delimiter" : "=",
+            "delimiter" : ";"
           }
         }
       ]

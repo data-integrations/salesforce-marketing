@@ -48,6 +48,7 @@ public class MarketingCloudConf extends PluginConfig {
   public static final String OPERATION = "operation";
   public static final String COLUMN_MAPPING = "columnMapping";
   public static final String REPLACE_WITH_SPACES = "replaceWithSpaces";
+  public static final String TRUNCATE_TEXT = "truncateText";
 
   @Description("This will be used to uniquely identify this sink for lineage, annotating metadata, etc.")
   private String referenceName;
@@ -107,6 +108,12 @@ public class MarketingCloudConf extends PluginConfig {
   @Description("Whether to replace underscores in the input field names with spaces.")
   private Boolean replaceWithSpaces;
 
+  @Macro
+  @Nullable
+  @Name(TRUNCATE_TEXT)
+  @Description("Whether to truncate text that is longer than the max length specified in the data extension column.")
+  private Boolean truncateText;
+
   String getReferenceName() {
     return referenceName;
   }
@@ -141,6 +148,10 @@ public class MarketingCloudConf extends PluginConfig {
 
   boolean shouldReplaceWithSpaces() {
     return replaceWithSpaces == null ? false : replaceWithSpaces;
+  }
+
+  boolean shouldTruncateText() {
+    return truncateText == null ? false : truncateText;
   }
 
   Operation getOperation() {
