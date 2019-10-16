@@ -27,7 +27,9 @@ import io.cdap.cdap.api.dataset.lib.KeyValue;
 import io.cdap.cdap.api.lineage.field.EndPoint;
 import io.cdap.cdap.etl.api.Emitter;
 import io.cdap.cdap.etl.api.Engine;
+import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
+import io.cdap.cdap.etl.api.StageConfigurer;
 import io.cdap.cdap.etl.api.batch.BatchRuntimeContext;
 import io.cdap.cdap.etl.api.batch.BatchSink;
 import io.cdap.cdap.etl.api.batch.BatchSinkContext;
@@ -61,9 +63,12 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
 
   @Override
   public void configurePipeline(PipelineConfigurer pipelineConfigurer) {
-    Schema inputSchema = pipelineConfigurer.getStageConfigurer().getInputSchema();
-    Schema mappedSchema = inputSchema == null ? null : getMappedSchema(conf.getColumnMapping(inputSchema), inputSchema);
-    conf.validate(mappedSchema);
+    StageConfigurer stageConfigurer = pipelineConfigurer.getStageConfigurer();
+    Schema inputSchema = stageConfigurer.getInputSchema();
+    FailureCollector collector = stageConfigurer.getFailureCollector();
+    Schema mappedSchema = inputSchema == null ? null :
+      getMappedSchema(conf.getColumnMapping(inputSchema, collector), inputSchema);
+    conf.validate(mappedSchema, collector);
     // without this, there will be many confusing errors because a task will successfully insert some records,
     // an unrelated record will cause a failure, causing the task to be retried,
     // then the originally successful record will cause a failure due to duplicate primary key
@@ -82,9 +87,11 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
   @Override
   public void prepareRun(BatchSinkContext batchSinkContext) {
     Schema inputSchema = batchSinkContext.getInputSchema();
-    Map<String, String> columnMapping = conf.getColumnMapping(inputSchema);
+    FailureCollector collector = batchSinkContext.getFailureCollector();
+    Map<String, String> columnMapping = conf.getColumnMapping(inputSchema, collector);
     Schema mappedSchema = inputSchema == null ? null : getMappedSchema(columnMapping, inputSchema);
-    conf.validate(mappedSchema);
+    conf.validate(mappedSchema, collector);
+    collector.getOrThrowException();
 
     LineageRecorder lineageRecorder = new LineageRecorder(batchSinkContext, conf.getReferenceName());
     lineageRecorder.createExternalDataset(mappedSchema);
@@ -133,7 +140,9 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
   public void initialize(BatchRuntimeContext context) {
     // Ideally this wouldn't be needed, but the UI doesn't allow spaces in the field names
     Schema inputSchema = context.getInputSchema();
-    columnMapping = conf.getColumnMapping(inputSchema);
+    FailureCollector collector = context.getFailureCollector();
+    columnMapping = conf.getColumnMapping(inputSchema, collector);
+    collector.getOrThrowException();
     mappedSchema = getMappedSchema(columnMapping, inputSchema);
   }
 
