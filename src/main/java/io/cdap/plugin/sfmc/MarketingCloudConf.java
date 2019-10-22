@@ -22,13 +22,10 @@ import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginConfig;
-import io.cdap.cdap.etl.api.validation.InvalidConfigPropertyException;
-import io.cdap.cdap.etl.api.validation.InvalidStageException;
+import io.cdap.cdap.etl.api.FailureCollector;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -158,7 +155,7 @@ public class MarketingCloudConf extends PluginConfig {
     return operation == null ? Operation.INSERT : Operation.valueOf(operation.toUpperCase());
   }
 
-  Map<String, String> getColumnMapping(@Nullable Schema originalSchema) {
+  Map<String, String> getColumnMapping(@Nullable Schema originalSchema, FailureCollector collector) {
     Set<String> fieldNames = originalSchema == null ? Collections.emptySet() :
       originalSchema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toSet());
     Map<String, String> mapping = new HashMap<>();
@@ -167,7 +164,10 @@ public class MarketingCloudConf extends PluginConfig {
       for (String kv : columnMapping.split(";")) {
         String[] parts = kv.split("=");
         if (parts.length != 2) {
-          throw new InvalidConfigPropertyException(String.format("Invalid column mapping: %s", kv), COLUMN_MAPPING);
+          collector.addFailure(String.format("Invalid column mapping: %s", kv),
+                               "Make sure column mapping is in the format of <key=value>")
+            .withConfigProperty(COLUMN_MAPPING);
+          throw collector.getOrThrowException();
         }
         if (fieldNames.contains(parts[0])) {
           mapping.put(parts[0], parts[1]);
@@ -189,7 +189,7 @@ public class MarketingCloudConf extends PluginConfig {
     return mapping;
   }
 
-  public void validate(@Nullable Schema inputSchema) {
+  public void validate(@Nullable Schema inputSchema, FailureCollector collector) {
     if (inputSchema == null) {
       return;
     }
@@ -198,16 +198,17 @@ public class MarketingCloudConf extends PluginConfig {
       try {
         DataExtensionClient client = DataExtensionClient.create(dataExtension, clientId, clientSecret,
                                                                 authEndpoint, soapEndpoint);
-        client.validateSchemaCompatibility(inputSchema);
+        client.validateSchemaCompatibility(inputSchema, collector);
       } catch (ETSdkException e) {
-        throw new InvalidStageException("Error while validating Marketing Cloud client: " + e.getMessage(), e);
+        collector.addFailure("Error while validating Marketing Cloud client: " + e.getMessage(), null)
+          .withStacktrace(e.getStackTrace());
       }
     }
     if (!containsMacro(BATCH_SIZE)) {
       int batchSize = getMaxBatchSize();
       if (batchSize < 0) {
-        throw new InvalidConfigPropertyException(
-          String.format("Invalid batch size '%d'. The batch size must be at least 1.", batchSize), BATCH_SIZE);
+        collector.addFailure(String.format("Invalid batch size '%d'.", batchSize),
+                             "The batch size must be at least 1.").withConfigProperty(BATCH_SIZE);
       }
     }
   }

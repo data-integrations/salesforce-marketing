@@ -39,7 +39,7 @@ import com.exacttarget.fuelsdk.internal.UpdateRequest;
 import com.exacttarget.fuelsdk.internal.UpdateResponse;
 import com.exacttarget.fuelsdk.internal.UpdateResult;
 import io.cdap.cdap.api.data.schema.Schema;
-import io.cdap.cdap.etl.api.validation.InvalidConfigPropertyException;
+import io.cdap.cdap.etl.api.FailureCollector;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,14 +84,16 @@ public class DataExtensionClient {
    * Validate that the given schema is compatible with the given extension.
    *
    * @param schema the schema to check compatibility with
+   * @param collector failure collector
    * @throws ETSdkException if there was an error getting the column information for the data extension
    */
-  public void validateSchemaCompatibility(Schema schema) throws ETSdkException {
+  public void validateSchemaCompatibility(Schema schema, FailureCollector collector) throws ETSdkException {
     call(() -> {
       Collection<ETDataExtensionColumn> columns = getDataExtensionInfo().getColumnList();
       if (columns == null || columns.isEmpty()) {
-        throw new InvalidConfigPropertyException(String.format("Data extension '%s' does not exist", dataExtensionKey),
-                                                 MarketingCloudConf.DATA_EXTENSION);
+        collector.addFailure(String.format("Data extension '%s' must exist.", dataExtensionKey), null)
+          .withConfigProperty(MarketingCloudConf.DATA_EXTENSION);
+        throw collector.getOrThrowException();
       }
       Map<String, String> lowercaseToOriginal = schema.getFields().stream()
         .map(Schema.Field::getName)
@@ -103,70 +105,75 @@ public class DataExtensionClient {
         Schema.Field schemaField = schema.getField(originalName);
         if (schemaField == null) {
           if (column.getIsRequired()) {
-            throw new IllegalArgumentException(
-              String.format("Data extension '%s' contains a required column '%s' of type '%s' "
-                              + "that is not present in the input schema.",
-                            dataExtensionKey, columnName, column.getType()));
-          } else {
+            collector.addFailure(
+              String.format("Data extension '%s' contains a required column '%s' of type '%s' that is not present in " +
+                              "the input schema.", dataExtensionKey, columnName, column.getType()), null)
+              .withConfigProperty(MarketingCloudConf.DATA_EXTENSION);
+          }
+        } else {
+          Schema fieldSchema = schemaField.getSchema();
+          if (fieldSchema.isNullable()) {
+            fieldSchema = fieldSchema.getNonNullable();
+          }
+          Schema.Type schemaType = fieldSchema.getType();
+          if (schemaType == Schema.Type.STRING) {
+            // Allow strings for anything, as the API just takes strings.
+            // If the value is malformed, it will fail at runtime.
             continue;
           }
-        }
-        Schema fieldSchema = schemaField.getSchema();
-        if (fieldSchema.isNullable()) {
-          fieldSchema = fieldSchema.getNonNullable();
-        }
-        Schema.Type schemaType = fieldSchema.getType();
-        if (schemaType == Schema.Type.STRING) {
-          // Allow strings for anything, as the API just takes strings.
-          // If the value is malformed, it will fail at runtime.
-          continue;
-        }
-        String schemaTypeStr = fieldSchema.getLogicalType() != null ?
-          fieldSchema.getLogicalType().getToken() : schemaType.name().toLowerCase();
-        switch (column.getType()) {
-          case BOOLEAN:
-            if (schemaType != Schema.Type.BOOLEAN) {
-              throw new IllegalArgumentException(
-                String.format("Column '%s' is a boolean in data extension '%s', but is a '%s' in the input schema. "
-                                + "Please change your pipeline to ensure it is a boolean or string type.",
-                              originalName, dataExtensionKey, schemaTypeStr));
-            }
-            break;
-          case DECIMAL:
-            if (fieldSchema.getLogicalType() != Schema.LogicalType.DECIMAL) {
-              throw new IllegalArgumentException(
-                String.format("Column '%s' is a decimal in data extension '%s', but is a '%s' in the input schema. "
-                                + "Please change your pipeline to ensure it is a decimal or string type.",
-                              originalName, dataExtensionKey, schemaTypeStr));
-            }
-            break;
-          case PHONE:
-          case TEXT:
-          case EMAIL_ADDRESS:
-          case LOCALE:
-            throw new IllegalArgumentException(
-              String.format("Column '%s' is a %s in data extension '%s', but is a '%s' in the input schema. "
-                              + "Please change your pipeline to ensure it is a string type.",
-                            originalName, column.getType().name().toLowerCase(), dataExtensionKey, schemaTypeStr));
-          case DATE:
-            if (fieldSchema.getLogicalType() != Schema.LogicalType.DATE) {
-              throw new IllegalArgumentException(
-                String.format("Column '%s' is a date in data extension '%s', but is a '%s' in the input schema. "
-                                + "Please change your pipeline to ensure it is a date or string type.",
-                              originalName, dataExtensionKey, schemaTypeStr));
-            }
-            break;
-          case NUMBER:
-            if (schemaType != Schema.Type.INT) {
-              throw new IllegalArgumentException(
-                String.format("Column '%s' is a number in data extension '%s', but is a '%s' in the input schema. "
-                                + "Please change your pipeline to ensure it is an integer or string type.",
-                              originalName, dataExtensionKey, schemaTypeStr));
-            }
-            break;
-          default:
-            throw new IllegalStateException(String.format("Unknown type '%s' for column '%s' in data extension '%s'.",
-                                                          column.getType(), column.getName(), dataExtensionKey));
+          String schemaTypeStr = fieldSchema.getLogicalType() != null ?
+            fieldSchema.getLogicalType().getToken() : schemaType.name().toLowerCase();
+          String fieldName = schemaField.getName();
+          switch (column.getType()) {
+            case BOOLEAN:
+              if (schemaType != Schema.Type.BOOLEAN) {
+                collector.addFailure(
+                  String.format("Column '%s' is a boolean in data extension '%s', but is a '%s' in the input schema.",
+                                originalName, dataExtensionKey, schemaTypeStr),
+                  "Change the field schema to ensure it is a boolean or string type.")
+                  .withInputSchemaField(fieldName);
+              }
+              break;
+            case DECIMAL:
+              if (fieldSchema.getLogicalType() != Schema.LogicalType.DECIMAL) {
+                collector.addFailure(
+                  String.format("Column '%s' is a decimal in data extension '%s', but is a '%s' in the input schema.",
+                                originalName, dataExtensionKey, schemaTypeStr),
+                  "Change the field schema to ensure it is a decimal or string type.").withInputSchemaField(fieldName);
+              }
+              break;
+            case PHONE:
+            case TEXT:
+            case EMAIL_ADDRESS:
+            case LOCALE:
+              collector.addFailure(
+                String.format("Column '%s' is a %s in data extension '%s', but is a '%s' in the input schema.",
+                              originalName, column.getType().name().toLowerCase(), dataExtensionKey, schemaTypeStr),
+                "Change the field schema to ensure it is a string type.").withInputSchemaField(fieldName);
+              break;
+            case DATE:
+              if (fieldSchema.getLogicalType() != Schema.LogicalType.DATE) {
+                collector.addFailure(
+                  String.format("Column '%s' is a date in data extension '%s', but is a '%s' in the input schema.",
+                                originalName, dataExtensionKey, schemaTypeStr),
+                  "Change the field schema to ensure it is a date or string type.").withInputSchemaField(fieldName);
+              }
+              break;
+            case NUMBER:
+              if (schemaType != Schema.Type.INT) {
+                collector.addFailure(
+                  String.format("Column '%s' is a number in data extension '%s', but is a '%s' in the input schema.",
+                                originalName, dataExtensionKey, schemaTypeStr),
+                  "Change the field schema to ensure it is an integer or string type.").withInputSchemaField(fieldName);
+              }
+              break;
+            default:
+              collector.addFailure(
+                String.format("Unknown type '%s' for column '%s' in data extension '%s'.",
+                              column.getType(), column.getName(), dataExtensionKey),
+                "Supported types are: boolean, decimal, phone, text, email_address, locale, date and number.")
+                .withInputSchemaField(fieldName);
+          }
         }
       }
       return null;
