@@ -22,7 +22,7 @@
   <name>Salesforce Marketing plugins</name>
   <groupId>io.cdap.plugin</groupId>
   <artifactId>salesforce-marketing-plugins</artifactId>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.2.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
 
@@ -35,6 +35,7 @@
     <hadoop.version>2.3.0</hadoop.version>
     <hydrator.version>2.2.0</hydrator.version>
     <salesforce.marketing.cloud.version>1.4.0</salesforce.marketing.cloud.version>
+    <cxf.version>3.1.9</cxf.version>
   </properties>
 
   <repositories>
@@ -186,11 +187,34 @@
       </exclusions>
     </dependency>
 
+
     <dependency>
       <groupId>com.github.salesforce-marketingcloud</groupId>
       <artifactId>fuelsdk</artifactId>
       <version>${salesforce.marketing.cloud.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxws</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-bindings-soap</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-transports-http</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-ws-security</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>

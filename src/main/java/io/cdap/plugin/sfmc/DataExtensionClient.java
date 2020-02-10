@@ -277,16 +277,16 @@ public class DataExtensionClient {
     //
     // Perform the SOAP create:
     //
-    String obj = "";
+    StringBuilder objBuilder = new StringBuilder();
 
     CreateRequest createRequest = new CreateRequest();
     createRequest.setOptions(new CreateOptions());
     for (T object : objects) {
       object.setClient(client);
       createRequest.getObjects().add(object.toInternal());
-      obj += object.getClass().getSimpleName().substring(2);
+      objBuilder.append(object.getClass().getSimpleName().substring(2));
     }
-    Soap soap = connection.getSoap("create", obj);
+    Soap soap = connection.getSoap("create", objBuilder.toString());
 
     CreateResponse createResponse = soap.create(createRequest);
 
