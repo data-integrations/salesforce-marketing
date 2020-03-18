@@ -20,7 +20,7 @@ import com.google.common.base.Strings;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Information about a ServiceNow table column.
+ * Information about a Salesforce table column.
  */
 public class SalesforceColumn {
   @SerializedName("element")

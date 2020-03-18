@@ -17,12 +17,12 @@
 package io.cdap.plugin.sfmc.source.util;
 
 /**
- * ServiceNow constants.
+ * Salesforce constants.
  */
 public interface SalesforceConstants {
 
   /**
-   * ServiceNow plugin name.
+   * Salesforce plugin name.
    */
   String PLUGIN_NAME = "Salesforce";
 

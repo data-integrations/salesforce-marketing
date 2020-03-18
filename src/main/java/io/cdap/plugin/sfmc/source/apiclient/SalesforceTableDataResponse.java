@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A Pojo class to wrap the success response for ServiceNow Table data
+ * A Pojo class to wrap the success response for Salesforce Table data
  */
 public class SalesforceTableDataResponse {
   private int totalRecordCount;

@@ -16,28 +16,27 @@
 
 package io.cdap.plugin.sfmc.source.apiclient;
 
-import com.exacttarget.fuelsdk.ETClient;
-import com.exacttarget.fuelsdk.ETSdkException;
-import com.google.common.base.Strings;
+
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
+import io.cdap.plugin.sfmc.DataExtensionClient;
 import io.cdap.plugin.sfmc.source.SalesforceSourceConfig;
 import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
-import io.cdap.plugin.sfmc.source.util.TokenGenerator;
+import io.cdap.plugin.sfmc.source.util.TableConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
+
 import java.util.List;
 import java.util.Map;
 
 /**
- * Implementation class for ServiceNow Table API
+ * Implementation class for Salesforce Table API
  */
 public class SalesforceTableAPIClientImpl {
     private static final Logger LOG = LoggerFactory.getLogger(SalesforceTableAPIClientImpl.class);
@@ -48,11 +47,12 @@ public class SalesforceTableAPIClientImpl {
     public SalesforceTableAPIClientImpl(SalesforceSourceConfig conf) {
         this.conf = conf;
 
-        TokenGenerator tokenGenerator = new TokenGenerator();
+        TableConnection tableConnection = new TableConnection();
         try {
-            ETClient client = tokenGenerator.getAPIDetails(conf);
-            client.getAccessToken();
-            LOG.info("token{}, client{}", client.getAccessToken(), client.getClientId());
+            DataExtensionClient client = tableConnection.getTableConnection(conf);
+
+            LOG.info("getDataExtensionInfo  {}, getDataExtensionKey  {}",
+                    client.getDataExtensionInfo(), client.getDataExtensionKey());
         } catch (Exception ets) {
             ets.printStackTrace();
         }

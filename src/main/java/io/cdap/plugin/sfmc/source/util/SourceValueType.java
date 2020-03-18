@@ -22,17 +22,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Indicates type of value to be returned from ServiceNow Table API
+ * Indicates type of value to be returned from Salesforce Table API
  */
 public enum SourceValueType {
 
   /**
-   * Actual values will be returned by ServiceNow Table API
+   * Actual values will be returned by Salesforce Table API
    */
   SHOW_ACTUAL_VALUE("Actual", "false"),
 
   /**
-   * Display values will be returned by ServiceNow Table API
+   * Display values will be returned by Salesforce Table API
    */
   SHOW_DISPLAY_VALUE("Display", "true");
 

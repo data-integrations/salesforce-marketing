@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Indicates application for which data to be fetched from multiple tables in ServiceNow.
+ * Indicates application for which data to be fetched from multiple tables in Salesforce.
  */
 public enum SourceApplication {
 

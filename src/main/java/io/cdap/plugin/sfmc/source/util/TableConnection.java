@@ -17,28 +17,24 @@
 
 package io.cdap.plugin.sfmc.source.util;
 
-import com.exacttarget.fuelsdk.ETClient;
 import com.exacttarget.fuelsdk.ETConfiguration;
-import com.exacttarget.fuelsdk.ETDataExtension;
-import com.exacttarget.fuelsdk.ETDataExtensionRow;
-import com.exacttarget.fuelsdk.ETFilter;
-import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETSdkException;
+import io.cdap.plugin.sfmc.DataExtensionClient;
 import io.cdap.plugin.sfmc.source.SalesforceSourceConfig;
-import io.cdap.plugin.sfmc.source.apiclient.SalesforceTableAPIClientImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
- * TokenGenerator class.
+ * TableConnection class.
+ * A data extension is a table that contains your data
  */
-public class TokenGenerator {
-    private static final Logger LOG = LoggerFactory.getLogger(TokenGenerator.class);
+public class TableConnection {
+    private static final Logger LOG = LoggerFactory.getLogger(TableConnection.class);
 
-    public ETClient getAPIDetails(SalesforceSourceConfig conf) throws ETSdkException {
-
+    public DataExtensionClient getTableConnection(SalesforceSourceConfig conf)  {
+        DataExtensionClient client = null;
         ETConfiguration configuration = new ETConfiguration();
       /*  configuration.setClientId("isftmkzk5sr7olx6em78otnw");
         configuration.setClientSecret("OHT528TeEsDd5dHtrQOUjWtl");
@@ -51,7 +47,7 @@ public class TokenGenerator {
         configuration.set("endpoint", conf.getRestEndpoint());
         configuration.set("authEndpoint", conf.getAuthEndpoint());
         configuration.set("useOAuth2Authentication", "true");
-        ETClient client = new ETClient(configuration);*/
+        ETClient client = new ETClient(configuration);
         configuration.set("clientId", "isftmkzk5sr7olx6em78otnw");
         configuration.set("clientSecret", "OHT528TeEsDd5dHtrQOUjWtl");
         configuration.set("soapEndpoint",
@@ -59,7 +55,20 @@ public class TokenGenerator {
         configuration.set("endpoint", "https://mc-67-bn30-84yc47k-pw5rw0vp1.rest.marketingcloudapis.com/");
         configuration.set("authEndpoint", "https://mc-67-bn30-84yc47k-pw5rw0vp1.auth.marketingcloudapis.com/");
         configuration.set("useOAuth2Authentication", "true");
-        ETClient client = new ETClient(configuration);
+        ETClient client = new ETClient(configuration);*/
+        try {
+             client = DataExtensionClient.create("2E2DF3B8-F3A0-415C-9EFC-922D32E13E61",
+                     conf.getClientId(), conf.getClientSecret(),
+                    conf.getAuthEndpoint(), conf.getSoapEndpoint());
+
+        } catch (ETSdkException e) {
+            try {
+                throw new IOException("Unable to create Salesforce Marketing Cloud client.", e);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+
 
        /* ETFilter etf = new ETFilter();
         etf.addProperty("id");

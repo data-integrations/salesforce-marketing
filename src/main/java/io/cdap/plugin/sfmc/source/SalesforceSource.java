@@ -19,19 +19,18 @@ package io.cdap.plugin.sfmc.source;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.api.data.batch.Input;
+
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.dataset.lib.KeyValue;
 import io.cdap.cdap.etl.api.Emitter;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.StageConfigurer;
-import io.cdap.cdap.etl.api.action.SettableArguments;
+
 import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
-import io.cdap.plugin.common.SourceInputFormatProvider;
-//import io.cdap.plugin.servicenow.source.util.SalesforceObjectInfo;
-//import io.cdap.plugin.servicenow.source.util.SourceObjectMode;
+
+
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
 import org.apache.hadoop.conf.Configuration;

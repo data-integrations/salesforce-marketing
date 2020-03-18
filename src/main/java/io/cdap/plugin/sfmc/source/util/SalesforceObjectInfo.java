@@ -19,7 +19,7 @@ package io.cdap.plugin.sfmc.source.util;
 import io.cdap.cdap.api.data.schema.Schema;
 
 /**
- * Information about a ServiceNow table.
+ * Information about a Salesforce table.
  */
 public class SalesforceObjectInfo {
   private final String tableName;

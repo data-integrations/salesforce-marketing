@@ -24,7 +24,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * ServiceNow input split
+ * Salesforce input split
  */
 public class SalesforceInputSplit extends InputSplit implements Writable {
   private String tableName;

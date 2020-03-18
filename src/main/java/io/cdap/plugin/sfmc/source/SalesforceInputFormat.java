@@ -43,13 +43,13 @@ import java.util.List;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PAGE_SIZE;
 
 /**
- * ServiceNow input format
+ * Salesforce input format
  */
 public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredRecord> {
     private static final Logger LOG = LoggerFactory.getLogger(SalesforceInputFormat.class);
 
     /**
-     * Configure the input format to read tables from ServiceNow. Should be called from the mapreduce client.
+     * Configure the input format to read tables from Salesforce. Should be called from the mapreduce client.
      *
      * @param jobConfig the job configuration
      * @param mode

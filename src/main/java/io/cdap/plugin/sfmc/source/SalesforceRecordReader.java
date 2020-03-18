@@ -43,7 +43,7 @@ import java.util.Objects;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PAGE_SIZE;
 
 /**
- * Record reader that reads the entire contents of a ServiceNow table.
+ * Record reader that reads the entire contents of a Salesforce table.
  */
 public class SalesforceRecordReader extends RecordReader<NullWritable, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(SalesforceRecordReader.class);
