@@ -107,8 +107,7 @@ public class DataExtensionClient {
                 if (schemaField == null) {
                     if (column.getIsRequired()) {
                         collector.addFailure(
-                                String.format("Data extension '%s' contains a required column '%s' of type '%s'" +
-                                        " that is not present in " +
+              String.format("Data extension '%s' contains a required column '%s' of type '%s' that is not present in " +
                                         "the input schema.", dataExtensionKey, columnName, column.getType())
                                 , null)
                                 .withConfigProperty(MarketingCloudConf.DATA_EXTENSION);
@@ -131,22 +130,18 @@ public class DataExtensionClient {
                         case BOOLEAN:
                             if (schemaType != Schema.Type.BOOLEAN) {
                                 collector.addFailure(
-                                        String.format("Column '%s' is a boolean in data extension '%s', but is a '%s'" +
-                                                        " in the input schema.",
+                  String.format("Column '%s' is a boolean in data extension '%s', but is a '%s' in the input schema.",
                                                 originalName, dataExtensionKey, schemaTypeStr),
-                                        "Change the field schema to ensure it is" +
-                                                " a boolean or string type.")
+                  "Change the field schema to ensure it is a boolean or string type.")
                                         .withInputSchemaField(fieldName);
                             }
                             break;
                         case DECIMAL:
                             if (fieldSchema.getLogicalType() != Schema.LogicalType.DECIMAL) {
                                 collector.addFailure(
-                                        String.format("Column '%s' is a decimal in data extension '%s'," +
-                                                        " but is a '%s' in the input schema.",
+                  String.format("Column '%s' is a decimal in data extension '%s', but is a '%s' in the input schema.",
                                                 originalName, dataExtensionKey, schemaTypeStr),
-                                        "Change the field schema to ensure it is a decimal" +
-                                                " or string type.").withInputSchemaField(fieldName);
+                  "Change the field schema to ensure it is a decimal or string type.").withInputSchemaField(fieldName);
                             }
                             break;
                         case PHONE:
@@ -154,8 +149,7 @@ public class DataExtensionClient {
                         case EMAIL_ADDRESS:
                         case LOCALE:
                             collector.addFailure(
-                                    String.format("Column '%s' is a %s in data extension '%s', but is a '%s'" +
-                                                    " in the input schema.",
+                String.format("Column '%s' is a %s in data extension '%s', but is a '%s' in the input schema.",
                                             originalName, column.getType().name().toLowerCase(), dataExtensionKey,
                                             schemaTypeStr),
                                     "Change the field schema to ensure it is a string type.")
@@ -164,8 +158,7 @@ public class DataExtensionClient {
                         case DATE:
                             if (fieldSchema.getLogicalType() != Schema.LogicalType.DATE) {
                                 collector.addFailure(
-                                        String.format("Column '%s' is a date in data extension '%s', but is a '%s'" +
-                                                        " in the input schema.",
+                  String.format("Column '%s' is a date in data extension '%s', but is a '%s' in the input schema.",
                                                 originalName, dataExtensionKey, schemaTypeStr),
                                         "Change the field schema to ensure it is a date or string type."
                                 ).withInputSchemaField(fieldName);
@@ -174,19 +167,16 @@ public class DataExtensionClient {
                         case NUMBER:
                             if (schemaType != Schema.Type.INT) {
                                 collector.addFailure(
-                                        String.format("Column '%s' is a number in data extension '%s', but is a '%s'" +
-                                                        " in the input schema.",
+                  String.format("Column '%s' is a number in data extension '%s', but is a '%s' in the input schema.",
                                                 originalName, dataExtensionKey, schemaTypeStr),
-                                        "Change the field schema to ensure it is an integer or string" +
-                                                " type.").withInputSchemaField(fieldName);
+                  "Change the field schema to ensure it is an integer or string type.").withInputSchemaField(fieldName);
                             }
                             break;
                         default:
                             collector.addFailure(
                                     String.format("Unknown type '%s' for column '%s' in data extension '%s'.",
                                             column.getType(), column.getName(), dataExtensionKey),
-                                    "Supported types are: boolean, decimal, phone, text, email_address," +
-                                            " locale, date and number.")
+                "Supported types are: boolean, decimal, phone, text, email_address, locale, date and number.")
                                     .withInputSchemaField(fieldName);
                     }
                 }
@@ -490,21 +480,17 @@ public class DataExtensionClient {
      * Used to run the client from the command line. Primarily used for testing purposes.
      * Expects arguments in the form [command] [key] [properties files] where properties file is expected
      * to contain lines like:
-     * <p>
+   *
      * clientId=...
      * clientSecret=...
      * authEndpoint=...
      * soapEndpoint=...
      */
     public static void main(String[] args) throws Exception {
-   /* String command = args[0];
+    String command = args[0];
     String key = args[1];
-    String propertiesFile = args[2];*/
-        String command = "describe";
-        //  String key ="2E2DF3B8-F3A0-415C-9EFC-922D32E13E61";
-        String key = "7CBE457F-F056-4154-B21F-647CD11B81CF";
-        ETConfiguration conf = new ETConfiguration("/Users/akhilesh.trivedi/gitcdap/FuelSDK-Java-Example" +
-                "/src/main/java/com/exacttarget/fuelsdk/test/fuelsdk.properties");
+    String propertiesFile = args[2];
+    ETConfiguration conf = new ETConfiguration(propertiesFile);
 
         DataExtensionClient client = new DataExtensionClient(new ETClient(conf), key);
 
