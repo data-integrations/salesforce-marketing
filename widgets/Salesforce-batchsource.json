@@ -1,0 +1,151 @@
+{
+  "metadata": {
+    "spec-version": "1.0"
+  },
+  "display-name": "Salesforce",
+  "configuration-groups": [
+    {
+      "label": "Basic",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Reference Name",
+          "name": "referenceName",
+          "widget-attributes": {
+            "placeholder": "Name used to identify this source for lineage"
+          }
+        },
+        {
+          "widget-type": "select",
+          "label": "Data retrieval mode",
+          "name": "queryMode",
+          "widget-attributes": {
+            "values": [
+              "Multi-Object",
+              "Single-Object"
+            ],
+            "default": "Single-object"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Single-Object Mode",
+      "properties": [
+        {
+          "widget-type": "select",
+          "label": "Object Name",
+          "name": "objectName",
+          "widget-attributes": {
+            "values": [
+              "DataExtension",
+              "Campaign",
+              "Account",
+              "Email"
+            ],
+            "default": "DataExtension"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Multi-Object Mode",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "List Of Object Name",
+          "name": "multiObjectName",
+          "widget-attributes": {
+            "placeholder": "Salesforce object name from which data to be fetched"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Credentials",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Client ID",
+          "name": "clientId",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Client ID"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Client Secret",
+          "name": "clientSecret",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Client Secret Key"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "AUTH API Endpoint",
+          "name": "authEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce REST API Endpoint e.g. https://instance.auth.marketingcloudapis.com"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "SOAP API Endpoint",
+          "name": "soapEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "REST API Endpoint",
+          "name": "restEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce REST API Endpoint e.g. https://instance.rest.marketingcloudapis.com"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Advanced",
+      "properties": [
+        {
+          "widget-type": "select",
+          "label": "Type of values",
+          "name": "valueType",
+          "widget-attributes": {
+            "values": [
+              "Actual",
+              "Display"
+            ],
+            "default": "Actual"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Start Date",
+          "name": "startDate",
+          "widget-attributes" : {
+            "placeholder": "Start date to be used to filter the data"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "End Date",
+          "name": "endDate",
+          "widget-attributes" : {
+            "placeholder": "End date to be used to filter the data"
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": [ ],
+  "jump-config": {
+    "datasets": [
+      {
+        "ref-property-name": "referenceName"
+      }
+    ]
+  }
+}
