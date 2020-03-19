@@ -23,6 +23,7 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
+import io.cdap.plugin.sfmc.common.DataExtensionClient;
 
 import java.util.Collections;
 import java.util.HashMap;

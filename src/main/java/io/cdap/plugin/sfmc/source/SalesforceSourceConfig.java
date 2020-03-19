@@ -16,46 +16,41 @@
 
 package io.cdap.plugin.sfmc.source;
 
+import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.plugin.common.Constants;
-import io.cdap.plugin.sfmc.source.apiclient.SalesforceTableAPIClientImpl;
-import io.cdap.plugin.sfmc.source.util.SourceApplication;
+import io.cdap.plugin.sfmc.common.DataExtensionClient;
 import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
-import io.cdap.plugin.sfmc.source.util.SourceValueType;
 import io.cdap.plugin.sfmc.source.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.DATE_FORMAT;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_API_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_AUTH_API_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_CLIENT_ID;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_CLIENT_SECRET;
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_END_DATE;
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_MULTIOBJECT_NAME;
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_OBJECT_NAME;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_DATA_EXTENSION_KEY;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_DATA_EXTENSION_KEY_LIST;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_PAGE_SIZE;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_QUERY_MODE;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_SOAP_API_ENDPOINT;
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_START_DATE;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_TABLE_NAME_FIELD;
 
-
-
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_VALUE_TYPE;
 /**
  * Configuration for the {@link SalesforceSource}.
  */
 public class SalesforceSourceConfig extends PluginConfig {
   private static final Logger LOG = LoggerFactory.getLogger(SalesforceSourceConfig.class);
+
   @Name(Constants.Reference.REFERENCE_NAME)
   @Description("This will be used to uniquely identify this source for lineage, annotating metadata, etc.")
   private String referenceName;
@@ -67,7 +62,7 @@ public class SalesforceSourceConfig extends PluginConfig {
     + "`Table` - will allow user to enter table name for which data will be fetched.")
   private String queryMode;
 
-  @Name(PROPERTY_MULTIOBJECT_NAME)
+  @Name(PROPERTY_DATA_EXTENSION_KEY_LIST)
   @Macro
   @Nullable
   @Description("Application name for which data to be fetched. The application can be one of three values: " +
@@ -75,14 +70,22 @@ public class SalesforceSourceConfig extends PluginConfig {
     "`Product Catalog` - will fetch data for all tables under Product Catalog application, " +
     "`Procurement` - will fetch data for all tables under Procurement application. " +
     "Note, the Application name value will be ignored if the Mode is set to `Table`.")
-  private String multiObjectName;
+  private String dataExtensionKeys;
 
-  @Name(PROPERTY_OBJECT_NAME)
+  @Name(PROPERTY_TABLE_NAME_FIELD)
+  @Macro
+  @Nullable
+  @Description("The name of the field that holds the table name. Must not be the name of any table column that " +
+    "will be read. Defaults to `tablename`. Note, the Table name field value will be ignored if the Mode " +
+    "is set to `Table`.")
+  private String tableNameField;
+
+  @Name(PROPERTY_DATA_EXTENSION_KEY)
   @Macro
   @Nullable
   @Description("The name of the Salesforce table from which data to be fetched. Note, the Table name value " +
     "will be ignored if the Mode is set to `Reporting`.")
-  private String objectName;
+  private String dataExtensionKey;
 
   @Name(PROPERTY_CLIENT_ID)
   @Macro
@@ -102,52 +105,34 @@ public class SalesforceSourceConfig extends PluginConfig {
   @Name(PROPERTY_AUTH_API_ENDPOINT)
   @Macro
   @Description("The AUTH API Endpoint for Salesforce Instance. " +
-          "For example, https://instance.auth.marketingcloudapis.com")
+    "For example, https://instance.auth.marketingcloudapis.com")
   private String authEndpoint;
 
   @Name(PROPERTY_SOAP_API_ENDPOINT)
   @Macro
   @Description("The SOAP API Endpoint for Salesforce Instance. " +
-          "For example https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx")
+    "For example https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx")
   private String soapEndpoint;
 
-  @Name(PROPERTY_VALUE_TYPE)
+  @Name(PROPERTY_PAGE_SIZE)
   @Macro
-  @Nullable
-  @Description("The type of values to be returned. The type can be one of two values: "
-    + "`Actual` -  will fetch the actual values from the Salesforce tables, "
-    + "`Display` - will fetch the display values from the Salesforce tables.")
-  private String valueType;
+  @Description("Maximum number of records that can be read from Salesforce Marketing Cloud in one page. "
+    + "The minimum value is 1 and maximum value is 2500")
+  private int pageSize;
 
-  @Name(PROPERTY_START_DATE)
-  @Macro
-  @Nullable
-  @Description("The Start date to be used to filter the data. The format must be 'yyyy-MM-dd'.")
-  private String startDate;
-
-  @Name(PROPERTY_END_DATE)
-  @Macro
-  @Nullable
-  @Description("The End date to be used to filter the data. The format must be 'yyyy-MM-dd'.")
-  private String endDate;
-
-  public SalesforceSourceConfig(String referenceName, String queryMode, @Nullable String multiObjectName,
-                                @Nullable String objectName, String clientId,
-                                String clientSecret, String restEndpoint, String authEndpoint, String soapEndpoint,
-                                @Nullable String valueType, @Nullable String startDate, @Nullable String endDate) {
+  public SalesforceSourceConfig(String referenceName, String queryMode, @Nullable String dataExtensionKeys,
+                                @Nullable String dataExtensionKey, String clientId, String clientSecret,
+                                String restEndpoint, String authEndpoint, String soapEndpoint, int pageSize) {
     this.referenceName = referenceName;
     this.queryMode = queryMode;
-    this.multiObjectName = multiObjectName;
-
-    this.objectName = objectName;
+    this.dataExtensionKeys = dataExtensionKeys;
+    this.dataExtensionKey = dataExtensionKey;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.restEndpoint = restEndpoint;
     this.authEndpoint = authEndpoint;
     this.soapEndpoint = soapEndpoint;
-    this.valueType = valueType;
-    this.startDate = startDate;
-    this.endDate = endDate;
+    this.pageSize = pageSize;
   }
 
   public String getReferenceName() {
@@ -172,30 +157,19 @@ public class SalesforceSourceConfig extends PluginConfig {
     return sourceQueryMode.isPresent() ? sourceQueryMode.get() : null;
   }
 
-  public SourceApplication getApplicationName(FailureCollector collector) {
-    SourceApplication application = getApplicationName();
-    if (application != null) {
-      return application;
-    }
-
-    collector.addFailure("Unsupported multiObject name value: " + multiObjectName,
-      String.format("Supported applications are: %s", SourceApplication.getSupportedApplications()))
-      .withConfigProperty(PROPERTY_MULTIOBJECT_NAME);
-    throw collector.getOrThrowException();
+  @Nullable
+  public String getDataExtensionKeys() {
+    return dataExtensionKeys;
   }
 
   @Nullable
-  public SourceApplication getApplicationName() {
-    Optional<SourceApplication> sourceApplication = SourceApplication.fromValue(multiObjectName);
-
-    return sourceApplication.isPresent() ? sourceApplication.get() : null;
+  public String getTableNameField() {
+    return tableNameField;
   }
 
-
-
   @Nullable
-  public String getObjectName() {
-    return objectName;
+  public String getDataExtensionKey() {
+    return dataExtensionKey;
   }
 
   public String getClientId() {
@@ -218,33 +192,8 @@ public class SalesforceSourceConfig extends PluginConfig {
     return soapEndpoint;
   }
 
-  public SourceValueType getValueType(FailureCollector collector) {
-    SourceValueType type = getValueType();
-    if (type != null) {
-      return type;
-    }
-
-    collector.addFailure("Unsupported type value: " + valueType,
-      String.format("Supported value types are: %s", SourceValueType.getSupportedValueTypes()))
-      .withConfigProperty(PROPERTY_VALUE_TYPE);
-    throw collector.getOrThrowException();
-  }
-
-  @Nullable
-  public SourceValueType getValueType() {
-    Optional<SourceValueType> sourceValueType = SourceValueType.fromValue(valueType);
-
-    return sourceValueType.isPresent() ? sourceValueType.get() : null;
-  }
-
-  @Nullable
-  public String getStartDate() {
-    return startDate;
-  }
-
-  @Nullable
-  public String getEndDate() {
-    return endDate;
+  public int getPageSize() {
+    return pageSize;
   }
 
   /**
@@ -256,8 +205,7 @@ public class SalesforceSourceConfig extends PluginConfig {
 
     validateCredentials(collector);
     validateQueryMode(collector);
-    getValueType(collector);
-    validateDateRange(collector);
+    validatePageSize(collector);
   }
 
   private void validateCredentials(FailureCollector collector) {
@@ -292,11 +240,9 @@ public class SalesforceSourceConfig extends PluginConfig {
 
     try {
       LOG.info("Called SalesforceTableAPIClientImpl");
-      SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(this);
+      DataExtensionClient.create("", clientId, clientSecret, authEndpoint, soapEndpoint);
       LOG.info("Completed SalesforceTableAPIClientImpl");
-   //   restApi.getAccessToken();
-      //1- TODO
-    } catch (Exception e) {
+    } catch (ETSdkException e) {
       collector.addFailure("Unable to connect to Salesforce Instance.",
         "Ensure properties like Client ID, Client Secret, API Endpoint, Soap Endpoint, Auth Endpoint " +
           "are correct.")
@@ -317,63 +263,50 @@ public class SalesforceSourceConfig extends PluginConfig {
 
     SourceObjectMode mode = getQueryMode(collector);
 
-    if (mode == SourceObjectMode.MULTIOBJECT) {
+    if (mode == SourceObjectMode.MULTI_OBJECT) {
       validateMultiObjectQueryMode(collector);
     } else {
-      validateObjectQueryMode(collector);
+      validateSingleObjectQueryMode(collector);
     }
   }
 
   private void validateMultiObjectQueryMode(FailureCollector collector) {
-    if (!containsMacro(PROPERTY_MULTIOBJECT_NAME)) {
-      getApplicationName(collector);
-    }
-
-
-
-
-  }
-
-  private void validateObjectQueryMode(FailureCollector collector) {
-    if (containsMacro(PROPERTY_OBJECT_NAME)) {
+    if (containsMacro(PROPERTY_DATA_EXTENSION_KEY_LIST) || containsMacro(PROPERTY_TABLE_NAME_FIELD)) {
       return;
     }
 
-    if (Util.isNullOrEmpty(objectName)) {
-      collector.addFailure("Object name must be specified.", null)
-        .withConfigProperty(PROPERTY_OBJECT_NAME);
+    List<String> dataExtensionKeyList = Util.splitToList(getDataExtensionKeys(), ',');
+    if (dataExtensionKeyList.isEmpty()) {
+      collector.addFailure("At least 1 Data Extension Key must be specified.", null)
+        .withConfigProperty(PROPERTY_DATA_EXTENSION_KEY_LIST);
+    }
+
+    if (Util.isNullOrEmpty(tableNameField)) {
+      collector.addFailure("Table name field must be specified.", null)
+        .withConfigProperty(PROPERTY_TABLE_NAME_FIELD);
     }
   }
 
-  private void validateDateRange(FailureCollector collector) {
-    if (containsMacro(PROPERTY_START_DATE) || containsMacro(PROPERTY_END_DATE)) {
+  private void validateSingleObjectQueryMode(FailureCollector collector) {
+    if (containsMacro(PROPERTY_DATA_EXTENSION_KEY)) {
       return;
     }
 
-    if (Util.isNullOrEmpty(startDate) || Util.isNullOrEmpty(endDate)) {
+    if (Util.isNullOrEmpty(dataExtensionKey)) {
+      collector.addFailure("Data Extension Key must be specified.", null)
+        .withConfigProperty(PROPERTY_DATA_EXTENSION_KEY);
+    }
+  }
+
+  private void validatePageSize(FailureCollector collector) {
+    if (containsMacro(PROPERTY_PAGE_SIZE)) {
       return;
     }
 
-    //validate the date formats for both start date & end date
-    if (!Util.isValidDateFormat(DATE_FORMAT, startDate)) {
-      collector.addFailure("Invalid format for Start date. Correct Format: " + DATE_FORMAT, null)
-        .withConfigProperty(PROPERTY_START_DATE);
-    }
-
-    if (!Util.isValidDateFormat(DATE_FORMAT, endDate)) {
-      collector.addFailure("Invalid format for End date. Correct Format:" + DATE_FORMAT, null)
-        .withConfigProperty(PROPERTY_END_DATE);
-    }
-
-    //validate the date range by checking if start date is smaller than end date
-    LocalDate fromDate = LocalDate.parse(startDate);
-    LocalDate toDate = LocalDate.parse(endDate);
-    long noOfDays = ChronoUnit.DAYS.between(fromDate, toDate);
-
-    if (noOfDays < 0) {
-      collector.addFailure("End date must be greater than Start date.", null)
-        .withConfigProperty(PROPERTY_START_DATE)
-        .withConfigProperty(PROPERTY_END_DATE);
+    if (pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
+      collector.addFailure(String.format("Invalid page size '%d'.", pageSize),
+        String.format("Ensure the page size is at least 1 or at most '%d'", MAX_PAGE_SIZE))
+        .withConfigProperty(PROPERTY_PAGE_SIZE);
     }
   }
 

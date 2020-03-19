@@ -20,13 +20,12 @@ import com.exacttarget.fuelsdk.ETDataExtensionColumn;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.plugin.sfmc.common.DataExtensionInfo;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Converts StructuredRecords into DataExtensionRows.

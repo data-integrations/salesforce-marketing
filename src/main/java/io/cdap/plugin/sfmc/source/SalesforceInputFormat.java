@@ -16,8 +16,11 @@
 
 package io.cdap.plugin.sfmc.source;
 
+import com.exacttarget.fuelsdk.ETDataExtension;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.plugin.sfmc.common.DataExtensionClient;
+import io.cdap.plugin.sfmc.common.DataExtensionInfo;
 import io.cdap.plugin.sfmc.source.apiclient.SalesforceTableAPIClientImpl;
 
 import io.cdap.plugin.sfmc.source.apiclient.SalesforceTableDataResponse;
@@ -25,6 +28,7 @@ import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SchemaBuilder;
 import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
+import io.cdap.plugin.sfmc.source.util.Util;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
@@ -39,8 +43,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PAGE_SIZE;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
 
 /**
  * Salesforce input format
@@ -72,8 +77,8 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
 
     private static List<SalesforceObjectInfo> fetchTableInfo(SourceObjectMode mode, SalesforceSourceConfig conf) {
         //When mode = Table, fetch details from the table name provided in plugin config
-        if (mode == SourceObjectMode.SINGLEOBJECT) {
-            SalesforceObjectInfo tableInfo = getTableMetaData(conf.getObjectName(), conf);
+        if (mode == SourceObjectMode.SINGLE_OBJECT) {
+            SalesforceObjectInfo tableInfo = getTableMetaData(conf.getDataExtensionKey(), conf);
             return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
         }
 
@@ -81,7 +86,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
         //and then fetch details from each of the tables.
         List<SalesforceObjectInfo> tableInfos = new ArrayList<>();
 
-        List<String> tableNames = conf.getApplicationName().getTableNames();
+        List<String> tableNames = Util.splitToList(conf.getDataExtensionKeys(), ',');
         for (String tableName : tableNames) {
             SalesforceObjectInfo tableInfo = getTableMetaData(tableName, conf);
             if (tableInfo == null) {
@@ -93,26 +98,46 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
         return tableInfos;
     }
 
-    private static SalesforceObjectInfo getTableMetaData(String tableName, SalesforceSourceConfig conf) {
+    private static SalesforceObjectInfo getTableMetaData(String tableKey, SalesforceSourceConfig conf) {
         //Call API to fetch first record from the table
-        SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(conf);
-        SalesforceTableDataResponse response = null;
+        //SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(conf);
+        //SalesforceTableDataResponse response = null;
         //SalesforceTableDataResponse response = restApi.fetchTableSchema(tableName,
         // conf.getStartDate(), conf.getEndDate(),
         //  true);
-        if (response == null) {
+
+        String tableName = "";
+
+        try {
+            DataExtensionClient client = DataExtensionClient.create(tableKey, conf.getClientId(),
+              conf.getClientSecret(), conf.getAuthEndpoint(), conf.getSoapEndpoint());
+
+            ETDataExtension dataExtension = client.retrieveDataExtension(tableKey);
+            if (dataExtension == null) {
+                return null;
+            }
+
+            tableName = dataExtension.getName();
+            DataExtensionInfo metaData = client.getDataExtensionInfo();
+
+            List<SalesforceColumn> columns = metaData.getColumnList().stream()
+              .map(o->new SalesforceColumn(o.getName(), o.getType().name()))
+              .collect(Collectors.toList());
+
+            if (columns == null || columns.isEmpty()) {
+                return null;
+            }
+
+            SchemaBuilder schemaBuilder = new SchemaBuilder();
+            Schema schema = schemaBuilder.constructSchema(tableName, columns);
+
+            int totalRecords = client.fetchRecordCount();
+
+            LOG.debug("table {}, rows = {}", tableName, totalRecords);
+            return new SalesforceObjectInfo(tableKey, tableName, schema, totalRecords);
+        } catch (Exception e) {
             return null;
         }
-
-        List<SalesforceColumn> columns = response.getColumns();
-        if (columns == null || columns.isEmpty()) {
-            return null;
-        }
-
-        SchemaBuilder schemaBuilder = new SchemaBuilder();
-        Schema schema = schemaBuilder.constructSchema(tableName, columns);
-        LOG.debug("table {}, rows = {}", tableName, response.getTotalRecordCount());
-        return new SalesforceObjectInfo(tableName, schema, response.getTotalRecordCount());
     }
 
     @Override
@@ -120,29 +145,31 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
         SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(jobContext.getConfiguration());
         SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
 
+        int pageSize = pluginConf.getPageSize();
         List<SalesforceObjectInfo> tableInfos = jobConfig.getTableInfos();
         List<InputSplit> resultSplits = new ArrayList<>();
 
         for (SalesforceObjectInfo tableInfo : tableInfos) {
+            String tableKey = tableInfo.getTableKey();
             String tableName = tableInfo.getTableName();
             int totalRecords = tableInfo.getRecordCount();
-            if (totalRecords < PAGE_SIZE) {
+            if (totalRecords < pageSize) {
                 //add single split for table and continue
-                resultSplits.add(new SalesforceInputSplit(tableName, 0, totalRecords));
+                resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 0, totalRecords));
                 continue;
             }
 
-            int pages = (tableInfo.getRecordCount() / PAGE_SIZE) + 1;
+            int pages = (tableInfo.getRecordCount() / pageSize) + 1;
             int offset = 0;
-            int recordsOnPage = PAGE_SIZE;
+            int recordsOnPage = pageSize;
 
             for (int page = 1; page <= pages; page++) {
                 if (page == pages) {
                     recordsOnPage = totalRecords - offset;
                 }
-                resultSplits.add(new SalesforceInputSplit(tableName, offset, recordsOnPage));
-                offset += PAGE_SIZE;
-                recordsOnPage -= PAGE_SIZE;
+                resultSplits.add(new SalesforceInputSplit(tableKey, tableName, offset, recordsOnPage));
+                offset += pageSize;
+                recordsOnPage -= pageSize;
             }
         }
 

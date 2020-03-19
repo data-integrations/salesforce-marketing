@@ -21,6 +21,7 @@ import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETResult;
 import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.plugin.sfmc.common.DataExtensionClient;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;

@@ -16,12 +16,16 @@
 
 package io.cdap.plugin.sfmc.source;
 
+import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 
+import io.cdap.plugin.sfmc.common.DataExtensionClient;
+import io.cdap.plugin.sfmc.common.DataExtensionInfo;
 import io.cdap.plugin.sfmc.source.apiclient.SalesforceTableAPIClientImpl;
 import io.cdap.plugin.sfmc.source.apiclient.SalesforceTableDataResponse;
+import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
 import io.cdap.plugin.sfmc.source.util.SchemaBuilder;
 import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
 import org.apache.hadoop.io.NullWritable;
@@ -35,12 +39,12 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PAGE_SIZE;
+import java.util.stream.Collectors;
 
 /**
  * Record reader that reads the entire contents of a Salesforce table.
@@ -53,11 +57,12 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   private List<Schema.Field> tableFields;
   private Schema schema;
 
+  private String tableKey;
   private String tableName;
-
-  private List<Map<String, Object>> results;
-  private Iterator<Map<String, Object>> iterator;
-  private Map<String, Object> row;
+  private String tableNameField;
+  private List<ETDataExtensionRow> results;
+  private Iterator<ETDataExtensionRow> iterator;
+  private ETDataExtensionRow row;
 
   SalesforceRecordReader(SalesforceSourceConfig pluginConf) {
     this.pluginConf = pluginConf;
@@ -99,8 +104,8 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   public StructuredRecord getCurrentValue() throws IOException {
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
 
-    if (pluginConf.getQueryMode() == SourceObjectMode.MULTIOBJECT) {
-
+    if (pluginConf.getQueryMode() == SourceObjectMode.MULTI_OBJECT) {
+      recordBuilder.set(tableNameField, tableName);
     }
 
     try {
@@ -131,48 +136,74 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   }
 
   private void fetchData() {
+    tableKey = split.getTableKey();
     tableName = split.getTableName();
+    tableNameField = pluginConf.getTableNameField();
 
-
-    SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(pluginConf);
+    //SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(pluginConf);
 
     //Get the table data
    // results = restApi.fetchTableRecords(tableName, pluginConf.getStartDate(), pluginConf.getEndDate(),
     //  split.getOffset(), PAGE_SIZE);
 
-    LOG.debug("size={}", results.size());
-    if (!results.isEmpty()) {
-      fetchSchema(restApi);
+    try {
+      DataExtensionClient client = DataExtensionClient.create(tableKey, pluginConf.getClientId(),
+        pluginConf.getClientSecret(), pluginConf.getAuthEndpoint(), pluginConf.getSoapEndpoint());
+
+      results = client.pagedScan(split.getOffset(), pluginConf.getPageSize());
+
+      LOG.debug("size={}", results.size());
+      if (!results.isEmpty()) {
+        fetchSchema(client);
+      }
+
+    } catch (Exception e) {
+      results = Collections.emptyList();
     }
 
     iterator = results.iterator();
   }
 
-  private void fetchSchema(SalesforceTableAPIClientImpl restApi) {
+  private void fetchSchema(DataExtensionClient client) {
     //Fetch the column definition
    // SalesforceTableDataResponse response = restApi.fetchTableSchema(tableName, null, null,
    //   false);
+    /*
     SalesforceTableDataResponse response = null;
     if (response == null) {
       return;
     }
+    */
 
-    //Build schema
-    SchemaBuilder schemaBuilder = new SchemaBuilder();
-    Schema tempSchema = schemaBuilder.constructSchema(tableName, response.getColumns());
-    tableFields = tempSchema.getFields();
-    List<Schema.Field> schemaFields = new ArrayList<>(tableFields);
+    List<Schema.Field> schemaFields;
 
-    if (pluginConf.getQueryMode() == SourceObjectMode.MULTIOBJECT) {
+    try {
+      DataExtensionInfo metaData = client.getDataExtensionInfo();
 
+      List<SalesforceColumn> columns = metaData.getColumnList().stream()
+        .map(o->new SalesforceColumn(o.getName(), o.getType().name()))
+        .collect(Collectors.toList());
+
+      //Build schema
+      SchemaBuilder schemaBuilder = new SchemaBuilder();
+      Schema tempSchema = schemaBuilder.constructSchema(tableName, columns);
+      tableFields = tempSchema.getFields();
+      schemaFields = new ArrayList<>(tableFields);
+
+      if (pluginConf.getQueryMode() == SourceObjectMode.MULTI_OBJECT) {
+        schemaFields.add(Schema.Field.of(tableNameField, Schema.of(Schema.Type.STRING)));
+      }
+
+    } catch (Exception e) {
+      schemaFields = Collections.emptyList();
     }
 
     schema = Schema.recordOf(tableName, schemaFields);
   }
 
-  private Object convertToValue(String fieldName, Schema fieldSchema, Map<String, Object> record) {
+  private Object convertToValue(String fieldName, Schema fieldSchema, ETDataExtensionRow record) {
     Schema.Type fieldType = fieldSchema.getType();
-    Object fieldValue = record.get(fieldName);
+    Object fieldValue = record.getColumn(fieldName);
 
     switch (fieldType) {
       case STRING:
@@ -211,7 +242,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
         }
         throw new IllegalStateException(
           String.format("Field '%s' is of unexpected type '%s'. Declared 'complex UNION' types: %s",
-            fieldName, record.get(fieldName).getClass().getSimpleName(), fieldSchema.getUnionSchemas()));
+            fieldName, record.getColumn(fieldName).getClass().getSimpleName(), fieldSchema.getUnionSchemas()));
       default:
         throw new IllegalStateException(
           String.format("Record type '%s' is not supported for field '%s'", fieldType.name(), fieldName));
@@ -244,28 +275,5 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
     }
 
     return Boolean.parseBoolean(String.valueOf(fieldValue));
-  }
-
-  private StructuredRecord convertToRecordValue(String fieldName, Schema fieldSchema, Object fieldValue) {
-    if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
-      return null;
-    }
-
-    if (fieldValue instanceof Map) {
-      Map<String, Object> nestedRecord = (Map<String, Object>) fieldValue;
-      StructuredRecord.Builder nestedRecordBuilder = StructuredRecord.builder(fieldSchema);
-      Objects.requireNonNull(fieldSchema.getFields(), "Nested Schema fields cannot be empty").forEach(
-        nestedField -> {
-          String nestedFieldName = nestedField.getName();
-          Object nestedFieldValue = convertToValue(nestedFieldName, nestedField.getSchema(), nestedRecord);
-          nestedRecordBuilder.set(nestedFieldName, nestedFieldValue);
-        }
-      );
-      return nestedRecordBuilder.build();
-    } else {
-      throw new IllegalStateException(
-        String.format("Field '%s' is of unexpected type '%s'. Declared 'RECORD' types: %s",
-          fieldName, fieldValue.getClass().getSimpleName(), fieldSchema.toString()));
-    }
   }
 }

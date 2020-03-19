@@ -19,18 +19,19 @@ package io.cdap.plugin.sfmc.source;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-
+import io.cdap.cdap.api.data.batch.Input;
 import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.KeyValue;
 import io.cdap.cdap.etl.api.Emitter;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.StageConfigurer;
-
+import io.cdap.cdap.etl.api.action.SettableArguments;
 import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
-
-
+import io.cdap.plugin.common.LineageRecorder;
+import io.cdap.plugin.common.SourceInputFormatProvider;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
 import org.apache.hadoop.conf.Configuration;
@@ -39,8 +40,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PLUGIN_NAME;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.TABLE_PREFIX;
 
 
 /**
@@ -84,17 +89,32 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
 
     Configuration hConf = new Configuration();
     Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf);
-   /* SettableArguments arguments = context.getArguments();
+    SettableArguments arguments = context.getArguments();
     for (SalesforceObjectInfo tableInfo : tables) {
       arguments.set(TABLE_PREFIX + tableInfo.getTableName(), tableInfo.getSchema().toString());
+      recordLineage(context, tableInfo);
     }
 
     context.setInput(Input.of(conf.getReferenceName(),
-      new SourceInputFormatProvider(ServiceNowInputFormat.class, hConf)));*/
+      new SourceInputFormatProvider(SalesforceInputFormat.class, hConf)));
   }
 
   @Override
   public void transform(KeyValue<NullWritable, StructuredRecord> input, Emitter<StructuredRecord> emitter) {
     emitter.emit(input.getValue());
+  }
+
+  private void recordLineage(BatchSourceContext context, SalesforceObjectInfo tableInfo) {
+    String tableName = tableInfo.getTableName();
+    String outputName = String.format("%s-%s", conf.getReferenceName(), tableName);
+    Schema schema = tableInfo.getSchema();
+    LineageRecorder lineageRecorder = new LineageRecorder(context, outputName);
+    lineageRecorder.createExternalDataset(schema);
+    List<Schema.Field> fields = Objects.requireNonNull(schema).getFields();
+    if (fields != null && !fields.isEmpty()) {
+      lineageRecorder.recordRead("Read",
+        String.format("Read from '%s' Salesforce table.", tableName),
+        fields.stream().map(Schema.Field::getName).collect(Collectors.toList()));
+    }
   }
 }

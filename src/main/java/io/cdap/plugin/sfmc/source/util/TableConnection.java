@@ -19,7 +19,7 @@ package io.cdap.plugin.sfmc.source.util;
 
 import com.exacttarget.fuelsdk.ETConfiguration;
 import com.exacttarget.fuelsdk.ETSdkException;
-import io.cdap.plugin.sfmc.DataExtensionClient;
+import io.cdap.plugin.sfmc.common.DataExtensionClient;
 import io.cdap.plugin.sfmc.source.SalesforceSourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

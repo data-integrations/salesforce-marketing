@@ -16,11 +16,14 @@
 
 package io.cdap.plugin.sfmc.source.util;
 
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Utility class.
@@ -30,17 +33,11 @@ public class Util {
     return Strings.isNullOrEmpty(Strings.nullToEmpty(string).trim());
   }
 
-  public static boolean isValidDateFormat(String dateFormat, String value) {
-    final SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-    try {
-      final Date date = sdf.parse(value);
-
-      if (!value.equals(sdf.format(date))) {
-        return false;
-      }
-    } catch (ParseException e) {
-      return false;
+  public static List<String> splitToList(String value, char delimiter) {
+    if (isNullOrEmpty(value)) {
+      return Collections.emptyList();
     }
-    return true;
+
+    return Splitter.on(delimiter).trimResults().splitToList(value);
   }
 }

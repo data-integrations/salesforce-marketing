@@ -23,7 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import io.cdap.plugin.sfmc.DataExtensionClient;
+import io.cdap.plugin.sfmc.common.DataExtensionClient;
 import io.cdap.plugin.sfmc.source.SalesforceSourceConfig;
 import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
 import io.cdap.plugin.sfmc.source.util.TableConnection;

@@ -61,27 +61,14 @@ public class SchemaBuilder {
     switch (column.getTypeName().toLowerCase()) {
       case "decimal":
         return Schema.of(Schema.Type.DOUBLE);
-      case "integer":
+      case "number":
         return Schema.of(Schema.Type.INT);
       case "boolean":
         return Schema.of(Schema.Type.BOOLEAN);
-      case "reference":
-        /*
-        List<Schema.Field> fields = Arrays.asList(
-          Schema.Field.of("link", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
-          Schema.Field.of("value", Schema.nullableOf(Schema.of(Schema.Type.STRING)))
-        );
-        return Schema.recordOf(column.getFieldName(), fields);
-        */
-      case "currency":
-      case "glide_date":
-      case "glide_date_time":
-      case "sys_class_name":
-      case "domain_id":
-      case "domain_path":
-      case "guid":
-      case "translated_html":
-      case "journal":
+      case "phone":
+      case "date":
+      case "email_address":
+      case "locale":
       case "string":
       default:
         return Schema.of(Schema.Type.STRING);

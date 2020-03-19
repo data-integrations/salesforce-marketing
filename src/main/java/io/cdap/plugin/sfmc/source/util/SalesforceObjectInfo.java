@@ -22,14 +22,20 @@ import io.cdap.cdap.api.data.schema.Schema;
  * Information about a Salesforce table.
  */
 public class SalesforceObjectInfo {
+  private final String tableKey;
   private final String tableName;
   private final Schema schema;
   private final int recordCount;
 
-  public SalesforceObjectInfo(String tableName, Schema schema, int recordCount) {
+  public SalesforceObjectInfo(String tableKey, String tableName, Schema schema, int recordCount) {
+    this.tableKey = tableKey;
     this.tableName = tableName;
     this.schema = schema;
     this.recordCount = recordCount;
+  }
+
+  public String getTableKey() {
+    return tableKey;
   }
 
   public String getTableName() {

@@ -24,7 +24,7 @@ public interface SalesforceConstants {
   /**
    * Salesforce plugin name.
    */
-  String PLUGIN_NAME = "Salesforce";
+  String PLUGIN_NAME = "SalesforceDataExtension";
 
   /**
    * Configuration property name used to specify the query mode.
@@ -32,19 +32,19 @@ public interface SalesforceConstants {
   String PROPERTY_QUERY_MODE = "queryMode";
 
   /**
-   * Configuration property name used to specify the MultiObject.
+   * Configuration property name used to specify data extension key
    */
-  String PROPERTY_MULTIOBJECT_NAME = "multiObjectName";
+  String PROPERTY_DATA_EXTENSION_KEY = "dataExtensionKey";
+
+  /**
+   * Configuration property name used to specify the comma-separated list of data extension keys.
+   */
+  String PROPERTY_DATA_EXTENSION_KEY_LIST = "dataExtensionKeyList";
 
   /**
    * Configuration property name used to specify the table name field.
    */
   String PROPERTY_TABLE_NAME_FIELD = "tableNameField";
-
-  /**
-   * Configuration property name used to specify Object name
-   */
-  String PROPERTY_OBJECT_NAME = "objectName";
 
   /**
    * Configuration property name used to specify client id
@@ -62,32 +62,22 @@ public interface SalesforceConstants {
   String PROPERTY_API_ENDPOINT = "restEndpoint";
 
   /**
-   * Configuration property name used to specify user name
+   * Configuration property name used to specify Auth API endpoint
    */
   String PROPERTY_AUTH_API_ENDPOINT = "authEndpoint";
 
   /**
-   * Configuration property name used to specify password
+   * Configuration property name used to specify SOAP endpoint
    */
   String PROPERTY_SOAP_API_ENDPOINT = "soapEndpoint";
 
   /**
-   * Configuration property name used to specify value type
+   * Configuration property name used to specify page size
    */
-  String PROPERTY_VALUE_TYPE = "valueType";
-
-  /**
-   * Configuration property name used to specify start date
-   */
-  String PROPERTY_START_DATE = "startDate";
-
-  /**
-   * Configuration property name used to specify end date
-   */
-  String PROPERTY_END_DATE = "endDate";
+  String PROPERTY_PAGE_SIZE = "pageSize";
 
   String TABLE_PREFIX = "multisink.";
   String DATE_FORMAT = "yyyy-MM-dd";
 
-  int PAGE_SIZE = 5000;
+  int MAX_PAGE_SIZE = 2500;
 }

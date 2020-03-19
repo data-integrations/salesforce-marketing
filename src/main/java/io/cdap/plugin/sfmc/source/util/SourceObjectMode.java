@@ -29,12 +29,12 @@ public enum SourceObjectMode {
   /**
    * Mode will be used as Reporting for querying data
    */
-  MULTIOBJECT("Multi-Object"),
+  MULTI_OBJECT("Multi Object"),
 
   /**
    * Mode will be used as Table for querying data
    */
-  SINGLEOBJECT("Single-Object");
+  SINGLE_OBJECT("Single Object");
 
   private final String value;
 
