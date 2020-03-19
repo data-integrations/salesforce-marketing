@@ -26,7 +26,6 @@ import com.google.gson.reflect.TypeToken;
 import io.cdap.plugin.sfmc.DataExtensionClient;
 import io.cdap.plugin.sfmc.source.SalesforceSourceConfig;
 import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
-import io.cdap.plugin.sfmc.source.util.TableConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +46,11 @@ public class SalesforceTableAPIClientImpl {
     public SalesforceTableAPIClientImpl(SalesforceSourceConfig conf) {
         this.conf = conf;
 
-        TableConnection tableConnection = new TableConnection();
+
         try {
-            DataExtensionClient client = tableConnection.getTableConnection(conf);
+            DataExtensionClient client = client = DataExtensionClient.create("DATAEXTENSIONKEY",
+                    conf.getClientId(), conf.getClientSecret(),
+                    conf.getAuthEndpoint(), conf.getSoapEndpoint());
 
             LOG.info("getDataExtensionInfo  {}, getDataExtensionKey  {}",
                     client.getDataExtensionInfo(), client.getDataExtensionKey());
