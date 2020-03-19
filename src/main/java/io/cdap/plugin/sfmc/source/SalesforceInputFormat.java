@@ -21,9 +21,6 @@ import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.plugin.sfmc.common.DataExtensionClient;
 import io.cdap.plugin.sfmc.common.DataExtensionInfo;
-import io.cdap.plugin.sfmc.source.apiclient.SalesforceTableAPIClientImpl;
-
-import io.cdap.plugin.sfmc.source.apiclient.SalesforceTableDataResponse;
 import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SchemaBuilder;
@@ -45,144 +42,142 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
-
 /**
  * Salesforce input format
  */
 public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredRecord> {
-    private static final Logger LOG = LoggerFactory.getLogger(SalesforceInputFormat.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SalesforceInputFormat.class);
 
-    /**
-     * Configure the input format to read tables from Salesforce. Should be called from the mapreduce client.
-     *
-     * @param jobConfig the job configuration
-     * @param mode
-     * @param conf      the database conf
-     * @return Collection of SalesforceObjectInfo containing table and schema.
-     */
-    public static List<SalesforceObjectInfo> setInput(Configuration jobConfig, SourceObjectMode mode,
-                                                      SalesforceSourceConfig conf) {
-        SalesforceJobConfiguration jobConf = new SalesforceJobConfiguration(jobConfig);
-        jobConf.setPluginConfiguration(conf);
+  /**
+   * Configure the input format to read tables from Salesforce. Should be called from the mapreduce client.
+   *
+   * @param jobConfig the job configuration
+   * @param mode
+   * @param conf      the database conf
+   * @return Collection of SalesforceObjectInfo containing table and schema.
+   */
+  public static List<SalesforceObjectInfo> setInput(Configuration jobConfig, SourceObjectMode mode,
+                                                    SalesforceSourceConfig conf) {
+    SalesforceJobConfiguration jobConf = new SalesforceJobConfiguration(jobConfig);
+    jobConf.setPluginConfiguration(conf);
 
-        //Depending on conf value fetch the list of fields for each table and create schema object
-        //return the schema object for each table as SalesforceObjectInfo
-        List<SalesforceObjectInfo> tableInfos = fetchTableInfo(mode, conf);
+    //Depending on conf value fetch the list of fields for each table and create schema object
+    //return the schema object for each table as SalesforceObjectInfo
+    List<SalesforceObjectInfo> tableInfos = fetchTableInfo(mode, conf);
 
-        jobConf.setTableInfos(tableInfos);
+    jobConf.setTableInfos(tableInfos);
 
-        return tableInfos;
+    return tableInfos;
+  }
+
+  private static List<SalesforceObjectInfo> fetchTableInfo(SourceObjectMode mode, SalesforceSourceConfig conf) {
+    //When mode = Table, fetch details from the table name provided in plugin config
+    if (mode == SourceObjectMode.SINGLE_OBJECT) {
+      SalesforceObjectInfo tableInfo = getTableMetaData(conf.getDataExtensionKey(), conf);
+      return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
     }
 
-    private static List<SalesforceObjectInfo> fetchTableInfo(SourceObjectMode mode, SalesforceSourceConfig conf) {
-        //When mode = Table, fetch details from the table name provided in plugin config
-        if (mode == SourceObjectMode.SINGLE_OBJECT) {
-            SalesforceObjectInfo tableInfo = getTableMetaData(conf.getDataExtensionKey(), conf);
-            return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
+    //When mode = Reporting, get the list of tables for application name provided in plugin config
+    //and then fetch details from each of the tables.
+    List<SalesforceObjectInfo> tableInfos = new ArrayList<>();
+
+    List<String> tableNames = Util.splitToList(conf.getDataExtensionKeys(), ',');
+    for (String tableName : tableNames) {
+      SalesforceObjectInfo tableInfo = getTableMetaData(tableName, conf);
+      if (tableInfo == null) {
+        continue;
+      }
+      tableInfos.add(tableInfo);
+    }
+
+    return tableInfos;
+  }
+
+  private static SalesforceObjectInfo getTableMetaData(String tableKey, SalesforceSourceConfig conf) {
+    //Call API to fetch first record from the table
+    //SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(conf);
+    //SalesforceTableDataResponse response = null;
+    //SalesforceTableDataResponse response = restApi.fetchTableSchema(tableName,
+    // conf.getStartDate(), conf.getEndDate(),
+    //  true);
+
+    String tableName = "";
+
+    try {
+      DataExtensionClient client = DataExtensionClient.create(tableKey, conf.getClientId(),
+        conf.getClientSecret(), conf.getAuthEndpoint(), conf.getSoapEndpoint());
+
+      ETDataExtension dataExtension = client.retrieveDataExtension(tableKey);
+      if (dataExtension == null) {
+        return null;
+      }
+
+      tableName = dataExtension.getName();
+      DataExtensionInfo metaData = client.getDataExtensionInfo();
+
+      List<SalesforceColumn> columns = metaData.getColumnList().stream()
+        .map(o -> new SalesforceColumn(o.getName(), o.getType().name()))
+        .collect(Collectors.toList());
+
+      if (columns == null || columns.isEmpty()) {
+        return null;
+      }
+
+      SchemaBuilder schemaBuilder = new SchemaBuilder();
+      Schema schema = schemaBuilder.constructSchema(tableName, columns);
+
+      int totalRecords = client.fetchRecordCount();
+
+      LOG.debug("table {}, rows = {}", tableName, totalRecords);
+      return new SalesforceObjectInfo(tableKey, tableName, schema, totalRecords);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  @Override
+  public List<InputSplit> getSplits(JobContext jobContext) throws IOException, InterruptedException {
+    SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(jobContext.getConfiguration());
+    SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
+
+    int pageSize = pluginConf.getPageSize();
+    List<SalesforceObjectInfo> tableInfos = jobConfig.getTableInfos();
+    List<InputSplit> resultSplits = new ArrayList<>();
+
+    for (SalesforceObjectInfo tableInfo : tableInfos) {
+      String tableKey = tableInfo.getTableKey();
+      String tableName = tableInfo.getTableName();
+      int totalRecords = tableInfo.getRecordCount();
+      if (totalRecords < pageSize) {
+        //add single split for table and continue
+        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 0, totalRecords));
+        continue;
+      }
+
+      int pages = (tableInfo.getRecordCount() / pageSize) + 1;
+      int offset = 0;
+      int recordsOnPage = pageSize;
+
+      for (int page = 1; page <= pages; page++) {
+        if (page == pages) {
+          recordsOnPage = totalRecords - offset;
         }
-
-        //When mode = Reporting, get the list of tables for application name provided in plugin config
-        //and then fetch details from each of the tables.
-        List<SalesforceObjectInfo> tableInfos = new ArrayList<>();
-
-        List<String> tableNames = Util.splitToList(conf.getDataExtensionKeys(), ',');
-        for (String tableName : tableNames) {
-            SalesforceObjectInfo tableInfo = getTableMetaData(tableName, conf);
-            if (tableInfo == null) {
-                continue;
-            }
-            tableInfos.add(tableInfo);
-        }
-
-        return tableInfos;
+        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, offset, recordsOnPage));
+        offset += pageSize;
+        recordsOnPage -= pageSize;
+      }
     }
 
-    private static SalesforceObjectInfo getTableMetaData(String tableKey, SalesforceSourceConfig conf) {
-        //Call API to fetch first record from the table
-        //SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(conf);
-        //SalesforceTableDataResponse response = null;
-        //SalesforceTableDataResponse response = restApi.fetchTableSchema(tableName,
-        // conf.getStartDate(), conf.getEndDate(),
-        //  true);
+    return resultSplits;
+  }
 
-        String tableName = "";
+  @Override
+  public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
+                                                                         TaskAttemptContext taskAttemptContext)
+    throws IOException, InterruptedException {
+    SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(taskAttemptContext.getConfiguration());
+    SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
 
-        try {
-            DataExtensionClient client = DataExtensionClient.create(tableKey, conf.getClientId(),
-              conf.getClientSecret(), conf.getAuthEndpoint(), conf.getSoapEndpoint());
-
-            ETDataExtension dataExtension = client.retrieveDataExtension(tableKey);
-            if (dataExtension == null) {
-                return null;
-            }
-
-            tableName = dataExtension.getName();
-            DataExtensionInfo metaData = client.getDataExtensionInfo();
-
-            List<SalesforceColumn> columns = metaData.getColumnList().stream()
-              .map(o->new SalesforceColumn(o.getName(), o.getType().name()))
-              .collect(Collectors.toList());
-
-            if (columns == null || columns.isEmpty()) {
-                return null;
-            }
-
-            SchemaBuilder schemaBuilder = new SchemaBuilder();
-            Schema schema = schemaBuilder.constructSchema(tableName, columns);
-
-            int totalRecords = client.fetchRecordCount();
-
-            LOG.debug("table {}, rows = {}", tableName, totalRecords);
-            return new SalesforceObjectInfo(tableKey, tableName, schema, totalRecords);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    @Override
-    public List<InputSplit> getSplits(JobContext jobContext) throws IOException, InterruptedException {
-        SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(jobContext.getConfiguration());
-        SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
-
-        int pageSize = pluginConf.getPageSize();
-        List<SalesforceObjectInfo> tableInfos = jobConfig.getTableInfos();
-        List<InputSplit> resultSplits = new ArrayList<>();
-
-        for (SalesforceObjectInfo tableInfo : tableInfos) {
-            String tableKey = tableInfo.getTableKey();
-            String tableName = tableInfo.getTableName();
-            int totalRecords = tableInfo.getRecordCount();
-            if (totalRecords < pageSize) {
-                //add single split for table and continue
-                resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 0, totalRecords));
-                continue;
-            }
-
-            int pages = (tableInfo.getRecordCount() / pageSize) + 1;
-            int offset = 0;
-            int recordsOnPage = pageSize;
-
-            for (int page = 1; page <= pages; page++) {
-                if (page == pages) {
-                    recordsOnPage = totalRecords - offset;
-                }
-                resultSplits.add(new SalesforceInputSplit(tableKey, tableName, offset, recordsOnPage));
-                offset += pageSize;
-                recordsOnPage -= pageSize;
-            }
-        }
-
-        return resultSplits;
-    }
-
-    @Override
-    public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
-                                                                           TaskAttemptContext taskAttemptContext)
-            throws IOException, InterruptedException {
-        SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(taskAttemptContext.getConfiguration());
-        SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
-
-        return new SalesforceRecordReader(pluginConf);
-    }
+    return new SalesforceRecordReader(pluginConf);
+  }
 }
