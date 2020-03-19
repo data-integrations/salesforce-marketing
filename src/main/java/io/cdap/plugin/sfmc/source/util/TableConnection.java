@@ -33,32 +33,11 @@ import java.io.IOException;
 public class TableConnection {
     private static final Logger LOG = LoggerFactory.getLogger(TableConnection.class);
 
-    public DataExtensionClient getTableConnection(SalesforceSourceConfig conf)  {
+    public DataExtensionClient getTableConnection(SalesforceSourceConfig conf) {
         DataExtensionClient client = null;
-        ETConfiguration configuration = new ETConfiguration();
-      /*  configuration.setClientId("isftmkzk5sr7olx6em78otnw");
-        configuration.setClientSecret("OHT528TeEsDd5dHtrQOUjWtl");
-        configuration.setSoapEndpoint("https://mc-67-bn30-84yc47k-pw5rw0vp1.soap.marketingcloudapis.com/Service.asmx");
-        configuration.setEndpoint("https://mc-67-bn30-84yc47k-pw5rw0vp1.rest.marketingcloudapis.com/");
-        configuration.setAuthEndpoint("https://mc-67-bn30-84yc47k-pw5rw0vp1.auth.marketingcloudapis.com/");*/
-       /* configuration.set("clientId", conf.getClientId());
-        configuration.set("clientSecret", conf.getClientSecret());
-        configuration.set("soapEndpoint", conf.getSoapEndpoint());
-        configuration.set("endpoint", conf.getRestEndpoint());
-        configuration.set("authEndpoint", conf.getAuthEndpoint());
-        configuration.set("useOAuth2Authentication", "true");
-        ETClient client = new ETClient(configuration);
-        configuration.set("clientId", "isftmkzk5sr7olx6em78otnw");
-        configuration.set("clientSecret", "OHT528TeEsDd5dHtrQOUjWtl");
-        configuration.set("soapEndpoint",
-                "https://mc-67-bn30-84yc47k-pw5rw0vp1.soap.marketingcloudapis.com/Service.asmx");
-        configuration.set("endpoint", "https://mc-67-bn30-84yc47k-pw5rw0vp1.rest.marketingcloudapis.com/");
-        configuration.set("authEndpoint", "https://mc-67-bn30-84yc47k-pw5rw0vp1.auth.marketingcloudapis.com/");
-        configuration.set("useOAuth2Authentication", "true");
-        ETClient client = new ETClient(configuration);*/
         try {
-             client = DataExtensionClient.create("2E2DF3B8-F3A0-415C-9EFC-922D32E13E61",
-                     conf.getClientId(), conf.getClientSecret(),
+            client = DataExtensionClient.create("2E2DF3B8-F3A0-415C-9EFC-922D32E13E61",
+                    conf.getClientId(), conf.getClientSecret(),
                     conf.getAuthEndpoint(), conf.getSoapEndpoint());
 
         } catch (ETSdkException e) {
@@ -69,30 +48,6 @@ public class TableConnection {
             }
         }
 
-
-       /* ETFilter etf = new ETFilter();
-        etf.addProperty("id");
-        etf.addProperty("key");
-        etf.addProperty("name");
-        etf.addProperty("description");
-        etf.addProperty("folderId");
-        etf.addProperty("isSendable");
-        etf.addProperty("isTestable");*
-
-
-        /* Get list of all Data Extensions */
-
-      /*  ETResponse<ETDataExtension> dtresponse = client.retrieve(ETDataExtension.class, etf);
-        for (ETDataExtension dt : dtresponse.getObjects()) {
-            System.out.println("ETDataExtension--->" + dt);
-            LOG.info("ETDataExtension--->" + dt);
-            ETResponse<ETDataExtensionRow> resp = dt.select();
-            List<ETDataExtensionRow> rows = resp.getObjects();
-            if (rows.size() > 1) {
-                ETDataExtensionRow row1 = rows.get(0);
-                LOG.info("row records--->" + row1);
-            }
-        }*/
         return client;
 
     }
