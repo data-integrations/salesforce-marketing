@@ -204,17 +204,19 @@ public class DataExtensionClient {
       .getObjects());
   }
 
-  public ETDataExtension retrieveDataExtension(String key) throws ETSdkException {
-    client.refreshToken();
-    ETExpression expression = new ETExpression();
-    expression.setProperty("DataExtension.CustomerKey");
-    expression.setOperator(ETExpression.Operator.EQUALS);
-    expression.addValue(key);
-    ETFilter filter = new ETFilter();
-    filter.setExpression(expression);
-    ETResponse<ETDataExtension> response = ETDataExtension.retrieve(client, ETDataExtension.class, (Integer) null,
-      (Integer) null, filter);
-    return response.getObject();
+  public ETDataExtension retrieveDataExtension() throws ETSdkException {
+    //client.refreshToken();
+    return call(() -> {
+      ETExpression expression = new ETExpression();
+      expression.setProperty("DataExtension.CustomerKey");
+      expression.setOperator(ETExpression.Operator.EQUALS);
+      expression.addValue(dataExtensionKey);
+      ETFilter filter = new ETFilter();
+      filter.setExpression(expression);
+      ETResponse<ETDataExtension> response = ETDataExtension.retrieve(client, ETDataExtension.class, (Integer) null,
+        (Integer) null, filter);
+      return response.getObject();
+    });
   }
 
   public Integer fetchRecordCount() throws ETSdkException {
@@ -519,6 +521,9 @@ public class DataExtensionClient {
     ETConfiguration conf = new ETConfiguration(propertiesFile);
 
     DataExtensionClient client = new DataExtensionClient(new ETClient(conf), key);
+
+    ETDataExtension dataExtension = client.retrieveDataExtension();
+    System.out.println("Data Extension = " + dataExtension.getName());
 
     if ("describe".equals(command)) {
       Collection<ETDataExtensionColumn> columns = client.getDataExtensionInfo().getColumnList();

@@ -105,15 +105,16 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
   }
 
   private void recordLineage(BatchSourceContext context, SalesforceObjectInfo tableInfo) {
+    String tableKey = tableInfo.getTableKey();
     String tableName = tableInfo.getTableName();
-    String outputName = String.format("%s-%s", conf.getReferenceName(), tableName);
+    String outputName = String.format("%s-%s", conf.getReferenceName(), tableKey);
     Schema schema = tableInfo.getSchema();
     LineageRecorder lineageRecorder = new LineageRecorder(context, outputName);
     lineageRecorder.createExternalDataset(schema);
     List<Schema.Field> fields = Objects.requireNonNull(schema).getFields();
     if (fields != null && !fields.isEmpty()) {
       lineageRecorder.recordRead("Read",
-        String.format("Read from '%s' Salesforce table.", tableName),
+        String.format("Read from '%s (Key: %s)' Salesforce Data Extension.", tableName, tableKey),
         fields.stream().map(Schema.Field::getName).collect(Collectors.toList()));
     }
   }

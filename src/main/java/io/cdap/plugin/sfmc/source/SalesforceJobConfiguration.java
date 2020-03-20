@@ -28,8 +28,8 @@ import java.util.List;
  * Allows to specify and access connection configuration properties of {@link Configuration}.
  */
 public class SalesforceJobConfiguration {
-  private static final String PLUGIN_CONF_FIELD = "servicenow.plugin.conf";
-  private static final String INFO_FIELD = "servicenow.table.info";
+  private static final String PLUGIN_CONF_FIELD = "salesforce.plugin.conf";
+  private static final String INFO_FIELD = "salesforce.table.info";
 
   private static final Type PLUGIN_CONF_TYPE = new TypeToken<SalesforceSourceConfig>() {
   }.getType();

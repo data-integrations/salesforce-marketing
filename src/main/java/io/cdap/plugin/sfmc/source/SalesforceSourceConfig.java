@@ -239,9 +239,9 @@ public class SalesforceSourceConfig extends PluginConfig {
     }
 
     try {
-      LOG.info("Called SalesforceTableAPIClientImpl");
+      //LOG.info("Called SalesforceTableAPIClientImpl");
       DataExtensionClient.create("", clientId, clientSecret, authEndpoint, soapEndpoint);
-      LOG.info("Completed SalesforceTableAPIClientImpl");
+      //LOG.info("Completed SalesforceTableAPIClientImpl");
     } catch (ETSdkException e) {
       collector.addFailure("Unable to connect to Salesforce Instance.",
         "Ensure properties like Client ID, Client Secret, API Endpoint, Soap Endpoint, Auth Endpoint " +

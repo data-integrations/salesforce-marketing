@@ -107,7 +107,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
       DataExtensionClient client = DataExtensionClient.create(tableKey, conf.getClientId(),
         conf.getClientSecret(), conf.getAuthEndpoint(), conf.getSoapEndpoint());
 
-      ETDataExtension dataExtension = client.retrieveDataExtension(tableKey);
+      ETDataExtension dataExtension = client.retrieveDataExtension();
       if (dataExtension == null) {
         return null;
       }
@@ -119,6 +119,8 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
         .map(o -> new SalesforceColumn(o.getName(), o.getType().name()))
         .collect(Collectors.toList());
 
+      LOG.error("columns.size() = {}", columns.size());
+
       if (columns == null || columns.isEmpty()) {
         return null;
       }
@@ -128,7 +130,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
 
       int totalRecords = client.fetchRecordCount();
 
-      LOG.debug("table {}, rows = {}", tableName, totalRecords);
+      LOG.error("table {}, rows = {}", tableName, totalRecords);
       return new SalesforceObjectInfo(tableKey, tableName, schema, totalRecords);
     } catch (Exception e) {
       return null;
@@ -137,6 +139,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
 
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException, InterruptedException {
+    LOG.error("In getSplits()");
     SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(jobContext.getConfiguration());
     SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
 
@@ -150,10 +153,11 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
       int totalRecords = tableInfo.getRecordCount();
       if (totalRecords < pageSize) {
         //add single split for table and continue
-        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 0, totalRecords));
+        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 1, totalRecords));
         continue;
       }
 
+      /*
       int pages = (tableInfo.getRecordCount() / pageSize) + 1;
       int offset = 0;
       int recordsOnPage = pageSize;
@@ -166,7 +170,15 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
         offset += pageSize;
         recordsOnPage -= pageSize;
       }
+      */
+
+      int pages = (tableInfo.getRecordCount() / pageSize) + 1;
+      for (int page = 1; page <= pages; page++) {
+        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, page, pageSize));
+      }
     }
+
+    LOG.error("# of split = {}", resultSplits.size());
 
     return resultSplits;
   }
@@ -175,6 +187,8 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
   public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
                                                                          TaskAttemptContext taskAttemptContext)
     throws IOException, InterruptedException {
+    LOG.error("In createRecordReader()");
+
     SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(taskAttemptContext.getConfiguration());
     SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
 

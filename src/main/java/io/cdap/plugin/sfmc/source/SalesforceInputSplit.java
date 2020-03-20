@@ -29,17 +29,17 @@ import java.io.IOException;
 public class SalesforceInputSplit extends InputSplit implements Writable {
   private String tableKey;
   private String tableName;
-  private int offset;
+  private int page;
   private int length;
 
   // used by mapreduce
   public SalesforceInputSplit() {
   }
 
-  public SalesforceInputSplit(String tableKey, String tableName, int offset, int length) {
+  public SalesforceInputSplit(String tableKey, String tableName, int page, int length) {
     this.tableKey = tableKey;
     this.tableName = tableName;
-    this.offset = offset;
+    this.page = page;
     this.length = length;
   }
 
@@ -51,20 +51,22 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
     return tableName;
   }
 
-  public int getOffset() {
-    return offset;
+  public int getPage() {
+    return page;
   }
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
+    dataOutput.writeUTF(this.tableKey);
     dataOutput.writeUTF(this.tableName);
-    dataOutput.writeInt(this.offset);
+    dataOutput.writeInt(this.page);
   }
 
   @Override
   public void readFields(DataInput dataInput) throws IOException {
+    this.tableKey = dataInput.readUTF();
     this.tableName = dataInput.readUTF();
-    this.offset = dataInput.readInt();
+    this.page = dataInput.readInt();
   }
 
   @Override

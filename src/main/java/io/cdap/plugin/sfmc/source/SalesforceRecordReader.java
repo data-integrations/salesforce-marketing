@@ -64,12 +64,14 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) {
+    LOG.error("In initialize()");
     this.split = (SalesforceInputSplit) split;
     this.pos = 0;
   }
 
   @Override
   public boolean nextKeyValue() throws IOException {
+    LOG.error("In nextKeyValue()");
     try {
       if (results == null) {
         fetchData();
@@ -96,6 +98,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
   @Override
   public StructuredRecord getCurrentValue() throws IOException {
+    LOG.error("In getCurrentValue()");
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
 
     if (pluginConf.getQueryMode() == SourceObjectMode.MULTI_OBJECT) {
@@ -130,9 +133,11 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   }
 
   private void fetchData() {
+    LOG.error("In fetchData()");
     tableKey = split.getTableKey();
     tableName = split.getTableName();
     tableNameField = pluginConf.getTableNameField();
+    LOG.error("In fetchData(), tableKey={}, tableName={}", tableKey, tableName);
 
     //SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(pluginConf);
 
@@ -144,15 +149,16 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
       DataExtensionClient client = DataExtensionClient.create(tableKey, pluginConf.getClientId(),
         pluginConf.getClientSecret(), pluginConf.getAuthEndpoint(), pluginConf.getSoapEndpoint());
 
-      results = client.pagedScan(split.getOffset(), pluginConf.getPageSize());
+      results = client.pagedScan(split.getPage(), pluginConf.getPageSize());
 
-      LOG.debug("size={}", results.size());
+      LOG.error("size={}", results.size());
       if (!results.isEmpty()) {
         fetchSchema(client);
       }
 
     } catch (Exception e) {
       results = Collections.emptyList();
+      LOG.error("Error while fetching data", e);
     }
 
     iterator = results.iterator();
@@ -168,6 +174,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
       return;
     }
     */
+    LOG.error("In fetchSchema()");
 
     List<Schema.Field> schemaFields;
 
