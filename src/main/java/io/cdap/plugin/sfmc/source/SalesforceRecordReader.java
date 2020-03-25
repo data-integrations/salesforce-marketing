@@ -24,7 +24,7 @@ import io.cdap.plugin.sfmc.common.DataExtensionClient;
 import io.cdap.plugin.sfmc.common.DataExtensionInfo;
 import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
 import io.cdap.plugin.sfmc.source.util.SchemaBuilder;
-import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
+import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -66,7 +66,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) {
-    LOG.error("In initialize()");
+    LOG.debug("In initialize()");
     this.split = (SalesforceInputSplit) split;
     this.pos = 0;
   }
@@ -102,7 +102,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   public StructuredRecord getCurrentValue() throws IOException {
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
 
-    if (pluginConf.getQueryMode() == SourceObjectMode.MULTI_OBJECT) {
+    if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {
       recordBuilder.set(tableNameField, tableName);
     }
 
@@ -134,11 +134,11 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   }
 
   private void fetchData() {
-    LOG.error("In fetchData()");
+    LOG.debug("In fetchData()");
     tableKey = split.getTableKey();
     tableName = split.getTableName();
     tableNameField = pluginConf.getTableNameField();
-    LOG.error("In fetchData(), tableKey={}, tableName={}", tableKey, tableName);
+    LOG.debug("In fetchData(), tableKey={}, tableName={}", tableKey, tableName);
 
     //Get the table data
     try {
@@ -178,7 +178,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
       tableFields = tempSchema.getFields();
       schemaFields = new ArrayList<>(tableFields);
 
-      if (pluginConf.getQueryMode() == SourceObjectMode.MULTI_OBJECT) {
+      if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {
         schemaFields.add(Schema.Field.of(tableNameField, Schema.of(Schema.Type.STRING)));
       }
 

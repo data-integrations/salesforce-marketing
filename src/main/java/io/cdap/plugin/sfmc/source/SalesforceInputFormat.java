@@ -24,7 +24,7 @@ import io.cdap.plugin.sfmc.common.DataExtensionInfo;
 import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SchemaBuilder;
-import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
+import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import io.cdap.plugin.sfmc.source.util.Util;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -58,7 +58,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
    * @param conf      the database conf
    * @return Collection of SalesforceObjectInfo containing table and schema.
    */
-  public static List<SalesforceObjectInfo> setInput(Configuration jobConfig, SourceObjectMode mode,
+  public static List<SalesforceObjectInfo> setInput(Configuration jobConfig, SourceQueryMode mode,
                                                     SalesforceSourceConfig conf) {
     SalesforceJobConfiguration jobConf = new SalesforceJobConfiguration(jobConfig);
     jobConf.setPluginConfiguration(conf);
@@ -73,9 +73,9 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
     return tableInfos;
   }
 
-  private static List<SalesforceObjectInfo> fetchTableInfo(SourceObjectMode mode, SalesforceSourceConfig conf) {
+  private static List<SalesforceObjectInfo> fetchTableInfo(SourceQueryMode mode, SalesforceSourceConfig conf) {
     //When mode = Table, fetch details from the table name provided in plugin config
-    if (mode == SourceObjectMode.SINGLE_OBJECT) {
+    if (mode == SourceQueryMode.SINGLE_OBJECT) {
       SalesforceObjectInfo tableInfo = getTableMetaData(conf.getDataExtensionKey(), conf);
       return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
     }

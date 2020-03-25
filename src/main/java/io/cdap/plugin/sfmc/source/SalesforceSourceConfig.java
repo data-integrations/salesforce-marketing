@@ -23,8 +23,9 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.plugin.common.Constants;
+import io.cdap.plugin.common.IdUtils;
 import io.cdap.plugin.sfmc.common.DataExtensionClient;
-import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
+import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import io.cdap.plugin.sfmc.source.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,61 +56,59 @@ public class SalesforceSourceConfig extends PluginConfig {
 
   @Name(PROPERTY_QUERY_MODE)
   @Macro
-  @Description("Mode of query. The mode can be one of two values: "
-    + "`Reporting` - will allow user to choose application for which data will be fetched for all tables, "
-    + "`Table` - will allow user to enter table name for which data will be fetched.")
+  @Description("Mode of data retrieval. The mode can be one of two values: "
+    + "`Multi Object` - will allow user to fetch data for multiple data extensions, "
+    + "`Single Object` - will allow user to fetch data for single data extension.")
   private String queryMode;
 
   @Name(PROPERTY_DATA_EXTENSION_KEY_LIST)
   @Macro
   @Nullable
-  @Description("Application name for which data to be fetched. The application can be one of three values: " +
-    "`Contract Management` - will fetch data for all tables under Contract Management application, " +
-    "`Product Catalog` - will fetch data for all tables under Product Catalog application, " +
-    "`Procurement` - will fetch data for all tables under Procurement application. " +
-    "Note, the Application name value will be ignored if the Mode is set to `Table`.")
+  @Description("Specify the data extension keys from which data to be fetched; for example: 'Key1,Key2'. " +
+    "Note, this value will be ignored if the Mode is set to `Single Object`.")
   private String dataExtensionKeys;
 
   @Name(PROPERTY_TABLE_NAME_FIELD)
   @Macro
   @Nullable
-  @Description("The name of the field that holds the table name. Must not be the name of any table column that " +
-    "will be read. Defaults to `tablename`. Note, the Table name field value will be ignored if the Mode " +
-    "is set to `Table`.")
+  @Description("The name of the field that holds the data extension name. Must not be the name of any data " +
+    "extension column that will be read. Defaults to `tablename`. Note, the Table name field value will be ignored " +
+    "if the Mode is set to `Single Object`.")
   private String tableNameField;
 
   @Name(PROPERTY_DATA_EXTENSION_KEY)
   @Macro
   @Nullable
-  @Description("The name of the Salesforce table from which data to be fetched. Note, the Table name value " +
-    "will be ignored if the Mode is set to `Reporting`.")
+  @Description("Specify the data extension key from which data to be fetched. Note, this value will be ignored if " +
+    "the Mode is set to `Multi Object`.")
   private String dataExtensionKey;
 
   @Name(PROPERTY_CLIENT_ID)
   @Macro
-  @Description(" The Client ID for Salesforce Instance.")
+  @Description("OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.")
   private String clientId;
 
   @Name(PROPERTY_CLIENT_SECRET)
   @Macro
-  @Description("The Client Secret for Salesforce Instance.")
+  @Description("OAuth2 client secret associated with an installed package in the Salesforce Marketing Cloud.")
   private String clientSecret;
 
   @Name(PROPERTY_API_ENDPOINT)
   @Macro
-  @Description("The REST API Endpoint for Salesforce Instance. For example, https://instance.service-now.com")
+  @Description("The REST API Base URL associated for the Server-to-Server API integration. " +
+    "For example, https://instance.rest.marketingcloudapis.com/")
   private String restEndpoint;
 
   @Name(PROPERTY_AUTH_API_ENDPOINT)
   @Macro
-  @Description("The AUTH API Endpoint for Salesforce Instance. " +
-    "For example, https://instance.auth.marketingcloudapis.com")
+  @Description("Authentication Base URL associated for the Server-to-Server API integration. " +
+    "For example, https://instance.auth.marketingcloudapis.com/")
   private String authEndpoint;
 
   @Name(PROPERTY_SOAP_API_ENDPOINT)
   @Macro
-  @Description("The SOAP API Endpoint for Salesforce Instance. " +
-    "For example https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx")
+  @Description("The SOAP Endpoint URL associated for the Server-to-Server API integration. " +
+    "For example, https://instance.soap.marketingcloudapis.com/Service.asmx")
   private String soapEndpoint;
 
   public SalesforceSourceConfig(String referenceName, String queryMode, @Nullable String dataExtensionKeys,
@@ -131,20 +130,20 @@ public class SalesforceSourceConfig extends PluginConfig {
     return referenceName;
   }
 
-  public SourceObjectMode getQueryMode(FailureCollector collector) {
-    SourceObjectMode mode = getQueryMode();
+  public SourceQueryMode getQueryMode(FailureCollector collector) {
+    SourceQueryMode mode = getQueryMode();
     if (mode != null) {
       return mode;
     }
 
     collector.addFailure("Unsupported query mode value: " + queryMode,
-      String.format("Supported modes are: %s", SourceObjectMode.getSupportedModes()))
+      String.format("Supported modes are: %s", SourceQueryMode.getSupportedModes()))
       .withConfigProperty(PROPERTY_QUERY_MODE);
     throw collector.getOrThrowException();
   }
 
-  public SourceObjectMode getQueryMode() {
-    Optional<SourceObjectMode> sourceQueryMode = SourceObjectMode.fromValue(queryMode);
+  public SourceQueryMode getQueryMode() {
+    Optional<SourceQueryMode> sourceQueryMode = SourceQueryMode.fromValue(queryMode);
 
     return sourceQueryMode.isPresent() ? sourceQueryMode.get() : null;
   }
@@ -189,7 +188,7 @@ public class SalesforceSourceConfig extends PluginConfig {
    */
   public void validate(FailureCollector collector) {
     //Validates the given referenceName to consists of characters allowed to represent a dataset.
-    //IdUtils.validateReferenceName(referenceName, collector);
+    IdUtils.validateReferenceName(referenceName, collector);
 
     validateCredentials(collector);
     validateQueryMode(collector);
@@ -246,9 +245,9 @@ public class SalesforceSourceConfig extends PluginConfig {
       return;
     }
 
-    SourceObjectMode mode = getQueryMode(collector);
+    SourceQueryMode mode = getQueryMode(collector);
 
-    if (mode == SourceObjectMode.MULTI_OBJECT) {
+    if (mode == SourceQueryMode.MULTI_OBJECT) {
       validateMultiObjectQueryMode(collector);
     } else {
       validateSingleObjectQueryMode(collector);

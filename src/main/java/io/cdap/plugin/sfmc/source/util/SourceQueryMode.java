@@ -24,38 +24,38 @@ import java.util.stream.Stream;
 /**
  * Indicates query mode which will be used when fetching Salesforce data.
  */
-public enum SourceObjectMode {
+public enum SourceQueryMode {
 
   /**
-   * Mode will be used as Reporting for querying data
+   * Mode will be used to fetch data for multiple data extensions
    */
   MULTI_OBJECT("Multi Object"),
 
   /**
-   * Mode will be used as Table for querying data
+   * Mode will be used to fetch data for single data extension
    */
   SINGLE_OBJECT("Single Object");
 
   private final String value;
 
-  SourceObjectMode(String value) {
+  SourceQueryMode(String value) {
     this.value = value;
   }
 
   /**
-   * Converts mode string value into {@link SourceObjectMode} enum.
+   * Converts mode string value into {@link SourceQueryMode} enum.
    *
    * @param stringValue mode string value
    * @return source query mode in optional container
    */
-  public static Optional<SourceObjectMode> fromValue(String stringValue) {
+  public static Optional<SourceQueryMode> fromValue(String stringValue) {
     return Stream.of(values())
       .filter(keyType -> keyType.value.equalsIgnoreCase(stringValue))
       .findAny();
   }
 
   public static String getSupportedModes() {
-    return Arrays.stream(SourceObjectMode.values()).map(SourceObjectMode::getValue)
+    return Arrays.stream(SourceQueryMode.values()).map(SourceQueryMode::getValue)
       .collect(Collectors.joining(", "));
   }
 

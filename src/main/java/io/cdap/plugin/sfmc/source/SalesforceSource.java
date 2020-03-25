@@ -33,7 +33,7 @@ import io.cdap.cdap.etl.api.batch.BatchSourceContext;
 import io.cdap.plugin.common.LineageRecorder;
 import io.cdap.plugin.common.SourceInputFormatProvider;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
-import io.cdap.plugin.sfmc.source.util.SourceObjectMode;
+import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.slf4j.Logger;
@@ -84,14 +84,14 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     conf.validate(collector);
     collector.getOrThrowException();
 
-    SourceObjectMode mode = conf.getQueryMode(collector);
+    SourceQueryMode mode = conf.getQueryMode(collector);
 
     Configuration hConf = new Configuration();
     Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf);
     SettableArguments arguments = context.getArguments();
     for (SalesforceObjectInfo tableInfo : tables) {
       LOG.debug("add lineage for %s table", tableInfo.getTableName());
-      arguments.set(TABLE_PREFIX + tableInfo.getTableName(), tableInfo.getSchema().toString());
+      arguments.set(TABLE_PREFIX + tableInfo.getTableKey(), tableInfo.getSchema().toString());
       recordLineage(context, tableInfo);
     }
 
