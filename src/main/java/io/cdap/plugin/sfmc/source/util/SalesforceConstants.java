@@ -71,13 +71,7 @@ public interface SalesforceConstants {
    */
   String PROPERTY_SOAP_API_ENDPOINT = "soapEndpoint";
 
-  /**
-   * Configuration property name used to specify page size
-   */
-  String PROPERTY_PAGE_SIZE = "pageSize";
-
   String TABLE_PREFIX = "multisink.";
-  String DATE_FORMAT = "yyyy-MM-dd";
 
   int MAX_PAGE_SIZE = 2500;
 }

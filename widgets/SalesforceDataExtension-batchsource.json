@@ -108,22 +108,6 @@
           }
         }
       ]
-    },
-    {
-      "label": "Advanced",
-      "properties": [
-        {
-          "widget-type": "number",
-          "label": "Page Size",
-          "name": "pageSize",
-          "widget-attributes" : {
-            "default": "500",
-            "min": "1",
-            "max": "2500",
-            "placeholder": "The number of records to be fetched in one page."
-          }
-        }
-      ]
     }
   ],
   "outputs": [ ],

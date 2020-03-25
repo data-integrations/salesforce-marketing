@@ -42,6 +42,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
+
 /**
  * Salesforce input format
  */
@@ -67,6 +69,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
 
     jobConf.setTableInfos(tableInfos);
 
+    LOG.debug("setInput::tableInfos = {}", tableInfos.size());
     return tableInfos;
   }
 
@@ -81,9 +84,9 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
     //and then fetch details from each of the tables.
     List<SalesforceObjectInfo> tableInfos = new ArrayList<>();
 
-    List<String> tableNames = Util.splitToList(conf.getDataExtensionKeys(), ',');
-    for (String tableName : tableNames) {
-      SalesforceObjectInfo tableInfo = getTableMetaData(tableName, conf);
+    List<String> tableKeys = Util.splitToList(conf.getDataExtensionKeys(), ',');
+    for (String tableKey : tableKeys) {
+      SalesforceObjectInfo tableInfo = getTableMetaData(tableKey, conf);
       if (tableInfo == null) {
         continue;
       }
@@ -95,12 +98,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
 
   private static SalesforceObjectInfo getTableMetaData(String tableKey, SalesforceSourceConfig conf) {
     //Call API to fetch first record from the table
-    //SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(conf);
-    //SalesforceTableDataResponse response = null;
-    //SalesforceTableDataResponse response = restApi.fetchTableSchema(tableName,
-    // conf.getStartDate(), conf.getEndDate(),
-    //  true);
-
+    LOG.debug("getTableMetaData::tableKey = {}", tableKey);
     String tableName = "";
 
     try {
@@ -119,31 +117,32 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
         .map(o -> new SalesforceColumn(o.getName(), o.getType().name()))
         .collect(Collectors.toList());
 
-      LOG.error("columns.size() = {}", columns.size());
+      LOG.debug("columns.size() = {}", columns.size());
 
       if (columns == null || columns.isEmpty()) {
         return null;
       }
 
       SchemaBuilder schemaBuilder = new SchemaBuilder();
-      Schema schema = schemaBuilder.constructSchema(tableName, columns);
+      //Schema schema = schemaBuilder.constructSchema(tableName, columns);
+      Schema schema = schemaBuilder.constructSchema(tableKey, columns);
 
       int totalRecords = client.fetchRecordCount();
 
-      LOG.error("table {}, rows = {}", tableName, totalRecords);
+      LOG.debug("table {}, rows = {}", tableName, totalRecords);
       return new SalesforceObjectInfo(tableKey, tableName, schema, totalRecords);
     } catch (Exception e) {
+      LOG.error("Error in getTableMetaData()", e);
       return null;
     }
   }
 
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException, InterruptedException {
-    LOG.error("In getSplits()");
+    LOG.debug("In getSplits()");
     SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(jobContext.getConfiguration());
     SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
 
-    int pageSize = pluginConf.getPageSize();
     List<SalesforceObjectInfo> tableInfos = jobConfig.getTableInfos();
     List<InputSplit> resultSplits = new ArrayList<>();
 
@@ -151,34 +150,19 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
       String tableKey = tableInfo.getTableKey();
       String tableName = tableInfo.getTableName();
       int totalRecords = tableInfo.getRecordCount();
-      if (totalRecords < pageSize) {
+      if (totalRecords < MAX_PAGE_SIZE) {
         //add single split for table and continue
         resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 1, totalRecords));
         continue;
       }
 
-      /*
-      int pages = (tableInfo.getRecordCount() / pageSize) + 1;
-      int offset = 0;
-      int recordsOnPage = pageSize;
-
+      int pages = (tableInfo.getRecordCount() / MAX_PAGE_SIZE) + 1;
       for (int page = 1; page <= pages; page++) {
-        if (page == pages) {
-          recordsOnPage = totalRecords - offset;
-        }
-        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, offset, recordsOnPage));
-        offset += pageSize;
-        recordsOnPage -= pageSize;
-      }
-      */
-
-      int pages = (tableInfo.getRecordCount() / pageSize) + 1;
-      for (int page = 1; page <= pages; page++) {
-        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, page, pageSize));
+        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, page, MAX_PAGE_SIZE));
       }
     }
 
-    LOG.error("# of split = {}", resultSplits.size());
+    LOG.debug("# of split = {}", resultSplits.size());
 
     return resultSplits;
   }
@@ -187,7 +171,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
   public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
                                                                          TaskAttemptContext taskAttemptContext)
     throws IOException, InterruptedException {
-    LOG.error("In createRecordReader()");
+    LOG.debug("In createRecordReader()");
 
     SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(taskAttemptContext.getConfiguration());
     SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();

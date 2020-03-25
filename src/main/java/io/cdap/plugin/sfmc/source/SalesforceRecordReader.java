@@ -40,6 +40,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
+
 /**
  * Record reader that reads the entire contents of a Salesforce table.
  */
@@ -71,9 +73,9 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
   @Override
   public boolean nextKeyValue() throws IOException {
-    LOG.error("In nextKeyValue()");
     try {
       if (results == null) {
+        LOG.debug("In nextKeyValue()");
         fetchData();
       }
 
@@ -98,7 +100,6 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
   @Override
   public StructuredRecord getCurrentValue() throws IOException {
-    LOG.error("In getCurrentValue()");
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
 
     if (pluginConf.getQueryMode() == SourceObjectMode.MULTI_OBJECT) {
@@ -139,23 +140,17 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
     tableNameField = pluginConf.getTableNameField();
     LOG.error("In fetchData(), tableKey={}, tableName={}", tableKey, tableName);
 
-    //SalesforceTableAPIClientImpl restApi = new SalesforceTableAPIClientImpl(pluginConf);
-
     //Get the table data
-    // results = restApi.fetchTableRecords(tableName, pluginConf.getStartDate(), pluginConf.getEndDate(),
-    //  split.getOffset(), PAGE_SIZE);
-
     try {
       DataExtensionClient client = DataExtensionClient.create(tableKey, pluginConf.getClientId(),
         pluginConf.getClientSecret(), pluginConf.getAuthEndpoint(), pluginConf.getSoapEndpoint());
 
-      results = client.pagedScan(split.getPage(), pluginConf.getPageSize());
+      results = client.pagedScan(split.getPage(), MAX_PAGE_SIZE);
 
-      LOG.error("size={}", results.size());
+      LOG.debug("size={}", results.size());
       if (!results.isEmpty()) {
         fetchSchema(client);
       }
-
     } catch (Exception e) {
       results = Collections.emptyList();
       LOG.error("Error while fetching data", e);
@@ -166,15 +161,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
   private void fetchSchema(DataExtensionClient client) {
     //Fetch the column definition
-    // SalesforceTableDataResponse response = restApi.fetchTableSchema(tableName, null, null,
-    //   false);
-    /*
-    SalesforceTableDataResponse response = null;
-    if (response == null) {
-      return;
-    }
-    */
-    LOG.error("In fetchSchema()");
+    LOG.debug("In fetchSchema()");
 
     List<Schema.Field> schemaFields;
 

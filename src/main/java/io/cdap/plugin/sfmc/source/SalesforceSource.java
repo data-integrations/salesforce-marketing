@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PLUGIN_NAME;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.TABLE_PREFIX;
 
-
 /**
  * A {@link BatchSource} that reads data from multiple tables in Service Now.
  */
@@ -91,16 +90,22 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf);
     SettableArguments arguments = context.getArguments();
     for (SalesforceObjectInfo tableInfo : tables) {
+      LOG.debug("add lineage for %s table", tableInfo.getTableName());
       arguments.set(TABLE_PREFIX + tableInfo.getTableName(), tableInfo.getSchema().toString());
       recordLineage(context, tableInfo);
     }
 
+    LOG.debug("lineage added for %d tables", tables.size());
+
     context.setInput(Input.of(conf.getReferenceName(),
       new SourceInputFormatProvider(SalesforceInputFormat.class, hConf)));
+
+    LOG.debug("end of prepareRun");
   }
 
   @Override
   public void transform(KeyValue<NullWritable, StructuredRecord> input, Emitter<StructuredRecord> emitter) {
+    LOG.debug("In transform");
     emitter.emit(input.getValue());
   }
 

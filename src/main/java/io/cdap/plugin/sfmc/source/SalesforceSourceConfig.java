@@ -33,14 +33,12 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_API_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_AUTH_API_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_CLIENT_ID;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_CLIENT_SECRET;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_DATA_EXTENSION_KEY;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_DATA_EXTENSION_KEY_LIST;
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_PAGE_SIZE;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_QUERY_MODE;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_SOAP_API_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_TABLE_NAME_FIELD;
@@ -114,25 +112,19 @@ public class SalesforceSourceConfig extends PluginConfig {
     "For example https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx")
   private String soapEndpoint;
 
-  @Name(PROPERTY_PAGE_SIZE)
-  @Macro
-  @Description("Maximum number of records that can be read from Salesforce Marketing Cloud in one page. "
-    + "The minimum value is 1 and maximum value is 2500")
-  private int pageSize;
-
   public SalesforceSourceConfig(String referenceName, String queryMode, @Nullable String dataExtensionKeys,
-                                @Nullable String dataExtensionKey, String clientId, String clientSecret,
-                                String restEndpoint, String authEndpoint, String soapEndpoint, int pageSize) {
+                                @Nullable String tableNameField, @Nullable String dataExtensionKey, String clientId,
+                                String clientSecret, String restEndpoint, String authEndpoint, String soapEndpoint) {
     this.referenceName = referenceName;
     this.queryMode = queryMode;
     this.dataExtensionKeys = dataExtensionKeys;
+    this.tableNameField = tableNameField;
     this.dataExtensionKey = dataExtensionKey;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.restEndpoint = restEndpoint;
     this.authEndpoint = authEndpoint;
     this.soapEndpoint = soapEndpoint;
-    this.pageSize = pageSize;
   }
 
   public String getReferenceName() {
@@ -192,10 +184,6 @@ public class SalesforceSourceConfig extends PluginConfig {
     return soapEndpoint;
   }
 
-  public int getPageSize() {
-    return pageSize;
-  }
-
   /**
    * Validates {@link SalesforceSourceConfig} instance.
    */
@@ -205,7 +193,6 @@ public class SalesforceSourceConfig extends PluginConfig {
 
     validateCredentials(collector);
     validateQueryMode(collector);
-    validatePageSize(collector);
   }
 
   private void validateCredentials(FailureCollector collector) {
@@ -239,9 +226,7 @@ public class SalesforceSourceConfig extends PluginConfig {
     }
 
     try {
-      //LOG.info("Called SalesforceTableAPIClientImpl");
       DataExtensionClient.create("", clientId, clientSecret, authEndpoint, soapEndpoint);
-      //LOG.info("Completed SalesforceTableAPIClientImpl");
     } catch (ETSdkException e) {
       collector.addFailure("Unable to connect to Salesforce Instance.",
         "Ensure properties like Client ID, Client Secret, API Endpoint, Soap Endpoint, Auth Endpoint " +
@@ -295,18 +280,6 @@ public class SalesforceSourceConfig extends PluginConfig {
     if (Util.isNullOrEmpty(dataExtensionKey)) {
       collector.addFailure("Data Extension Key must be specified.", null)
         .withConfigProperty(PROPERTY_DATA_EXTENSION_KEY);
-    }
-  }
-
-  private void validatePageSize(FailureCollector collector) {
-    if (containsMacro(PROPERTY_PAGE_SIZE)) {
-      return;
-    }
-
-    if (pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
-      collector.addFailure(String.format("Invalid page size '%d'.", pageSize),
-        String.format("Ensure the page size is at least 1 or at most '%d'", MAX_PAGE_SIZE))
-        .withConfigProperty(PROPERTY_PAGE_SIZE);
     }
   }
 
