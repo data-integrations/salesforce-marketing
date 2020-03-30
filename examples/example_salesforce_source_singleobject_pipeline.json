@@ -1,0 +1,103 @@
+{
+  "artifact": {
+    "name": "cdap-data-pipeline",
+    "version": "6.1.1",
+    "scope": "SYSTEM",
+    "label": "Data Pipeline - Batch"
+  },
+  "description": "",
+  "name": "Test_Salesforce_Source_SingleObject_Mode",
+  "config": {
+    "resources": {
+      "memoryMB": 2048,
+      "virtualCores": 1
+    },
+    "driverResources": {
+      "memoryMB": 2048,
+      "virtualCores": 1
+    },
+    "connections": [
+      {
+        "from": "Salesforce Marketing",
+        "to": "File"
+      }
+    ],
+    "comments": [],
+    "postActions": [],
+    "properties": {},
+    "processTimingEnabled": true,
+    "stageLoggingEnabled": false,
+    "stages": [
+      {
+        "name": "Salesforce Marketing",
+        "plugin": {
+          "name": "SalesforceDataExtension",
+          "type": "batchsource",
+          "label": "Salesforce Marketing",
+          "artifact": {
+            "name": "salesforce-marketing-plugins",
+            "version": "1.2.0-SNAPSHOT",
+            "scope": "USER"
+          },
+          "properties": {
+            "queryMode": "Single Object",
+            "tableNameField": "tablename",
+            "referenceName": "example_sf_sf_source_2",
+            "dataExtensionKey": "${DATA_EXTENSION_KEY}",
+            "clientId": "${CLIENT_ID}",
+            "clientSecret": "${CLIENT_SECRET}",
+            "authEndpoint": "${AUTH_ENDPOINT}",
+            "soapEndpoint": "${SOAP_ENDPOINT}",
+            "restEndpoint": "${REST_ENDPOINT}",
+            "objectName": "Data Extension",
+            "objectList": [
+              "Data Extension"
+            ]
+          }
+        },
+        "outputSchema": [
+          {
+            "name": "etlSchemaBody",
+            "schema": ""
+          }
+        ]
+      },
+      {
+        "name": "File",
+        "plugin": {
+          "name": "File",
+          "type": "batchsink",
+          "label": "File",
+          "artifact": {
+            "name": "core-plugins",
+            "version": "2.3.4",
+            "scope": "SYSTEM"
+          },
+          "properties": {
+            "suffix": "${OUTPUT_PATH_SUFFIX}",
+            "format": "csv",
+            "referenceName": "example_sf_file_sink_2",
+            "path": "${OUTPUT_FILE_PATH}",
+            "delimiter": ","
+          }
+        },
+        "outputSchema": [
+          {
+            "name": "etlSchemaBody",
+            "schema": ""
+          }
+        ],
+        "inputSchema": [
+          {
+            "name": "Salesforce Marketing",
+            "schema": ""
+          }
+        ]
+      }
+    ],
+    "schedule": "0 * * * *",
+    "engine": "spark",
+    "numOfRecordsPreview": 100,
+    "maxConcurrentRuns": 1
+  }
+}

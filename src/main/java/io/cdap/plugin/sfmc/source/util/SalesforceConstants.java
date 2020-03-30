@@ -32,9 +32,19 @@ public interface SalesforceConstants {
   String PROPERTY_QUERY_MODE = "queryMode";
 
   /**
+   * Configuration property name used to specify the object name
+   */
+  String PROPERTY_OBJECT_NAME = "objectName";
+
+  /**
    * Configuration property name used to specify data extension key
    */
   String PROPERTY_DATA_EXTENSION_KEY = "dataExtensionKey";
+
+  /**
+   * Configuration property name used to specify the list of objects
+   */
+  String PROPERTY_OBJECT_LIST = "objectList";
 
   /**
    * Configuration property name used to specify the comma-separated list of data extension keys.

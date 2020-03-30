@@ -74,6 +74,12 @@
       <version>${guava.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>hydrator-test</artifactId>
+      <version>${cdap.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
@@ -208,6 +214,12 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.24.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

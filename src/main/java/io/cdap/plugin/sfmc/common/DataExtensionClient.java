@@ -42,7 +42,7 @@ import com.exacttarget.fuelsdk.internal.UpdateResponse;
 import com.exacttarget.fuelsdk.internal.UpdateResult;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.FailureCollector;
-import io.cdap.plugin.sfmc.MarketingCloudConf;
+import io.cdap.plugin.sfmc.sink.MarketingCloudConf;
 
 import java.util.ArrayList;
 import java.util.Collection;

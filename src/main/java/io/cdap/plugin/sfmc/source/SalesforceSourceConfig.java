@@ -17,6 +17,7 @@
 package io.cdap.plugin.sfmc.source;
 
 import com.exacttarget.fuelsdk.ETSdkException;
+import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
@@ -25,6 +26,7 @@ import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.plugin.common.Constants;
 import io.cdap.plugin.common.IdUtils;
 import io.cdap.plugin.sfmc.common.DataExtensionClient;
+import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import io.cdap.plugin.sfmc.source.util.Util;
 import org.slf4j.Logger;
@@ -40,6 +42,8 @@ import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_CLIEN
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_CLIENT_SECRET;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_DATA_EXTENSION_KEY;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_DATA_EXTENSION_KEY_LIST;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_OBJECT_LIST;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_OBJECT_NAME;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_QUERY_MODE;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_SOAP_API_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_TABLE_NAME_FIELD;
@@ -61,6 +65,27 @@ public class SalesforceSourceConfig extends PluginConfig {
     + "`Single Object` - will allow user to fetch data for single data extension.")
   private String queryMode;
 
+  @Name(PROPERTY_OBJECT_NAME)
+  @Macro
+  @Nullable
+  @Description("Specify the object for which data to be fetched. Note, this value will be ignored if the Mode is " +
+    "set to `Multi Object`.")
+  private String objectName;
+
+  @Name(PROPERTY_DATA_EXTENSION_KEY)
+  @Macro
+  @Nullable
+  @Description("Specify the data extension key from which data to be fetched. Note, this value will be ignored if " +
+    "the Mode is set to `Multi Object`.")
+  private String dataExtensionKey;
+
+  @Name(PROPERTY_OBJECT_LIST)
+  @Macro
+  @Nullable
+  @Description("Specify the comma-separated list of objects for which data to be fetched. Note, this value will be " +
+    "ignored if the Mode is set to `Single Object`.")
+  private String objectList;
+
   @Name(PROPERTY_DATA_EXTENSION_KEY_LIST)
   @Macro
   @Nullable
@@ -75,13 +100,6 @@ public class SalesforceSourceConfig extends PluginConfig {
     "extension column that will be read. Defaults to `tablename`. Note, the Table name field value will be ignored " +
     "if the Mode is set to `Single Object`.")
   private String tableNameField;
-
-  @Name(PROPERTY_DATA_EXTENSION_KEY)
-  @Macro
-  @Nullable
-  @Description("Specify the data extension key from which data to be fetched. Note, this value will be ignored if " +
-    "the Mode is set to `Multi Object`.")
-  private String dataExtensionKey;
 
   @Name(PROPERTY_CLIENT_ID)
   @Macro
@@ -111,14 +129,17 @@ public class SalesforceSourceConfig extends PluginConfig {
     "For example, https://instance.soap.marketingcloudapis.com/Service.asmx")
   private String soapEndpoint;
 
-  public SalesforceSourceConfig(String referenceName, String queryMode, @Nullable String dataExtensionKeys,
-                                @Nullable String tableNameField, @Nullable String dataExtensionKey, String clientId,
+  public SalesforceSourceConfig(String referenceName, String queryMode, @Nullable String objectName,
+                                @Nullable String dataExtensionKey, @Nullable String objectList,
+                                @Nullable String dataExtensionKeys, @Nullable String tableNameField, String clientId,
                                 String clientSecret, String restEndpoint, String authEndpoint, String soapEndpoint) {
     this.referenceName = referenceName;
     this.queryMode = queryMode;
+    this.objectName = objectName;
+    this.dataExtensionKey = dataExtensionKey;
+    this.objectList = objectList;
     this.dataExtensionKeys = dataExtensionKeys;
     this.tableNameField = tableNameField;
-    this.dataExtensionKey = dataExtensionKey;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.restEndpoint = restEndpoint;
@@ -149,6 +170,20 @@ public class SalesforceSourceConfig extends PluginConfig {
   }
 
   @Nullable
+  public String getObjectName() {
+    return objectName;
+  }
+
+  @Nullable
+  public String getDataExtensionKey() {
+    return dataExtensionKey;
+  }
+
+  public String getObjectList() {
+    return objectList;
+  }
+
+  @Nullable
   public String getDataExtensionKeys() {
     return dataExtensionKeys;
   }
@@ -156,11 +191,6 @@ public class SalesforceSourceConfig extends PluginConfig {
   @Nullable
   public String getTableNameField() {
     return tableNameField;
-  }
-
-  @Nullable
-  public String getDataExtensionKey() {
-    return dataExtensionKey;
   }
 
   public String getClientId() {
@@ -224,6 +254,12 @@ public class SalesforceSourceConfig extends PluginConfig {
         .withConfigProperty(PROPERTY_SOAP_API_ENDPOINT);
     }
 
+    collector.getOrThrowException();
+    validateSalesforceConnection(collector);
+  }
+
+  @VisibleForTesting
+  void validateSalesforceConnection(FailureCollector collector) {
     try {
       DataExtensionClient.create("", clientId, clientSecret, authEndpoint, soapEndpoint);
     } catch (ETSdkException e) {
@@ -255,8 +291,26 @@ public class SalesforceSourceConfig extends PluginConfig {
   }
 
   private void validateMultiObjectQueryMode(FailureCollector collector) {
-    if (containsMacro(PROPERTY_DATA_EXTENSION_KEY_LIST) || containsMacro(PROPERTY_TABLE_NAME_FIELD)) {
+    if (containsMacro(PROPERTY_OBJECT_LIST) || containsMacro(PROPERTY_DATA_EXTENSION_KEY_LIST)
+      || containsMacro(PROPERTY_TABLE_NAME_FIELD)) {
       return;
+    }
+
+    List<String> objects = Util.splitToList(getObjectList(), ',');
+    if (objects.isEmpty()) {
+      collector.addFailure("At least 1 Object must be specified.", null)
+        .withConfigProperty(PROPERTY_OBJECT_LIST);
+    }
+
+    for (String o : objects) {
+      Optional<SourceObject> sourceObject = SourceObject.fromValue(o);
+      SourceObject object = sourceObject.isPresent() ? sourceObject.get() : null;
+      if (object == null) {
+        collector.addFailure("Unsupported object value: " + o,
+          String.format("Supported objects are: %s", SourceObject.getSupportedObjects()))
+          .withConfigProperty(PROPERTY_OBJECT_LIST);
+        throw collector.getOrThrowException();
+      }
     }
 
     List<String> dataExtensionKeyList = Util.splitToList(getDataExtensionKeys(), ',');
@@ -272,8 +326,22 @@ public class SalesforceSourceConfig extends PluginConfig {
   }
 
   private void validateSingleObjectQueryMode(FailureCollector collector) {
-    if (containsMacro(PROPERTY_DATA_EXTENSION_KEY)) {
+    if (containsMacro(PROPERTY_OBJECT_NAME) || containsMacro(PROPERTY_DATA_EXTENSION_KEY)) {
       return;
+    }
+
+    if (Util.isNullOrEmpty(objectName)) {
+      collector.addFailure("Object Name must be specified.", null)
+        .withConfigProperty(PROPERTY_OBJECT_NAME);
+    }
+
+    Optional<SourceObject> sourceObject = SourceObject.fromValue(objectName);
+    SourceObject object = sourceObject.isPresent() ? sourceObject.get() : null;
+    if (object == null) {
+      collector.addFailure("Unsupported object value: " + objectName,
+        String.format("Supported objects are: %s", SourceObject.getSupportedObjects()))
+        .withConfigProperty(PROPERTY_OBJECT_NAME);
+      throw collector.getOrThrowException();
     }
 
     if (Util.isNullOrEmpty(dataExtensionKey)) {

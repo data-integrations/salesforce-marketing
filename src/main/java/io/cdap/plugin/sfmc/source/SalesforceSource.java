@@ -48,13 +48,13 @@ import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PLUGIN_NAME;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.TABLE_PREFIX;
 
 /**
- * A {@link BatchSource} that reads data from multiple tables in Service Now.
+ * A {@link BatchSource} that reads data from multiple objects in Salesforce.
  */
 @Plugin(type = BatchSource.PLUGIN_TYPE)
 @Name(PLUGIN_NAME)
-@Description("Reads from multiple tables in Service Now. " +
-  "Outputs one record for each row in each table, with the table name as a record field. " +
-  "Also sets a pipeline argument for each table read, which contains the table schema. ")
+@Description("Reads from multiple objects in Salesforce. " +
+  "Outputs one record for each row in each object, with the object name as a record field. " +
+  "Also sets a pipeline argument for each object read, which contains the object schema.")
 public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(SalesforceSource.class);
 

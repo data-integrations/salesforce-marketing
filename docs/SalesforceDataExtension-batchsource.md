@@ -22,8 +22,16 @@ Properties
 
 `Single Object` - will allow user to fetch data for single data extension.
 
+**Object**: Specify the object for which data to be fetched. Note, this value will 
+be ignored if the Mode is set to `Multi Object`.  
+
 **Data Extension External Key**: Specify the data extension key from which data to be fetched. Note, this value will 
 be ignored if the Mode is set to `Multi Object`.  
+
+**Object List**: Specify the comma-separated list of objects for which data to be fetched; 
+for example: 'Object1,Object2'.
+
+Note, this value will be ignored if the Mode is set to `Single Object`.
 
 **Data Extension External Keys**: Specify the data extension keys from which data to be fetched; 
 for example: 'Key1,Key2'.

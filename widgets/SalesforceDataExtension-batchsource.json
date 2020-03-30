@@ -33,6 +33,17 @@
       "label": "Single Object Retrieval",
       "properties": [
         {
+          "widget-type": "select",
+          "label": "Object",
+          "name": "objectName",
+          "widget-attributes": {
+            "values": [
+              "Data Extension"
+            ],
+            "default": "Data Extension"
+          }
+        },
+        {
           "widget-type": "textbox",
           "label": "Data Extension External Key",
           "name": "dataExtensionKey",
@@ -45,6 +56,23 @@
     {
       "label": "Multi Object Retrieval",
       "properties": [
+        {
+          "widget-type": "multi-select",
+          "label": "Object List",
+          "name": "objectList",
+          "widget-attributes": {
+            "options": [
+              {
+                "id": "Data Extension",
+                "label": "Data Extension"
+              }
+            ],
+            "delimiter": ",",
+            "default": [
+              "Data Extension"
+            ]
+          }
+        },
         {
           "widget-type": "csv",
           "label": "Data Extension External Keys",

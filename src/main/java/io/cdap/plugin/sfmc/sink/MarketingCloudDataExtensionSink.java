@@ -14,7 +14,7 @@
  * the License.
  */
 
-package io.cdap.plugin.sfmc;
+package io.cdap.plugin.sfmc.sink;
 
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
