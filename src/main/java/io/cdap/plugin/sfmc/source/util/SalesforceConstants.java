@@ -24,7 +24,7 @@ public interface SalesforceConstants {
   /**
    * Salesforce plugin name.
    */
-  String PLUGIN_NAME = "SalesforceDataExtension";
+  String PLUGIN_NAME = "Salesforce";
 
   /**
    * Configuration property name used to specify the query mode.
@@ -82,6 +82,8 @@ public interface SalesforceConstants {
   String PROPERTY_SOAP_API_ENDPOINT = "soapEndpoint";
 
   String TABLE_PREFIX = "multisink.";
+
+  String DATA_EXTENSION_PREFIX = "dataextension-";
 
   int MAX_PAGE_SIZE = 2500;
 }

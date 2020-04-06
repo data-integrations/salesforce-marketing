@@ -14,15 +14,13 @@
  * the License.
  */
 
-package io.cdap.plugin.sfmc.common;
+package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETClient;
 import com.exacttarget.fuelsdk.ETConfiguration;
 import com.exacttarget.fuelsdk.ETDataExtension;
 import com.exacttarget.fuelsdk.ETDataExtensionColumn;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
-import com.exacttarget.fuelsdk.ETExpression;
-import com.exacttarget.fuelsdk.ETFilter;
 import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETResult;
 import com.exacttarget.fuelsdk.ETSdkException;
@@ -42,7 +40,6 @@ import com.exacttarget.fuelsdk.internal.UpdateResponse;
 import com.exacttarget.fuelsdk.internal.UpdateResult;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.FailureCollector;
-import io.cdap.plugin.sfmc.sink.MarketingCloudConf;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -86,7 +83,7 @@ public class DataExtensionClient {
   /**
    * Validate that the given schema is compatible with the given extension.
    *
-   * @param schema    the schema to check compatibility with
+   * @param schema the schema to check compatibility with
    * @param collector failure collector
    * @throws ETSdkException if there was an error getting the column information for the data extension
    */
@@ -94,8 +91,7 @@ public class DataExtensionClient {
     call(() -> {
       Collection<ETDataExtensionColumn> columns = getDataExtensionInfo().getColumnList();
       if (columns == null || columns.isEmpty()) {
-        collector.addFailure(String.format("Data extension '%s' must exist.",
-          dataExtensionKey), null)
+        collector.addFailure(String.format("Data extension '%s' must exist.", dataExtensionKey), null)
           .withConfigProperty(MarketingCloudConf.DATA_EXTENSION);
         throw collector.getOrThrowException();
       }
@@ -111,8 +107,7 @@ public class DataExtensionClient {
           if (column.getIsRequired()) {
             collector.addFailure(
               String.format("Data extension '%s' contains a required column '%s' of type '%s' that is not present in " +
-                "the input schema.", dataExtensionKey, columnName, column.getType())
-              , null)
+                              "the input schema.", dataExtensionKey, columnName, column.getType()), null)
               .withConfigProperty(MarketingCloudConf.DATA_EXTENSION);
           }
         } else {
@@ -134,7 +129,7 @@ public class DataExtensionClient {
               if (schemaType != Schema.Type.BOOLEAN) {
                 collector.addFailure(
                   String.format("Column '%s' is a boolean in data extension '%s', but is a '%s' in the input schema.",
-                    originalName, dataExtensionKey, schemaTypeStr),
+                                originalName, dataExtensionKey, schemaTypeStr),
                   "Change the field schema to ensure it is a boolean or string type.")
                   .withInputSchemaField(fieldName);
               }
@@ -143,7 +138,7 @@ public class DataExtensionClient {
               if (fieldSchema.getLogicalType() != Schema.LogicalType.DECIMAL) {
                 collector.addFailure(
                   String.format("Column '%s' is a decimal in data extension '%s', but is a '%s' in the input schema.",
-                    originalName, dataExtensionKey, schemaTypeStr),
+                                originalName, dataExtensionKey, schemaTypeStr),
                   "Change the field schema to ensure it is a decimal or string type.").withInputSchemaField(fieldName);
               }
               break;
@@ -153,32 +148,29 @@ public class DataExtensionClient {
             case LOCALE:
               collector.addFailure(
                 String.format("Column '%s' is a %s in data extension '%s', but is a '%s' in the input schema.",
-                  originalName, column.getType().name().toLowerCase(), dataExtensionKey,
-                  schemaTypeStr),
-                "Change the field schema to ensure it is a string type.")
-                .withInputSchemaField(fieldName);
+                              originalName, column.getType().name().toLowerCase(), dataExtensionKey, schemaTypeStr),
+                "Change the field schema to ensure it is a string type.").withInputSchemaField(fieldName);
               break;
             case DATE:
               if (fieldSchema.getLogicalType() != Schema.LogicalType.DATE) {
                 collector.addFailure(
                   String.format("Column '%s' is a date in data extension '%s', but is a '%s' in the input schema.",
-                    originalName, dataExtensionKey, schemaTypeStr),
-                  "Change the field schema to ensure it is a date or string type."
-                ).withInputSchemaField(fieldName);
+                                originalName, dataExtensionKey, schemaTypeStr),
+                  "Change the field schema to ensure it is a date or string type.").withInputSchemaField(fieldName);
               }
               break;
             case NUMBER:
               if (schemaType != Schema.Type.INT) {
                 collector.addFailure(
                   String.format("Column '%s' is a number in data extension '%s', but is a '%s' in the input schema.",
-                    originalName, dataExtensionKey, schemaTypeStr),
+                                originalName, dataExtensionKey, schemaTypeStr),
                   "Change the field schema to ensure it is an integer or string type.").withInputSchemaField(fieldName);
               }
               break;
             default:
               collector.addFailure(
                 String.format("Unknown type '%s' for column '%s' in data extension '%s'.",
-                  column.getType(), column.getName(), dataExtensionKey),
+                              column.getType(), column.getName(), dataExtensionKey),
                 "Supported types are: boolean, decimal, phone, text, email_address, locale, date and number.")
                 .withInputSchemaField(fieldName);
           }
@@ -197,31 +189,6 @@ public class DataExtensionClient {
 
   public List<ETDataExtensionRow> scan() throws ETSdkException {
     return call(() -> ETDataExtension.select(client, "key=" + dataExtensionKey).getObjects());
-  }
-
-  public List<ETDataExtensionRow> pagedScan(Integer page, Integer pageSize) throws ETSdkException {
-    return call(() -> ETDataExtension.select(client, "key=" + dataExtensionKey, page, pageSize)
-      .getObjects());
-  }
-
-  public ETDataExtension retrieveDataExtension() throws ETSdkException {
-    //client.refreshToken();
-    return call(() -> {
-      ETExpression expression = new ETExpression();
-      expression.setProperty("DataExtension.CustomerKey");
-      expression.setOperator(ETExpression.Operator.EQUALS);
-      expression.addValue(dataExtensionKey);
-      ETFilter filter = new ETFilter();
-      filter.setExpression(expression);
-      ETResponse<ETDataExtension> response = ETDataExtension.retrieve(client, ETDataExtension.class, (Integer) null,
-        (Integer) null, filter);
-      return response.getObject();
-    });
-  }
-
-  public Integer fetchRecordCount() throws ETSdkException {
-    return call(() -> ETDataExtension.select(client, "key=" + dataExtensionKey, 1, 1)
-      .getTotalCount());
   }
 
   public ETResponse<ETDataExtensionRow> insert(List<ETDataExtensionRow> rows) throws ETSdkException {
@@ -452,7 +419,7 @@ public class DataExtensionClient {
         externalObject = externalType.newInstance();
       } catch (Exception ex) {
         throw new ETSdkException("could not instantiate "
-          + externalType.getName(), ex);
+                                   + externalType.getName(), ex);
       }
 
       externalObject.setClient(client);
@@ -508,7 +475,7 @@ public class DataExtensionClient {
    * Used to run the client from the command line. Primarily used for testing purposes.
    * Expects arguments in the form [command] [key] [properties files] where properties file is expected
    * to contain lines like:
-   * <p>
+   *
    * clientId=...
    * clientSecret=...
    * authEndpoint=...
@@ -522,17 +489,12 @@ public class DataExtensionClient {
 
     DataExtensionClient client = new DataExtensionClient(new ETClient(conf), key);
 
-    ETDataExtension dataExtension = client.retrieveDataExtension();
-    System.out.println("Data Extension = " + dataExtension.getName());
-
     if ("describe".equals(command)) {
       Collection<ETDataExtensionColumn> columns = client.getDataExtensionInfo().getColumnList();
-      System.out.println(columns.stream().map(c -> c.getName() + " " + c.getType())
-        .collect(Collectors.joining("\n")));
+      System.out.println(columns.stream().map(c -> c.getName() + " " + c.getType()).collect(Collectors.joining("\n")));
     } else if ("scan".equals(command)) {
       Collection<ETDataExtensionColumn> columns = client.getDataExtensionInfo().getColumnList();
-      List<String> columnNames = columns.stream().map(ETDataExtensionColumn::getName)
-        .collect(Collectors.toList());
+      List<String> columnNames = columns.stream().map(ETDataExtensionColumn::getName).collect(Collectors.toList());
       System.out.println(String.join(", ", columnNames));
       for (ETDataExtensionRow row : client.scan()) {
         List<String> values = new ArrayList<>(columnNames.size());

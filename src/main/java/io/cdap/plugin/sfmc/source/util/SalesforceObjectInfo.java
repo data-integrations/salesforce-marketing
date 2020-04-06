@@ -18,28 +18,42 @@ package io.cdap.plugin.sfmc.source.util;
 
 import io.cdap.cdap.api.data.schema.Schema;
 
+import java.util.List;
+
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.DATA_EXTENSION_PREFIX;
+
 /**
  * Information about a Salesforce table.
  */
 public class SalesforceObjectInfo {
-  private final String tableKey;
-  private final String tableName;
+  private final SourceObject object;
+  private final String dataExtensionKey;
   private final Schema schema;
   private final int recordCount;
 
-  public SalesforceObjectInfo(String tableKey, String tableName, Schema schema, int recordCount) {
-    this.tableKey = tableKey;
-    this.tableName = tableName;
-    this.schema = schema;
+  public SalesforceObjectInfo(SourceObject object, List<SalesforceColumn> columns, int recordCount) {
+    this(object, null, columns, recordCount);
+  }
+
+  public SalesforceObjectInfo(SourceObject object, String dataExtensionKey, List<SalesforceColumn> columns,
+                              int recordCount) {
+    this.object = object;
+    this.dataExtensionKey = dataExtensionKey;
+    SchemaBuilder schemaBuilder = new SchemaBuilder();
+    this.schema = schemaBuilder.constructSchema(getTableName(), columns);
     this.recordCount = recordCount;
   }
 
-  public String getTableKey() {
-    return tableKey;
+  public SourceObject getObject() {
+    return object;
   }
 
   public String getTableName() {
-    return tableName;
+    if (getObject() == SourceObject.DATA_EXTENSION) {
+      return String.format("%s%s", DATA_EXTENSION_PREFIX, dataExtensionKey);
+    } else {
+      return getObject().getTableName();
+    }
   }
 
   public Schema getSchema() {

@@ -25,13 +25,13 @@ import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.plugin.common.Constants;
 import io.cdap.plugin.common.IdUtils;
-import io.cdap.plugin.sfmc.common.DataExtensionClient;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import io.cdap.plugin.sfmc.source.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -68,37 +68,49 @@ public class SalesforceSourceConfig extends PluginConfig {
   @Name(PROPERTY_OBJECT_NAME)
   @Macro
   @Nullable
-  @Description("Specify the object for which data to be fetched. Note, this value will be ignored if the Mode is " +
-    "set to `Multi Object`.")
+  @Description("Specify the object for which data to be fetched. This can be one of following values: " +
+    "`Data Extension` - will allow user to fetch data for a single Data Extension object, " +
+    "`Campaign` - will allow user to fetch data for Campaign object, " +
+    "`Email` - will allow user to fetch data for Email object, " +
+    "`Mailing List` - will allow user to fetch data for Mailing List object. " +
+    "Note, this value will be ignored if the Mode is set to `Multi Object`.")
   private String objectName;
 
   @Name(PROPERTY_DATA_EXTENSION_KEY)
   @Macro
   @Nullable
-  @Description("Specify the data extension key from which data to be fetched. Note, this value will be ignored if " +
-    "the Mode is set to `Multi Object`.")
+  @Description("Specify the data extension key from which data to be fetched. Note, this value will be ignored in " +
+    "following two cases: 1. If the Mode is set to `Multi Object`, 2. If the selected object name is other than " +
+    "`Data Extension`.")
   private String dataExtensionKey;
 
   @Name(PROPERTY_OBJECT_LIST)
   @Macro
   @Nullable
-  @Description("Specify the comma-separated list of objects for which data to be fetched. Note, this value will be " +
-    "ignored if the Mode is set to `Single Object`.")
+  @Description("Specify the comma-separated list of objects for which data to be fetched; for example: " +
+    "'Object1,Object2'. This can be one or more values from following possible values: " +
+    "`Data Extension` - will allow user to fetch data for a single Data Extension object, " +
+    "`Campaign` - will allow user to fetch data for Campaign object, " +
+    "`Email` - will allow user to fetch data for Email object, " +
+    "`Mailing List` - will allow user to fetch data for Mailing List object. " +
+    "Note, this value will be ignored if the Mode is set to `Single Object`.")
   private String objectList;
 
   @Name(PROPERTY_DATA_EXTENSION_KEY_LIST)
   @Macro
   @Nullable
   @Description("Specify the data extension keys from which data to be fetched; for example: 'Key1,Key2'. " +
-    "Note, this value will be ignored if the Mode is set to `Single Object`.")
+    "Note, this value will be ignored in following two cases: 1. If the Mode is set to `Single Object`, " +
+    "2. If the selected object list does not contain `Data Extension` as one of the objects.")
   private String dataExtensionKeys;
 
   @Name(PROPERTY_TABLE_NAME_FIELD)
   @Macro
   @Nullable
-  @Description("The name of the field that holds the data extension name. Must not be the name of any data " +
-    "extension column that will be read. Defaults to `tablename`. Note, the Table name field value will be ignored " +
-    "if the Mode is set to `Single Object`.")
+  @Description("The name of the field that holds the object name to which the data belongs to. Must not be the name " +
+    "of any column for any of the objects that will be read. Defaults to `tablename`. In case of `Data Extension` " +
+    "object, this field will have value in `dataextension-[Data Extension Key]` format. Note, the Table name field " +
+    "value will be ignored if the Mode is set to `Single Object`.")
   private String tableNameField;
 
   @Name(PROPERTY_CLIENT_ID)
@@ -160,7 +172,8 @@ public class SalesforceSourceConfig extends PluginConfig {
     collector.addFailure("Unsupported query mode value: " + queryMode,
       String.format("Supported modes are: %s", SourceQueryMode.getSupportedModes()))
       .withConfigProperty(PROPERTY_QUERY_MODE);
-    throw collector.getOrThrowException();
+    collector.getOrThrowException();
+    return null;
   }
 
   public SourceQueryMode getQueryMode() {
@@ -169,9 +182,22 @@ public class SalesforceSourceConfig extends PluginConfig {
     return sourceQueryMode.isPresent() ? sourceQueryMode.get() : null;
   }
 
+  public SourceObject getObject(FailureCollector collector) {
+    SourceObject sourceObject = getObject();
+    if (sourceObject != null) {
+      return sourceObject;
+    }
+
+    collector.addFailure("Unsupported object value: " + objectName,
+      String.format("Supported objects are: %s", SourceObject.getSupportedObjects()))
+      .withConfigProperty(PROPERTY_OBJECT_NAME);
+    collector.getOrThrowException();
+    return null;
+  }
+
   @Nullable
-  public String getObjectName() {
-    return objectName;
+  public SourceObject getObject() {
+    return getSourceObject(objectName);
   }
 
   @Nullable
@@ -179,8 +205,40 @@ public class SalesforceSourceConfig extends PluginConfig {
     return dataExtensionKey;
   }
 
-  public String getObjectList() {
-    return objectList;
+  public List<SourceObject> getObjectList(FailureCollector collector) {
+    List<String> objects = Util.splitToList(objectList, ',');
+    List<SourceObject> sourceObjects = new ArrayList<>();
+
+    for (String object : objects) {
+      SourceObject sourceObject = getSourceObject(object);
+      if (sourceObject == null) {
+        collector.addFailure("Unsupported object value: " + object,
+          String.format("Supported objects are: %s", SourceObject.getSupportedObjects()))
+          .withConfigProperty(PROPERTY_OBJECT_LIST);
+        break;
+      }
+
+      sourceObjects.add(sourceObject);
+    }
+
+    return sourceObjects;
+  }
+
+  @Nullable
+  public List<SourceObject> getObjectList() {
+    List<String> objects = Util.splitToList(objectList, ',');
+    List<SourceObject> sourceObjects = new ArrayList<>();
+
+    for (String object : objects) {
+      SourceObject sourceObject = getSourceObject(object);
+      if (sourceObject == null) {
+        continue;
+      }
+
+      sourceObjects.add(sourceObject);
+    }
+
+    return sourceObjects;
   }
 
   @Nullable
@@ -224,6 +282,12 @@ public class SalesforceSourceConfig extends PluginConfig {
     validateQueryMode(collector);
   }
 
+  private SourceObject getSourceObject(String objectName) {
+    Optional<SourceObject> sourceObject = SourceObject.fromValue(objectName);
+
+    return sourceObject.isPresent() ? sourceObject.get() : null;
+  }
+
   private void validateCredentials(FailureCollector collector) {
     if (!shouldConnect()) {
       return;
@@ -261,7 +325,7 @@ public class SalesforceSourceConfig extends PluginConfig {
   @VisibleForTesting
   void validateSalesforceConnection(FailureCollector collector) {
     try {
-      DataExtensionClient.create("", clientId, clientSecret, authEndpoint, soapEndpoint);
+      SalesforceClient.create(clientId, clientSecret, authEndpoint, soapEndpoint);
     } catch (ETSdkException e) {
       collector.addFailure("Unable to connect to Salesforce Instance.",
         "Ensure properties like Client ID, Client Secret, API Endpoint, Soap Endpoint, Auth Endpoint " +
@@ -276,7 +340,7 @@ public class SalesforceSourceConfig extends PluginConfig {
   }
 
   private void validateQueryMode(FailureCollector collector) {
-    //according to query mode check if either table name/application exists or not
+    //according to query mode check if either object name / object list exists or not
     if (containsMacro(PROPERTY_QUERY_MODE)) {
       return;
     }
@@ -296,27 +360,20 @@ public class SalesforceSourceConfig extends PluginConfig {
       return;
     }
 
-    List<String> objects = Util.splitToList(getObjectList(), ',');
+    List<SourceObject> objects = getObjectList(collector);
+    collector.getOrThrowException();
+
     if (objects.isEmpty()) {
       collector.addFailure("At least 1 Object must be specified.", null)
         .withConfigProperty(PROPERTY_OBJECT_LIST);
     }
 
-    for (String o : objects) {
-      Optional<SourceObject> sourceObject = SourceObject.fromValue(o);
-      SourceObject object = sourceObject.isPresent() ? sourceObject.get() : null;
-      if (object == null) {
-        collector.addFailure("Unsupported object value: " + o,
-          String.format("Supported objects are: %s", SourceObject.getSupportedObjects()))
-          .withConfigProperty(PROPERTY_OBJECT_LIST);
-        throw collector.getOrThrowException();
+    if (objects.contains(SourceObject.DATA_EXTENSION)) {
+      List<String> dataExtensionKeyList = Util.splitToList(getDataExtensionKeys(), ',');
+      if (dataExtensionKeyList.isEmpty()) {
+        collector.addFailure("At least 1 Data Extension Key must be specified.", null)
+          .withConfigProperty(PROPERTY_DATA_EXTENSION_KEY_LIST);
       }
-    }
-
-    List<String> dataExtensionKeyList = Util.splitToList(getDataExtensionKeys(), ',');
-    if (dataExtensionKeyList.isEmpty()) {
-      collector.addFailure("At least 1 Data Extension Key must be specified.", null)
-        .withConfigProperty(PROPERTY_DATA_EXTENSION_KEY_LIST);
     }
 
     if (Util.isNullOrEmpty(tableNameField)) {
@@ -330,21 +387,9 @@ public class SalesforceSourceConfig extends PluginConfig {
       return;
     }
 
-    if (Util.isNullOrEmpty(objectName)) {
-      collector.addFailure("Object Name must be specified.", null)
-        .withConfigProperty(PROPERTY_OBJECT_NAME);
-    }
+    SourceObject object = getObject(collector);
 
-    Optional<SourceObject> sourceObject = SourceObject.fromValue(objectName);
-    SourceObject object = sourceObject.isPresent() ? sourceObject.get() : null;
-    if (object == null) {
-      collector.addFailure("Unsupported object value: " + objectName,
-        String.format("Supported objects are: %s", SourceObject.getSupportedObjects()))
-        .withConfigProperty(PROPERTY_OBJECT_NAME);
-      throw collector.getOrThrowException();
-    }
-
-    if (Util.isNullOrEmpty(dataExtensionKey)) {
+    if (object == SourceObject.DATA_EXTENSION && Util.isNullOrEmpty(dataExtensionKey)) {
       collector.addFailure("Data Extension Key must be specified.", null)
         .withConfigProperty(PROPERTY_DATA_EXTENSION_KEY);
     }

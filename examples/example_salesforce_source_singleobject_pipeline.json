@@ -31,7 +31,7 @@
       {
         "name": "Salesforce Marketing",
         "plugin": {
-          "name": "SalesforceDataExtension",
+          "name": "Salesforce",
           "type": "batchsource",
           "label": "Salesforce Marketing",
           "artifact": {
@@ -49,10 +49,8 @@
             "authEndpoint": "${AUTH_ENDPOINT}",
             "soapEndpoint": "${SOAP_ENDPOINT}",
             "restEndpoint": "${REST_ENDPOINT}",
-            "objectName": "Data Extension",
-            "objectList": [
-              "Data Extension"
-            ]
+            "objectName": "${SFMC_OBJECT_NAME}",
+            "objectList": "Data Extension"
           }
         },
         "outputSchema": [

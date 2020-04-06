@@ -60,8 +60,10 @@ public class SchemaBuilder {
   private Schema createSchema(SalesforceColumn column) {
     switch (column.getTypeName().toLowerCase()) {
       case "decimal":
+      case "double":
         return Schema.of(Schema.Type.DOUBLE);
       case "number":
+      case "integer":
         return Schema.of(Schema.Type.INT);
       case "boolean":
         return Schema.of(Schema.Type.BOOLEAN);

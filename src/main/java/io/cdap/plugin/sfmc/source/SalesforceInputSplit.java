@@ -27,7 +27,7 @@ import java.io.IOException;
  * Salesforce input split
  */
 public class SalesforceInputSplit extends InputSplit implements Writable {
-  private String tableKey;
+  private String objectName;
   private String tableName;
   private int page;
   private int length;
@@ -36,15 +36,15 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
   public SalesforceInputSplit() {
   }
 
-  public SalesforceInputSplit(String tableKey, String tableName, int page, int length) {
-    this.tableKey = tableKey;
+  public SalesforceInputSplit(String objectName, String tableName, int page, int length) {
+    this.objectName = objectName;
     this.tableName = tableName;
     this.page = page;
     this.length = length;
   }
 
-  public String getTableKey() {
-    return tableKey;
+  public String getObjectName() {
+    return objectName;
   }
 
   public String getTableName() {
@@ -57,14 +57,14 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
-    dataOutput.writeUTF(this.tableKey);
+    dataOutput.writeUTF(this.objectName);
     dataOutput.writeUTF(this.tableName);
     dataOutput.writeInt(this.page);
   }
 
   @Override
   public void readFields(DataInput dataInput) throws IOException {
-    this.tableKey = dataInput.readUTF();
+    this.objectName = dataInput.readUTF();
     this.tableName = dataInput.readUTF();
     this.page = dataInput.readInt();
   }

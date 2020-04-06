@@ -16,14 +16,9 @@
 
 package io.cdap.plugin.sfmc.source;
 
-import com.exacttarget.fuelsdk.ETDataExtension;
 import io.cdap.cdap.api.data.format.StructuredRecord;
-import io.cdap.cdap.api.data.schema.Schema;
-import io.cdap.plugin.sfmc.common.DataExtensionClient;
-import io.cdap.plugin.sfmc.common.DataExtensionInfo;
-import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
-import io.cdap.plugin.sfmc.source.util.SchemaBuilder;
+import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import io.cdap.plugin.sfmc.source.util.Util;
 import org.apache.hadoop.conf.Configuration;
@@ -40,7 +35,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
 
@@ -63,8 +57,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
     SalesforceJobConfiguration jobConf = new SalesforceJobConfiguration(jobConfig);
     jobConf.setPluginConfiguration(conf);
 
-    //Depending on conf value fetch the list of fields for each table and create schema object
-    //return the schema object for each table as SalesforceObjectInfo
+    //Depending on the selected objects in the conf, get the schema for each object as SalesforceObjectInfo
     List<SalesforceObjectInfo> tableInfos = fetchTableInfo(mode, conf);
 
     jobConf.setTableInfos(tableInfos);
@@ -73,64 +66,66 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
     return tableInfos;
   }
 
+  /**
+   * Depending on conf value fetch the list of fields for each object and create schema object
+   * return the schema for each object as SalesforceObjectInfo
+   */
   private static List<SalesforceObjectInfo> fetchTableInfo(SourceQueryMode mode, SalesforceSourceConfig conf) {
-    //When mode = Table, fetch details from the table name provided in plugin config
-    if (mode == SourceQueryMode.SINGLE_OBJECT) {
-      SalesforceObjectInfo tableInfo = getTableMetaData(conf.getDataExtensionKey(), conf);
-      return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
-    }
+    try {
+      SalesforceClient client = SalesforceClient.create(conf.getClientId(), conf.getClientSecret(),
+        conf.getAuthEndpoint(), conf.getSoapEndpoint());
 
-    //When mode = Reporting, get the list of tables for application name provided in plugin config
-    //and then fetch details from each of the tables.
-    List<SalesforceObjectInfo> tableInfos = new ArrayList<>();
-
-    List<String> tableKeys = Util.splitToList(conf.getDataExtensionKeys(), ',');
-    for (String tableKey : tableKeys) {
-      SalesforceObjectInfo tableInfo = getTableMetaData(tableKey, conf);
-      if (tableInfo == null) {
-        continue;
+      //When mode = SingleObject, fetch fields for the object selected in plugin config
+      if (mode == SourceQueryMode.SINGLE_OBJECT) {
+        SalesforceObjectInfo tableInfo = getTableMetaData(conf.getObject(), conf.getDataExtensionKey(), client);
+        return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
       }
-      tableInfos.add(tableInfo);
-    }
 
-    return tableInfos;
+      //When mode = MultiObject, get the list of objects provided in plugin config and the fetch fields for each of
+      //then objects.
+      List<SalesforceObjectInfo> tableInfos = new ArrayList<>();
+      List<SourceObject> objectList = conf.getObjectList();
+
+      for (SourceObject object : objectList) {
+        SalesforceObjectInfo tableInfo = null;
+
+        if (object == SourceObject.DATA_EXTENSION) {
+          //if the object = Data Extension then get the list of data extension keys and then fetch fields for each of
+          //the data extension objects.
+          List<String> dataExtensionKeys = Util.splitToList(conf.getDataExtensionKeys(), ',');
+          for (String dataExtensionKey : dataExtensionKeys) {
+            tableInfo = getTableMetaData(object, dataExtensionKey, client);
+            if (tableInfo == null) {
+              continue;
+            }
+            tableInfos.add(tableInfo);
+          }
+        } else {
+          tableInfo = getTableMetaData(object, "", client);
+          if (tableInfo != null) {
+            tableInfos.add(tableInfo);
+          }
+        }
+      }
+
+      return tableInfos;
+    } catch (Exception e) {
+      LOG.error("Error in fetchTableInfo()", e);
+      return Collections.emptyList();
+    }
   }
 
-  private static SalesforceObjectInfo getTableMetaData(String tableKey, SalesforceSourceConfig conf) {
-    //Call API to fetch first record from the table
-    LOG.debug("getTableMetaData::tableKey = {}", tableKey);
-    String tableName = "";
-
+  /**
+   * Fetch the fields for passed object
+   */
+  private static SalesforceObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
+                                                       SalesforceClient client) {
     try {
-      DataExtensionClient client = DataExtensionClient.create(tableKey, conf.getClientId(),
-        conf.getClientSecret(), conf.getAuthEndpoint(), conf.getSoapEndpoint());
-
-      ETDataExtension dataExtension = client.retrieveDataExtension();
-      if (dataExtension == null) {
-        return null;
+      if (object == SourceObject.DATA_EXTENSION) {
+        return client.fetchDataExtensionSchema(dataExtensionKey);
+      } else {
+        return client.fetchObjectSchema(object);
       }
-
-      tableName = dataExtension.getName();
-      DataExtensionInfo metaData = client.getDataExtensionInfo();
-
-      List<SalesforceColumn> columns = metaData.getColumnList().stream()
-        .map(o -> new SalesforceColumn(o.getName(), o.getType().name()))
-        .collect(Collectors.toList());
-
-      LOG.debug("columns.size() = {}", columns.size());
-
-      if (columns == null || columns.isEmpty()) {
-        return null;
-      }
-
-      SchemaBuilder schemaBuilder = new SchemaBuilder();
-      //Schema schema = schemaBuilder.constructSchema(tableName, columns);
-      Schema schema = schemaBuilder.constructSchema(tableKey, columns);
-
-      int totalRecords = client.fetchRecordCount();
-
-      LOG.debug("table {}, rows = {}", tableName, totalRecords);
-      return new SalesforceObjectInfo(tableKey, tableName, schema, totalRecords);
     } catch (Exception e) {
       LOG.error("Error in getTableMetaData()", e);
       return null;
@@ -139,7 +134,6 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
 
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException, InterruptedException {
-    LOG.debug("In getSplits()");
     SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(jobContext.getConfiguration());
     SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
 
@@ -147,19 +141,9 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
     List<InputSplit> resultSplits = new ArrayList<>();
 
     for (SalesforceObjectInfo tableInfo : tableInfos) {
-      String tableKey = tableInfo.getTableKey();
+      String tableKey = tableInfo.getObject().name();
       String tableName = tableInfo.getTableName();
-      int totalRecords = tableInfo.getRecordCount();
-      if (totalRecords < MAX_PAGE_SIZE) {
-        //add single split for table and continue
-        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 1, totalRecords));
-        continue;
-      }
-
-      int pages = (tableInfo.getRecordCount() / MAX_PAGE_SIZE) + 1;
-      for (int page = 1; page <= pages; page++) {
-        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, page, MAX_PAGE_SIZE));
-      }
+      resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 1, MAX_PAGE_SIZE));
     }
 
     LOG.debug("# of split = {}", resultSplits.size());
@@ -171,8 +155,6 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
   public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
                                                                          TaskAttemptContext taskAttemptContext)
     throws IOException, InterruptedException {
-    LOG.debug("In createRecordReader()");
-
     SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(taskAttemptContext.getConfiguration());
     SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
 

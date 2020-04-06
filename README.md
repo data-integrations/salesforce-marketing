@@ -5,7 +5,7 @@
 
 Contains CDAP pipeline plugins for Salesforce Marketing Cloud. Following plugins are available in this repository.
                                                                
-* [Salesforce Marketing Cloud Data Extension Source](docs/SalesforceDataExtension-batchsource.md)
+* [Salesforce Marketing Cloud Source](docs/Salesforce-batchsource.md)
 * [Salesforce Marketing Cloud Data Extension Sink](docs/SalesforceDataExtension-batchsink.md)
 
 # Contact

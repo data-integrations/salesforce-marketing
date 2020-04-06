@@ -16,6 +16,12 @@
 
 package io.cdap.plugin.sfmc.source.util;
 
+import com.exacttarget.fuelsdk.ETApiObject;
+import com.exacttarget.fuelsdk.ETCampaign;
+import com.exacttarget.fuelsdk.ETDataExtensionRow;
+import com.exacttarget.fuelsdk.ETEmail;
+import com.exacttarget.fuelsdk.ETList;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,12 +35,31 @@ public enum SourceObject {
   /**
    * This indicates data to be fetched from Data Extension
    */
-  DATA_EXTENSION("Data Extension");
+  DATA_EXTENSION("Data Extension", "dataextension", ETDataExtensionRow.class),
+
+  /**
+   * This indicates data to be fetched from Campaign
+   */
+  CAMPAIGN("Campaign", "campaign", ETCampaign.class),
+
+  /**
+   * This indicates data to be fetched from Email
+   */
+  EMAIL("Email", "email", ETEmail.class),
+
+  /**
+   * This indicates data to be fetched from Mailing List
+   */
+  MAILING_LIST("Mailing List", "mailinglist", ETList.class);
 
   private final String value;
+  private final String tableName;
+  private final Class<? extends ETApiObject> classRef;
 
-  SourceObject(String value) {
+  SourceObject(String value, String tableName, Class<? extends ETApiObject> classRef) {
     this.value = value;
+    this.tableName = tableName;
+    this.classRef = classRef;
   }
 
   /**
@@ -56,5 +81,13 @@ public enum SourceObject {
 
   public String getValue() {
     return value;
+  }
+
+  public String getTableName() {
+    return tableName;
+  }
+
+  public Class<? extends ETApiObject> getClassRef() {
+    return classRef;
   }
 }

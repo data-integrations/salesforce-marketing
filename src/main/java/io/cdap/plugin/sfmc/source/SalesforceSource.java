@@ -90,36 +90,29 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf);
     SettableArguments arguments = context.getArguments();
     for (SalesforceObjectInfo tableInfo : tables) {
-      LOG.debug("add lineage for %s table", tableInfo.getTableName());
-      arguments.set(TABLE_PREFIX + tableInfo.getTableKey(), tableInfo.getSchema().toString());
+      arguments.set(TABLE_PREFIX + tableInfo.getTableName(), tableInfo.getSchema().toString());
       recordLineage(context, tableInfo);
     }
 
-    LOG.debug("lineage added for %d tables", tables.size());
-
     context.setInput(Input.of(conf.getReferenceName(),
       new SourceInputFormatProvider(SalesforceInputFormat.class, hConf)));
-
-    LOG.debug("end of prepareRun");
   }
 
   @Override
   public void transform(KeyValue<NullWritable, StructuredRecord> input, Emitter<StructuredRecord> emitter) {
-    LOG.debug("In transform");
     emitter.emit(input.getValue());
   }
 
   private void recordLineage(BatchSourceContext context, SalesforceObjectInfo tableInfo) {
-    String tableKey = tableInfo.getTableKey();
     String tableName = tableInfo.getTableName();
-    String outputName = String.format("%s-%s", conf.getReferenceName(), tableKey);
+    String outputName = String.format("%s-%s", conf.getReferenceName(), tableName);
     Schema schema = tableInfo.getSchema();
     LineageRecorder lineageRecorder = new LineageRecorder(context, outputName);
     lineageRecorder.createExternalDataset(schema);
     List<Schema.Field> fields = Objects.requireNonNull(schema).getFields();
     if (fields != null && !fields.isEmpty()) {
       lineageRecorder.recordRead("Read",
-        String.format("Read from '%s (Key: %s)' Salesforce Data Extension.", tableName, tableKey),
+        String.format("Read from '%s' Salesforce object.", tableName),
         fields.stream().map(Schema.Field::getName).collect(Collectors.toList()));
     }
   }

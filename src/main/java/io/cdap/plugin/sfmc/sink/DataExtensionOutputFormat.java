@@ -18,7 +18,6 @@ package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.format.StructuredRecord;
-import io.cdap.plugin.sfmc.common.DataExtensionClient;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.JobContext;

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package io.cdap.plugin.sfmc.common;
+package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETDataExtensionColumn;
 

@@ -16,14 +16,13 @@
 
 package io.cdap.plugin.sfmc.source;
 
+import com.exacttarget.fuelsdk.ETApiObject;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
-import io.cdap.plugin.sfmc.common.DataExtensionClient;
-import io.cdap.plugin.sfmc.common.DataExtensionInfo;
-import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
-import io.cdap.plugin.sfmc.source.util.SchemaBuilder;
+import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
+import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -33,14 +32,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.DATA_EXTENSION_PREFIX;
 
 /**
  * Record reader that reads the entire contents of a Salesforce table.
@@ -53,12 +52,13 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   private List<Schema.Field> tableFields;
   private Schema schema;
 
-  private String tableKey;
+  private SourceObject object;
+  private String dataExtensionKey = "";
   private String tableName;
   private String tableNameField;
-  private List<ETDataExtensionRow> results;
-  private Iterator<ETDataExtensionRow> iterator;
-  private ETDataExtensionRow row;
+  private List<? extends ETApiObject> results;
+  private Iterator<? extends ETApiObject> iterator;
+  private ETApiObject row;
 
   SalesforceRecordReader(SalesforceSourceConfig pluginConf) {
     this.pluginConf = pluginConf;
@@ -66,7 +66,6 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) {
-    LOG.debug("In initialize()");
     this.split = (SalesforceInputSplit) split;
     this.pos = 0;
   }
@@ -75,7 +74,6 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   public boolean nextKeyValue() throws IOException {
     try {
       if (results == null) {
-        LOG.debug("In nextKeyValue()");
         fetchData();
       }
 
@@ -107,11 +105,9 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
     }
 
     try {
-      for (Schema.Field field : tableFields) {
-        String fieldName = field.getName();
-        Object fieldValue = convertToValue(fieldName, field.getSchema(), row);
-        recordBuilder.set(fieldName, fieldValue);
-      }
+
+      convertRecord(recordBuilder, row);
+
     } catch (Exception e) {
       LOG.error("Error decoding row from table " + tableName, e);
       throw new IOException("Error decoding row from table " + tableName, e);
@@ -134,18 +130,24 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   }
 
   private void fetchData() {
-    LOG.debug("In fetchData()");
-    tableKey = split.getTableKey();
+    object = SourceObject.valueOf(split.getObjectName());
     tableName = split.getTableName();
+    if (object == SourceObject.DATA_EXTENSION) {
+      dataExtensionKey = tableName.replaceAll(DATA_EXTENSION_PREFIX, "");
+    }
     tableNameField = pluginConf.getTableNameField();
-    LOG.debug("In fetchData(), tableKey={}, tableName={}", tableKey, tableName);
 
     //Get the table data
     try {
-      DataExtensionClient client = DataExtensionClient.create(tableKey, pluginConf.getClientId(),
+      SalesforceClient client = SalesforceClient.create(pluginConf.getClientId(),
         pluginConf.getClientSecret(), pluginConf.getAuthEndpoint(), pluginConf.getSoapEndpoint());
 
-      results = client.pagedScan(split.getPage(), MAX_PAGE_SIZE);
+      //Fetch data
+      if (object == SourceObject.DATA_EXTENSION) {
+        results = client.fetchDataExtensionRecords(dataExtensionKey);
+      } else {
+        results = client.fetchObjectRecords(object);
+      }
 
       LOG.debug("size={}", results.size());
       if (!results.isEmpty()) {
@@ -159,29 +161,25 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
     iterator = results.iterator();
   }
 
-  private void fetchSchema(DataExtensionClient client) {
+  private void fetchSchema(SalesforceClient client) {
     //Fetch the column definition
-    LOG.debug("In fetchSchema()");
-
     List<Schema.Field> schemaFields;
 
     try {
-      DataExtensionInfo metaData = client.getDataExtensionInfo();
-
-      List<SalesforceColumn> columns = metaData.getColumnList().stream()
-        .map(o -> new SalesforceColumn(o.getName(), o.getType().name()))
-        .collect(Collectors.toList());
+      SalesforceObjectInfo metaData = null;
+      if (object == SourceObject.DATA_EXTENSION) {
+        metaData = client.fetchDataExtensionSchema(dataExtensionKey);
+      } else {
+        metaData = client.fetchObjectSchema(object);
+      }
 
       //Build schema
-      SchemaBuilder schemaBuilder = new SchemaBuilder();
-      Schema tempSchema = schemaBuilder.constructSchema(tableName, columns);
-      tableFields = tempSchema.getFields();
+      tableFields = metaData.getSchema().getFields();
       schemaFields = new ArrayList<>(tableFields);
 
       if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {
         schemaFields.add(Schema.Field.of(tableNameField, Schema.of(Schema.Type.STRING)));
       }
-
     } catch (Exception e) {
       schemaFields = Collections.emptyList();
     }
@@ -189,9 +187,53 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
     schema = Schema.recordOf(tableName, schemaFields);
   }
 
-  private Object convertToValue(String fieldName, Schema fieldSchema, ETDataExtensionRow record) {
+  /**
+   * Read data from ETApiObject and convert it to StructureRecord
+   */
+  private void convertRecord(StructuredRecord.Builder recordBuilder, ETApiObject row) {
+    for (Schema.Field field : tableFields) {
+      String fieldName = field.getName();
+      Object rawFieldValue = null;
+      if (row instanceof ETDataExtensionRow) {
+        rawFieldValue = ((ETDataExtensionRow) row).getColumn(fieldName);
+      } else {
+        rawFieldValue = getFieldValue(row, fieldName);
+      }
+
+      Object fieldValue = convertToValue(fieldName, field.getSchema(), rawFieldValue);
+
+      recordBuilder.set(fieldName, fieldValue);
+    }
+  }
+
+  /**
+   * Read data from ETApiObject using reflection for a given field name
+   */
+  private Object getFieldValue(ETApiObject row, String fieldName) {
+    try {
+      Method method = row.getClass().getMethod(createGetterName(fieldName));
+      return method.invoke(row);
+    } catch (Exception e) {
+      LOG.error(String.format("Error while fetching %s.%s value", row.getClass().getSimpleName(), fieldName), e);
+      return null;
+    }
+  }
+
+  /**
+   * Constructs the get method name to be used in reflection call
+   */
+  private String createGetterName(String name) {
+    StringBuilder sb = new StringBuilder("get");
+    sb.append(name.substring(0, 1).toUpperCase());
+    sb.append(name.substring(1));
+    return sb.toString();
+  }
+
+  /**
+   * Converts raw field value according to the schema field type
+   */
+  private Object convertToValue(String fieldName, Schema fieldSchema, Object fieldValue) {
     Schema.Type fieldType = fieldSchema.getType();
-    Object fieldValue = record.getColumn(fieldName);
 
     switch (fieldType) {
       case STRING:
@@ -204,11 +246,11 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
         return convertToBooleanValue(fieldValue);
       case UNION:
         if (fieldSchema.isNullable()) {
-          return convertToValue(fieldName, fieldSchema.getNonNullable(), record);
+          return convertToValue(fieldName, fieldSchema.getNonNullable(), fieldValue);
         }
         throw new IllegalStateException(
           String.format("Field '%s' is of unexpected type '%s'. Declared 'complex UNION' types: %s",
-            fieldName, record.getColumn(fieldName).getClass().getSimpleName(), fieldSchema.getUnionSchemas()));
+            fieldName, fieldValue.getClass().getSimpleName(), fieldSchema.getUnionSchemas()));
       default:
         throw new IllegalStateException(
           String.format("Record type '%s' is not supported for field '%s'", fieldType.name(), fieldName));

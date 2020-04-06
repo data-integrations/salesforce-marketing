@@ -38,7 +38,10 @@
           "name": "objectName",
           "widget-attributes": {
             "values": [
-              "Data Extension"
+              "Data Extension",
+              "Campaign",
+              "Email",
+              "Mailing List"
             ],
             "default": "Data Extension"
           }
@@ -65,12 +68,22 @@
               {
                 "id": "Data Extension",
                 "label": "Data Extension"
+              },
+              {
+                "id": "Campaign",
+                "label": "Campaign"
+              },
+              {
+                "id": "Email",
+                "label": "Email"
+              },
+              {
+                "id": "Mailing List",
+                "label": "Mailing List"
               }
             ],
             "delimiter": ",",
-            "default": [
-              "Data Extension"
-            ]
+            "default": "Data Extension"
           }
         },
         {

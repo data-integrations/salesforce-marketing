@@ -17,18 +17,13 @@
 package io.cdap.plugin.sfmc.source.util;
 
 import com.google.common.base.Strings;
-import com.google.gson.annotations.SerializedName;
 
 /**
  * Information about a Salesforce table column.
  */
 public class SalesforceColumn {
-  @SerializedName("element")
   private String fieldName;
-
-  @SerializedName("internal_type")
   private String typeName;
-
   private String mandatory;
 
   public SalesforceColumn() {

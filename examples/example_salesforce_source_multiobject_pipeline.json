@@ -31,7 +31,7 @@
       {
         "name": "Salesforce Marketing",
         "plugin": {
-          "name": "SalesforceDataExtension",
+          "name": "Salesforce",
           "type": "batchsource",
           "label": "Salesforce Marketing",
           "artifact": {
@@ -50,9 +50,7 @@
             "restEndpoint": "${REST_ENDPOINT}",
             "dataExtensionKeyList": "${DATA_EXTENSION_KEY_LIST}",
             "objectName": "Data Extension",
-            "objectList": [
-              "Data Extension"
-            ]
+            "objectList": "${SFMC_OBJECT_LIST}"
           }
         },
         "outputSchema": [

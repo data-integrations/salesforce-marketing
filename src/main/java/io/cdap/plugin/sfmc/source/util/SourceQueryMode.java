@@ -27,12 +27,12 @@ import java.util.stream.Stream;
 public enum SourceQueryMode {
 
   /**
-   * Mode will be used to fetch data for multiple data extensions
+   * Mode will be used to fetch data for multiple objects
    */
   MULTI_OBJECT("Multi Object"),
 
   /**
-   * Mode will be used to fetch data for single data extension
+   * Mode will be used to fetch data for single object
    */
   SINGLE_OBJECT("Single Object");
 
