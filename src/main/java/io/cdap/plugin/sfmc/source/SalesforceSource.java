@@ -24,6 +24,7 @@ import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.KeyValue;
 import io.cdap.cdap.etl.api.Emitter;
+import io.cdap.cdap.etl.api.Engine;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.StageConfigurer;
@@ -40,7 +41,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -76,6 +80,17 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     // Since we have validated all the properties, throw an exception if there are any errors in the collector.
     // This is to avoid adding same validation errors again in getSchema method call
     collector.getOrThrowException();
+
+    if (conf.isFailOnError()) {
+      if (pipelineConfigurer.getEngine() == Engine.SPARK) {
+        pipelineConfigurer.setPipelineProperties(Collections.singletonMap("spark.task.maxFailures", "1"));
+      } else if (pipelineConfigurer.getEngine() == Engine.MAPREDUCE) {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("mapreduce.reduce.maxattempts", "1");
+        properties.put("mapreduce.map.maxattempts", "1");
+        pipelineConfigurer.setPipelineProperties(properties);
+      }
+    }
   }
 
   @Override

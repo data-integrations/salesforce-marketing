@@ -50,7 +50,8 @@
             "restEndpoint": "${REST_ENDPOINT}",
             "dataExtensionKeyList": "${DATA_EXTENSION_KEY_LIST}",
             "objectName": "Data Extension",
-            "objectList": "${SFMC_OBJECT_LIST}"
+            "objectList": "${SFMC_OBJECT_LIST}",
+            "failOnError": "false"
           }
         },
         "outputSchema": [

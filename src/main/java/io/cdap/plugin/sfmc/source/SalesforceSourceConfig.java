@@ -42,6 +42,7 @@ import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_CLIEN
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_CLIENT_SECRET;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_DATA_EXTENSION_KEY;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_DATA_EXTENSION_KEY_LIST;
+import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_FAIL_ON_ERROR;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_OBJECT_LIST;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_OBJECT_NAME;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PROPERTY_QUERY_MODE;
@@ -141,10 +142,17 @@ public class SalesforceSourceConfig extends PluginConfig {
     "For example, https://instance.soap.marketingcloudapis.com/Service.asmx")
   private String soapEndpoint;
 
+  @Macro
+  @Nullable
+  @Name(PROPERTY_FAIL_ON_ERROR)
+  @Description("Whether to fail the pipeline if it fails while reading.")
+  private Boolean failOnError;
+
   public SalesforceSourceConfig(String referenceName, String queryMode, @Nullable String objectName,
                                 @Nullable String dataExtensionKey, @Nullable String objectList,
                                 @Nullable String dataExtensionKeys, @Nullable String tableNameField, String clientId,
-                                String clientSecret, String restEndpoint, String authEndpoint, String soapEndpoint) {
+                                String clientSecret, String restEndpoint, String authEndpoint, String soapEndpoint,
+                                Boolean failOnError) {
     this.referenceName = referenceName;
     this.queryMode = queryMode;
     this.objectName = objectName;
@@ -157,6 +165,7 @@ public class SalesforceSourceConfig extends PluginConfig {
     this.restEndpoint = restEndpoint;
     this.authEndpoint = authEndpoint;
     this.soapEndpoint = soapEndpoint;
+    this.failOnError = failOnError;
   }
 
   public String getReferenceName() {
@@ -269,6 +278,11 @@ public class SalesforceSourceConfig extends PluginConfig {
 
   public String getSoapEndpoint() {
     return soapEndpoint;
+  }
+
+  @Nullable
+  public Boolean isFailOnError() {
+    return failOnError == null ? false : failOnError;
   }
 
   /**

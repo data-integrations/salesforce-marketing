@@ -85,8 +85,12 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
       pos++;
     } catch (Exception e) {
-      LOG.error("Error in nextKeyValue", e);
-      throw new IOException("Exception in nextKeyValue", e);
+      if (pluginConf.isFailOnError()) {
+        LOG.error("Error in nextKeyValue", e);
+        throw new IOException("Exception in nextKeyValue", e);
+      } else {
+        LOG.warn("Failed in nextKeyValue", e);
+      }
     }
     return true;
   }
@@ -109,8 +113,12 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
       convertRecord(recordBuilder, row);
 
     } catch (Exception e) {
-      LOG.error("Error decoding row from table " + tableName, e);
-      throw new IOException("Error decoding row from table " + tableName, e);
+      if (pluginConf.isFailOnError()) {
+        LOG.error("Error decoding row from table " + tableName, e);
+        throw new IOException("Error decoding row from table " + tableName, e);
+      } else {
+        LOG.warn("Failed decoding row from table " + tableName, e);
+      }
     }
     return recordBuilder.build();
   }
@@ -155,7 +163,11 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
       }
     } catch (Exception e) {
       results = Collections.emptyList();
-      LOG.error("Error while fetching data", e);
+      if (pluginConf.isFailOnError()) {
+        LOG.error("Error while fetching data", e);
+      } else {
+        LOG.warn("Failed while fetching data", e);
+      }
     }
 
     iterator = results.iterator();
@@ -214,7 +226,11 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
       Method method = row.getClass().getMethod(createGetterName(fieldName));
       return method.invoke(row);
     } catch (Exception e) {
-      LOG.error(String.format("Error while fetching %s.%s value", row.getClass().getSimpleName(), fieldName), e);
+      if (pluginConf.isFailOnError()) {
+        LOG.error(String.format("Error while fetching %s.%s value", row.getClass().getSimpleName(), fieldName), e);
+      } else {
+        LOG.warn(String.format("Failed while fetching %s.%s value", row.getClass().getSimpleName(), fieldName), e);
+      }
       return null;
     }
   }

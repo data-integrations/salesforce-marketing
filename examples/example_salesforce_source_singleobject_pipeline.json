@@ -50,7 +50,8 @@
             "soapEndpoint": "${SOAP_ENDPOINT}",
             "restEndpoint": "${REST_ENDPOINT}",
             "objectName": "${SFMC_OBJECT_NAME}",
-            "objectList": "Data Extension"
+            "objectList": "Data Extension",
+            "failOnError": "false"
           }
         },
         "outputSchema": [

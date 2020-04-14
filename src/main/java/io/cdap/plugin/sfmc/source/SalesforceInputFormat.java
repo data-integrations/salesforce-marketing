@@ -48,8 +48,8 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
    * Configure the input format to read tables from Salesforce. Should be called from the mapreduce client.
    *
    * @param jobConfig the job configuration
-   * @param mode
-   * @param conf      the database conf
+   * @param mode      the query mode
+   * @param conf      the plugin conf
    * @return Collection of SalesforceObjectInfo containing table and schema.
    */
   public static List<SalesforceObjectInfo> setInput(Configuration jobConfig, SourceQueryMode mode,
@@ -75,9 +75,12 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
       SalesforceClient client = SalesforceClient.create(conf.getClientId(), conf.getClientSecret(),
         conf.getAuthEndpoint(), conf.getSoapEndpoint());
 
+      boolean failOnError = conf.isFailOnError();
+
       //When mode = SingleObject, fetch fields for the object selected in plugin config
       if (mode == SourceQueryMode.SINGLE_OBJECT) {
-        SalesforceObjectInfo tableInfo = getTableMetaData(conf.getObject(), conf.getDataExtensionKey(), client);
+        SalesforceObjectInfo tableInfo = getTableMetaData(conf.getObject(), conf.getDataExtensionKey(), client,
+          failOnError);
         return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
       }
 
@@ -94,14 +97,14 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
           //the data extension objects.
           List<String> dataExtensionKeys = Util.splitToList(conf.getDataExtensionKeys(), ',');
           for (String dataExtensionKey : dataExtensionKeys) {
-            tableInfo = getTableMetaData(object, dataExtensionKey, client);
+            tableInfo = getTableMetaData(object, dataExtensionKey, client, failOnError);
             if (tableInfo == null) {
               continue;
             }
             tableInfos.add(tableInfo);
           }
         } else {
-          tableInfo = getTableMetaData(object, "", client);
+          tableInfo = getTableMetaData(object, "", client, failOnError);
           if (tableInfo != null) {
             tableInfos.add(tableInfo);
           }
@@ -110,7 +113,11 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
 
       return tableInfos;
     } catch (Exception e) {
-      LOG.error("Error in fetchTableInfo()", e);
+      if (conf.isFailOnError()) {
+        LOG.error("Error in fetchTableInfo()", e);
+      } else {
+        LOG.warn("Failed in fetchTableInfo()", e);
+      }
       return Collections.emptyList();
     }
   }
@@ -119,7 +126,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
    * Fetch the fields for passed object
    */
   private static SalesforceObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
-                                                       SalesforceClient client) {
+                                                       SalesforceClient client, boolean failOnError) {
     try {
       if (object == SourceObject.DATA_EXTENSION) {
         return client.fetchDataExtensionSchema(dataExtensionKey);
@@ -127,7 +134,11 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
         return client.fetchObjectSchema(object);
       }
     } catch (Exception e) {
-      LOG.error("Error in getTableMetaData()", e);
+      if (failOnError) {
+        LOG.error("Error in getTableMetaData()", e);
+      } else {
+        LOG.warn("Failed in getTableMetaData()", e);
+      }
       return null;
     }
   }

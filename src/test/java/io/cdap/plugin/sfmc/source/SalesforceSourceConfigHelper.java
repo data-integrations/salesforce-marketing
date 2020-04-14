@@ -110,7 +110,8 @@ public class SalesforceSourceConfigHelper {
 
     public SalesforceSourceConfig build() {
       return new SalesforceSourceConfig(referenceName, queryMode, objectName, dataExtensionKey, objectList,
-        dataExtensionKeys, tableNameField, clientId, clientSecret, restEndpoint, authEndpoint, soapEndpoint);
+        dataExtensionKeys, tableNameField, clientId, clientSecret, restEndpoint, authEndpoint, soapEndpoint,
+        false);
     }
   }
 }

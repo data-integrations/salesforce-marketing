@@ -149,6 +149,30 @@
           }
         }
       ]
+    },
+    {
+      "label": "Advanced",
+      "properties": [
+        {
+          "widget-type": "radio-group",
+          "name" : "failOnError",
+          "label" : "Error handling",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "false",
+            "options": [
+              {
+                "id": "true",
+                "label": "Stop on error"
+              },
+              {
+                "id": "false",
+                "label": "Skip on error"
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "outputs": [ ],
@@ -158,5 +182,43 @@
         "ref-property-name": "referenceName"
       }
     ]
-  }
+  },
+  "filters": [
+    {
+      "name": "showSingleObject",
+      "condition": {
+        "expression": "queryMode == 'Single Object'"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "objectName"
+        },
+        {
+          "type": "property",
+          "name": "dataExtensionKey"
+        }
+      ]
+    },
+    {
+      "name": "showMultiObject",
+      "condition": {
+        "expression": "queryMode == 'Multi Object'"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "objectList"
+        },
+        {
+          "type": "property",
+          "name": "dataExtensionKeyList"
+        },
+        {
+          "type": "property",
+          "name": "tableNameField"
+        }
+      ]
+    }
+  ]
 }

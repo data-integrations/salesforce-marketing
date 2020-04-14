@@ -81,6 +81,11 @@ public interface SalesforceConstants {
    */
   String PROPERTY_SOAP_API_ENDPOINT = "soapEndpoint";
 
+  /**
+   * Configuration property name used to specify Fail on Error flag
+   */
+  String PROPERTY_FAIL_ON_ERROR = "failOnError";
+
   String TABLE_PREFIX = "multisink.";
 
   String DATA_EXTENSION_PREFIX = "dataextension-";
