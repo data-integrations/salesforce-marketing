@@ -219,6 +219,18 @@
           "name": "tableNameField"
         }
       ]
+    },
+    {
+      "name": "showSingleObjectDataExtKey",
+      "condition": {
+        "expression": "objectName == 'Data Extension'"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "dataExtensionKey"
+        }
+      ]
     }
   ]
 }

@@ -24,7 +24,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * Salesforce input split
+ * Salesforce input split.
  */
 public class SalesforceInputSplit extends InputSplit implements Writable {
   private String objectName;
@@ -36,6 +36,14 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
   public SalesforceInputSplit() {
   }
 
+  /**
+   * Constructor for SalesforceInputSplit.
+   *
+   * @param objectName  The object name
+   * @param tableName   The corresponding table name
+   * @param page        The page index
+   * @param length      The page size
+   */
   public SalesforceInputSplit(String objectName, String tableName, int page, int length) {
     this.objectName = objectName;
     this.tableName = tableName;

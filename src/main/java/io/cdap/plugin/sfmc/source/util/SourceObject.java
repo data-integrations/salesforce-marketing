@@ -33,22 +33,22 @@ import java.util.stream.Stream;
 public enum SourceObject {
 
   /**
-   * This indicates data to be fetched from Data Extension
+   * This indicates data to be fetched from Data Extension.
    */
   DATA_EXTENSION("Data Extension", "dataextension", ETDataExtensionRow.class),
 
   /**
-   * This indicates data to be fetched from Campaign
+   * This indicates data to be fetched from Campaign.
    */
   CAMPAIGN("Campaign", "campaign", ETCampaign.class),
 
   /**
-   * This indicates data to be fetched from Email
+   * This indicates data to be fetched from Email.
    */
   EMAIL("Email", "email", ETEmail.class),
 
   /**
-   * This indicates data to be fetched from Mailing List
+   * This indicates data to be fetched from Mailing List.
    */
   MAILING_LIST("Mailing List", "mailinglist", ETList.class);
 

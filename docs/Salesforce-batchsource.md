@@ -76,3 +76,12 @@ For example, `https://instance.auth.marketingcloudapis.com/`
 
 **REST API Base URI**: The REST API Base URL associated for the Server-to-Server API integration. For example, 
 `https://instance.rest.marketingcloudapis.com/`
+
+**Error handling:** Whether to fail the pipeline if an error encountered while reading records. This can be one of 
+following values:
+
+`Stop on error` - will fail the pipeline if an error encountered,  
+
+`Skip on error` - will not fail the pipeline even if an error encountered and will continue the pipeline.
+
+Note: the default value is `Skip on error`.

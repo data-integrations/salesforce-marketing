@@ -32,17 +32,17 @@ public interface SalesforceConstants {
   String PROPERTY_QUERY_MODE = "queryMode";
 
   /**
-   * Configuration property name used to specify the object name
+   * Configuration property name used to specify the object name.
    */
   String PROPERTY_OBJECT_NAME = "objectName";
 
   /**
-   * Configuration property name used to specify data extension key
+   * Configuration property name used to specify data extension key.
    */
   String PROPERTY_DATA_EXTENSION_KEY = "dataExtensionKey";
 
   /**
-   * Configuration property name used to specify the list of objects
+   * Configuration property name used to specify the list of objects.
    */
   String PROPERTY_OBJECT_LIST = "objectList";
 
@@ -57,32 +57,32 @@ public interface SalesforceConstants {
   String PROPERTY_TABLE_NAME_FIELD = "tableNameField";
 
   /**
-   * Configuration property name used to specify client id
+   * Configuration property name used to specify client id.
    */
   String PROPERTY_CLIENT_ID = "clientId";
 
   /**
-   * Configuration property name used to specify client secret
+   * Configuration property name used to specify client secret.
    */
   String PROPERTY_CLIENT_SECRET = "clientSecret";
 
   /**
-   * Configuration property name used to specify REST API endpoint
+   * Configuration property name used to specify REST API endpoint.
    */
   String PROPERTY_API_ENDPOINT = "restEndpoint";
 
   /**
-   * Configuration property name used to specify Auth API endpoint
+   * Configuration property name used to specify Auth API endpoint.
    */
   String PROPERTY_AUTH_API_ENDPOINT = "authEndpoint";
 
   /**
-   * Configuration property name used to specify SOAP endpoint
+   * Configuration property name used to specify SOAP endpoint.
    */
   String PROPERTY_SOAP_API_ENDPOINT = "soapEndpoint";
 
   /**
-   * Configuration property name used to specify Fail on Error flag
+   * Configuration property name used to specify Fail on Error flag.
    */
   String PROPERTY_FAIL_ON_ERROR = "failOnError";
 

@@ -48,6 +48,16 @@ public class SalesforceClient {
     this.client = client;
   }
 
+  /**
+   * Initialize the connection with Salesforce Marketing Cloud using FuelSDK.
+   *
+   * @param clientId      The Salesforce Marketing Cloud Client Id
+   * @param clientSecret  The Salesforce Marketing Cloud Client Secret
+   * @param authEndpoint  Auth Endpoint url for Salesforce Marketing Cloud
+   * @param soapEndpoint  SOAP Endpoint url for Salesforce Marketing Cloud
+   * @return The instance of SalesforceClient object
+   * @throws ETSdkException The FuelSDKException
+   */
   public static SalesforceClient create(String clientId, String clientSecret, String authEndpoint,
                                         String soapEndpoint) throws ETSdkException {
     ETConfiguration conf = new ETConfiguration();
@@ -65,6 +75,13 @@ public class SalesforceClient {
     }
   }
 
+  /**
+   * Fetch records for passed object from Salesforce Marketing Cloud.
+   *
+   * @param object  The SourceObject which tells what data to be fetched from Salesforce
+   *                Marketing Cloud
+   * @return The list of ETApiObject representing the records from requested object
+   */
   public List<? extends ETApiObject> fetchObjectRecords(SourceObject object) {
     try {
       return fetchObjectData(client, object.getClassRef());
@@ -73,11 +90,27 @@ public class SalesforceClient {
     }
   }
 
+  /**
+   * Fetch the schema information for passed object from Salesforce Marketing Cloud.
+   *
+   * @param object  The SourceObject which tells for which schema to be fetched from Salesforce
+   *                Marketing Cloud
+   * @return The instance of SalesforceObjectInfo object
+   */
   public SalesforceObjectInfo fetchObjectSchema(SourceObject object) {
     return new SalesforceObjectInfo(object, fetchObjectFields(object.getClassRef()), 0);
   }
 
-  public List<ETDataExtensionRow> fetchDataExtensionRecords(String dataExtensionKey) throws ETSdkException {
+  /**
+   * Fetch records for passed object from Salesforce Marketing Cloud.
+   *
+   * @param dataExtensionKey  The data extension key for which data to be fetched from Salesforce
+   *                          Marketing Cloud
+   * @return The list of ETDataExtensionRow representing the records from requested data extension
+   * @throws ETSdkException The FuelSDKException
+   */
+  public List<ETDataExtensionRow> fetchDataExtensionRecords(String dataExtensionKey)
+    throws ETSdkException {
     return call(() -> {
       ETExpression expression = buildDataExtensionExpression(dataExtensionKey);
 
@@ -98,7 +131,16 @@ public class SalesforceClient {
     });
   }
 
-  public SalesforceObjectInfo fetchDataExtensionSchema(String dataExtensionKey) throws ETSdkException {
+  /**
+   * Fetch the schema information for passed object from Salesforce Marketing Cloud.
+   *
+   * @param dataExtensionKey  The data extension key for which schema to be fetched from
+   *                          Salesforce Marketing Cloud
+   * @return The instance of SalesforceObjectInfo object
+   * @throws ETSdkException The FuelSDKException
+   */
+  public SalesforceObjectInfo fetchDataExtensionSchema(String dataExtensionKey)
+    throws ETSdkException {
     return call(() -> {
       ETExpression expression = buildDataExtensionExpression(dataExtensionKey);
 
@@ -107,8 +149,8 @@ public class SalesforceClient {
       filter.addProperty("name");
       filter.addProperty("type");
 
-      ETResponse<ETDataExtensionColumn> response = ETDataExtensionColumn.retrieve(client, ETDataExtensionColumn.class,
-        (Integer) null, (Integer) null, filter);
+      ETResponse<ETDataExtensionColumn> response = ETDataExtensionColumn.retrieve(client,
+        ETDataExtensionColumn.class, (Integer) null, (Integer) null, filter);
       List<SalesforceColumn> columns = response.getObjects().stream()
         .map(o -> new SalesforceColumn(o.getName(), o.getType().name()))
         .collect(Collectors.toList());
@@ -127,7 +169,8 @@ public class SalesforceClient {
     return expression;
   }
 
-  private <T extends ETApiObject> List<T> fetchObjectData(ETClient client, Class<T> clazz) throws ETSdkException {
+  private <T extends ETApiObject> List<T> fetchObjectData(ETClient client, Class<T> clazz)
+    throws ETSdkException {
     ETResponse<T> etResponse = client.retrieve(clazz, new ETFilter());
     List<T> rows = etResponse.getObjects();
 
@@ -151,7 +194,7 @@ public class SalesforceClient {
   }
 
   /**
-   * A SFMC call
+   * A SFMC call.
    *
    * @param <T> type of return object
    */

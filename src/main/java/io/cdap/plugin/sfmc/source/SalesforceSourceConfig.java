@@ -148,6 +148,23 @@ public class SalesforceSourceConfig extends PluginConfig {
   @Description("Whether to fail the pipeline if it fails while reading.")
   private Boolean failOnError;
 
+  /**
+   * Constructor for SalesforceSourceConfig object.
+   *
+   * @param referenceName     The reference name
+   * @param queryMode         The query mode
+   * @param objectName        The object name to be fetched from Salesforce Marketing Cloud
+   * @param dataExtensionKey  The data extension key to be fetched from Salesforce Marketing Cloud
+   * @param objectList        The list of objects to be fetched from Salesforce Marketing Cloud
+   * @param dataExtensionKeys The list of data extension keys to be fetched from Salesforce Marketing Cloud
+   * @param tableNameField    The field name to hold the table name value
+   * @param clientId          The Salesforce Marketing Cloud Client Id
+   * @param clientSecret      The Salesforce Marketing Cloud Client Secret
+   * @param restEndpoint      The REST API endpoint for Salesforce Marketing Cloud
+   * @param authEndpoint      The AUTH API endpoint for Salesforce Marketing Cloud
+   * @param soapEndpoint      The SOAP API endpoint for Salesforce Marketing Cloud
+   * @param failOnError       A flag to decide what is to be done to the pipeline execution in case of errors
+   */
   public SalesforceSourceConfig(String referenceName, String queryMode, @Nullable String objectName,
                                 @Nullable String dataExtensionKey, @Nullable String objectList,
                                 @Nullable String dataExtensionKeys, @Nullable String tableNameField, String clientId,
@@ -172,6 +189,12 @@ public class SalesforceSourceConfig extends PluginConfig {
     return referenceName;
   }
 
+  /**
+   * Returns the query mode chosen.
+   *
+   * @param collector   The failure collector to collect the errors
+   * @return An instance of SourceQueryMode
+   */
   public SourceQueryMode getQueryMode(FailureCollector collector) {
     SourceQueryMode mode = getQueryMode();
     if (mode != null) {
@@ -185,12 +208,23 @@ public class SalesforceSourceConfig extends PluginConfig {
     return null;
   }
 
+  /**
+   * Returns the query mode chosen.
+   *
+   * @return An instance of SourceQueryMode
+   */
   public SourceQueryMode getQueryMode() {
     Optional<SourceQueryMode> sourceQueryMode = SourceQueryMode.fromValue(queryMode);
 
     return sourceQueryMode.isPresent() ? sourceQueryMode.get() : null;
   }
 
+  /**
+   * Returns selected object.
+   *
+   * @param collector   The failure collector to collect the errors
+   * @return An instance of SourceObject
+   */
   public SourceObject getObject(FailureCollector collector) {
     SourceObject sourceObject = getObject();
     if (sourceObject != null) {
@@ -214,6 +248,12 @@ public class SalesforceSourceConfig extends PluginConfig {
     return dataExtensionKey;
   }
 
+  /**
+   * Returns list of selected objects.
+   *
+   * @param collector   The failure collector to collect the errors
+   * @return The list of SourceObject
+   */
   public List<SourceObject> getObjectList(FailureCollector collector) {
     List<String> objects = Util.splitToList(objectList, ',');
     List<SourceObject> sourceObjects = new ArrayList<>();
@@ -233,6 +273,11 @@ public class SalesforceSourceConfig extends PluginConfig {
     return sourceObjects;
   }
 
+  /**
+   * Returns list of selected objects.
+   *
+   * @return The list of SourceObject
+   */
   @Nullable
   public List<SourceObject> getObjectList() {
     List<String> objects = Util.splitToList(objectList, ',');

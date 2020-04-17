@@ -77,8 +77,9 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     FailureCollector collector = stageConfigurer.getFailureCollector();
 
     conf.validate(collector);
-    // Since we have validated all the properties, throw an exception if there are any errors in the collector.
-    // This is to avoid adding same validation errors again in getSchema method call
+    // Since we have validated all the properties, throw an exception if there are any
+    // errors in the collector. This is to avoid adding same validation errors again in
+    // getSchema method call
     collector.getOrThrowException();
 
     if (conf.isFailOnError()) {

@@ -29,6 +29,12 @@ public class SalesforceColumn {
   public SalesforceColumn() {
   }
 
+  /**
+   * Constructor for SalesforceColumn.
+   *
+   * @param fieldName The column name
+   * @param typeName  The data type name
+   */
   public SalesforceColumn(String fieldName, String typeName) {
     this.fieldName = fieldName;
     this.typeName = typeName;

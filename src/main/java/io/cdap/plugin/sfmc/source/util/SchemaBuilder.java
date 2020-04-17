@@ -24,9 +24,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Utility class to build schema
+ * Utility class to build schema.
  */
 public class SchemaBuilder {
+  /**
+   * Constructs Schema object using input parameters.
+   *
+   * @param tableName The table name to be used in Schema object
+   * @param columns   The list of SalesforceColumn objects that will be added as Schema.Field
+   * @return The instance of Schema object
+   */
   public Schema constructSchema(String tableName, List<SalesforceColumn> columns) {
     SchemaBuilder schemaBuilder = new SchemaBuilder();
     List<Schema.Field> fields = schemaBuilder.constructSchemaFields(columns);

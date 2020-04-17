@@ -200,7 +200,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   }
 
   /**
-   * Read data from ETApiObject and convert it to StructureRecord
+   * Read data from ETApiObject and convert it to StructureRecord.
    */
   private void convertRecord(StructuredRecord.Builder recordBuilder, ETApiObject row) {
     for (Schema.Field field : tableFields) {
@@ -219,7 +219,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   }
 
   /**
-   * Read data from ETApiObject using reflection for a given field name
+   * Read data from ETApiObject using reflection for a given field name.
    */
   private Object getFieldValue(ETApiObject row, String fieldName) {
     try {
@@ -236,7 +236,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   }
 
   /**
-   * Constructs the get method name to be used in reflection call
+   * Constructs the get method name to be used in reflection call.
    */
   private String createGetterName(String name) {
     StringBuilder sb = new StringBuilder("get");
@@ -246,7 +246,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   }
 
   /**
-   * Converts raw field value according to the schema field type
+   * Converts raw field value according to the schema field type.
    */
   private Object convertToValue(String fieldName, Schema fieldSchema, Object fieldValue) {
     Schema.Type fieldType = fieldSchema.getType();

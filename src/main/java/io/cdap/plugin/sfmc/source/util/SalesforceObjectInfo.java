@@ -31,10 +31,24 @@ public class SalesforceObjectInfo {
   private final Schema schema;
   private final int recordCount;
 
+  /**
+   * Constructor for SalesforceObjectInfo for non-dataextension object.
+   * @param object      The Salesforce Marketing Cloud object
+   * @param columns     The list of columns
+   * @param recordCount The total number of records
+   */
   public SalesforceObjectInfo(SourceObject object, List<SalesforceColumn> columns, int recordCount) {
     this(object, null, columns, recordCount);
   }
 
+  /**
+   * Constructor for SalesforceObjectInfo for dataextension object.
+   *
+   * @param object            The Salesforce Marketing Cloud object as DataExtension
+   * @param dataExtensionKey  The data extension key
+   * @param columns           The list of columns
+   * @param recordCount       The total number of records
+   */
   public SalesforceObjectInfo(SourceObject object, String dataExtensionKey, List<SalesforceColumn> columns,
                               int recordCount) {
     this.object = object;
@@ -48,6 +62,12 @@ public class SalesforceObjectInfo {
     return object;
   }
 
+  /**
+   * Returns the table name for the object.
+   *
+   * @return  In case of Data Extension, it returns name in `dataextension_[data extension key]` format
+   * Otherwise, it returns object name
+   */
   public String getTableName() {
     if (getObject() == SourceObject.DATA_EXTENSION) {
       return String.format("%s%s", DATA_EXTENSION_PREFIX, dataExtensionKey);

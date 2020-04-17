@@ -39,7 +39,7 @@ import java.util.List;
 import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.MAX_PAGE_SIZE;
 
 /**
- * Salesforce input format
+ * Salesforce input format.
  */
 public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(SalesforceInputFormat.class);
@@ -67,8 +67,11 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
   }
 
   /**
-   * Depending on conf value fetch the list of fields for each object and create schema object
-   * return the schema for each object as SalesforceObjectInfo
+   * Depending on conf value fetch the list of fields for each object and create schema object.
+   *
+   * @param mode      the query mode
+   * @param conf      the plugin conf
+   * @return Collection of SalesforceObjectInfo containing table and schema.
    */
   private static List<SalesforceObjectInfo> fetchTableInfo(SourceQueryMode mode, SalesforceSourceConfig conf) {
     try {
@@ -123,7 +126,7 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
   }
 
   /**
-   * Fetch the fields for passed object
+   * Fetch the fields for passed object.
    */
   private static SalesforceObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
                                                        SalesforceClient client, boolean failOnError) {
