@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2020 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,7 @@ import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.plugin.sfmc.source.util.SalesforceConstants;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
@@ -33,13 +34,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.DATA_EXTENSION_PREFIX;
 
 /**
  * Record reader that reads the entire contents of a Salesforce table.
@@ -50,6 +48,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   private SalesforceInputSplit split;
   private int pos;
   private List<Schema.Field> tableFields;
+  private SalesforceObjectInfo sfObjectMetaData;
   private Schema schema;
 
   private SourceObject object;
@@ -114,10 +113,10 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
     } catch (Exception e) {
       if (pluginConf.isFailOnError()) {
-        LOG.error("Error decoding row from table " + tableName, e);
-        throw new IOException("Error decoding row from table " + tableName, e);
+        LOG.error(String.format("Error decoding row from table %s", tableName), e);
+        throw new IOException(String.format("Error decoding row from table %s", tableName), e);
       } else {
-        LOG.warn("Failed decoding row from table " + tableName, e);
+        LOG.warn(String.format("Failed decoding row from table %s", tableName), e);
       }
     }
     return recordBuilder.build();
@@ -130,18 +129,13 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
   @Override
   public void close() throws IOException {
-    SQLException exception = null;
-
-    if (exception != null) {
-      throw new IOException(exception);
-    }
   }
 
   private void fetchData() {
     object = SourceObject.valueOf(split.getObjectName());
     tableName = split.getTableName();
     if (object == SourceObject.DATA_EXTENSION) {
-      dataExtensionKey = tableName.replaceAll(DATA_EXTENSION_PREFIX, "");
+      dataExtensionKey = tableName.replaceAll(SalesforceConstants.DATA_EXTENSION_PREFIX, "");
     }
     tableNameField = pluginConf.getTableNameField();
 
@@ -152,9 +146,9 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
 
       //Fetch data
       if (object == SourceObject.DATA_EXTENSION) {
-        results = client.fetchDataExtensionRecords(dataExtensionKey);
+        results = client.fetchDataExtensionRecords(dataExtensionKey, split.getPage(), split.getPageSize());
       } else {
-        results = client.fetchObjectRecords(object);
+        results = client.fetchObjectRecords(object, split.getPage(), split.getPageSize());
       }
 
       LOG.debug("size={}", results.size());
@@ -178,15 +172,14 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
     List<Schema.Field> schemaFields;
 
     try {
-      SalesforceObjectInfo metaData = null;
       if (object == SourceObject.DATA_EXTENSION) {
-        metaData = client.fetchDataExtensionSchema(dataExtensionKey);
+        sfObjectMetaData = client.fetchDataExtensionSchema(dataExtensionKey, false);
       } else {
-        metaData = client.fetchObjectSchema(object);
+        sfObjectMetaData = client.fetchObjectSchema(object, false);
       }
 
       //Build schema
-      tableFields = metaData.getSchema().getFields();
+      tableFields = sfObjectMetaData.getSchema().getFields();
       schemaFields = new ArrayList<>(tableFields);
 
       if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {
@@ -196,7 +189,7 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
       schemaFields = Collections.emptyList();
     }
 
-    schema = Schema.recordOf(tableName, schemaFields);
+    schema = Schema.recordOf(tableName.replaceAll("-", "_"), schemaFields);
   }
 
   /**
@@ -207,7 +200,8 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
       String fieldName = field.getName();
       Object rawFieldValue = null;
       if (row instanceof ETDataExtensionRow) {
-        rawFieldValue = ((ETDataExtensionRow) row).getColumn(fieldName);
+        String apiFieldName = sfObjectMetaData.lookupFieldsMap(fieldName);
+        rawFieldValue = ((ETDataExtensionRow) row).getColumn(apiFieldName);
       } else {
         rawFieldValue = getFieldValue(row, fieldName);
       }

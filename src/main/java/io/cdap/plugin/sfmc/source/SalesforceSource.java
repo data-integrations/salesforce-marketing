@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2020 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -33,7 +33,9 @@ import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
 import io.cdap.plugin.common.LineageRecorder;
 import io.cdap.plugin.common.SourceInputFormatProvider;
+import io.cdap.plugin.sfmc.source.util.SalesforceConstants;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
+import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -48,14 +50,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.PLUGIN_NAME;
-import static io.cdap.plugin.sfmc.source.util.SalesforceConstants.TABLE_PREFIX;
-
 /**
  * A {@link BatchSource} that reads data from multiple objects in Salesforce.
  */
 @Plugin(type = BatchSource.PLUGIN_TYPE)
-@Name(PLUGIN_NAME)
+@Name(SalesforceConstants.PLUGIN_NAME)
 @Description("Reads from multiple objects in Salesforce. " +
   "Outputs one record for each row in each object, with the object name as a record field. " +
   "Also sets a pipeline argument for each object read, which contains the object schema.")
@@ -82,6 +81,9 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     // getSchema method call
     collector.getOrThrowException();
 
+    //Get Schema
+    stageConfigurer.setOutputSchema(getSchema(conf.getQueryMode()));
+
     if (conf.isFailOnError()) {
       if (pipelineConfigurer.getEngine() == Engine.SPARK) {
         pipelineConfigurer.setPipelineProperties(Collections.singletonMap("spark.task.maxFailures", "1"));
@@ -103,10 +105,11 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     SourceQueryMode mode = conf.getQueryMode(collector);
 
     Configuration hConf = new Configuration();
-    Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf);
+    Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf, true);
     SettableArguments arguments = context.getArguments();
     for (SalesforceObjectInfo tableInfo : tables) {
-      arguments.set(TABLE_PREFIX + tableInfo.getTableName(), tableInfo.getSchema().toString());
+      arguments.set(SalesforceConstants.TABLE_PREFIX + tableInfo.getFormattedTableName(),
+                    tableInfo.getSchema().toString());
       recordLineage(context, tableInfo);
     }
 
@@ -119,8 +122,22 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     emitter.emit(input.getValue());
   }
 
+  private Schema getSchema(SourceQueryMode mode) {
+    Schema schema = null;
+
+    if (mode == SourceQueryMode.SINGLE_OBJECT && conf.getObject() == SourceObject.DATA_EXTENSION) {
+      Configuration hConf = new Configuration();
+      Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf, false);
+      if (tables != null && !tables.isEmpty()) {
+        schema = tables.iterator().next().getSchema();
+      }
+    }
+
+    return schema;
+  }
+
   private void recordLineage(BatchSourceContext context, SalesforceObjectInfo tableInfo) {
-    String tableName = tableInfo.getTableName();
+    String tableName = tableInfo.getFormattedTableName();
     String outputName = String.format("%s-%s", conf.getReferenceName(), tableName);
     Schema schema = tableInfo.getSchema();
     LineageRecorder lineageRecorder = new LineageRecorder(context, outputName);

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2020 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -30,7 +30,7 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
   private String objectName;
   private String tableName;
   private int page;
-  private int length;
+  private int pageSize;
 
   // used by mapreduce
   public SalesforceInputSplit() {
@@ -39,16 +39,16 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
   /**
    * Constructor for SalesforceInputSplit.
    *
-   * @param objectName  The object name
-   * @param tableName   The corresponding table name
-   * @param page        The page index
-   * @param length      The page size
+   * @param objectName The object name
+   * @param tableName The corresponding table name
+   * @param page The page index
+   * @param pageSize The page size
    */
-  public SalesforceInputSplit(String objectName, String tableName, int page, int length) {
+  public SalesforceInputSplit(String objectName, String tableName, int page, int pageSize) {
     this.objectName = objectName;
     this.tableName = tableName;
     this.page = page;
-    this.length = length;
+    this.pageSize = pageSize;
   }
 
   public String getObjectName() {
@@ -63,11 +63,16 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
     return page;
   }
 
+  public int getPageSize() {
+    return pageSize;
+  }
+
   @Override
   public void write(DataOutput dataOutput) throws IOException {
     dataOutput.writeUTF(this.objectName);
     dataOutput.writeUTF(this.tableName);
     dataOutput.writeInt(this.page);
+    dataOutput.writeInt(this.pageSize);
   }
 
   @Override
@@ -75,11 +80,12 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
     this.objectName = dataInput.readUTF();
     this.tableName = dataInput.readUTF();
     this.page = dataInput.readInt();
+    this.pageSize = dataInput.readInt();
   }
 
   @Override
   public long getLength() throws IOException, InterruptedException {
-    return this.length;
+    return 0;
   }
 
   @Override

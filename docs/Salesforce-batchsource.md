@@ -61,7 +61,7 @@ Note, this value will be ignored if the Mode is set to `Single Object`.
 
 **Table Name Field**: The name of the field that holds the object name to which the data belongs to. Must not be the 
 name of any column for any of the objects that will be read. Defaults to `tablename`. In case of `Data Extension` 
-object, this field will have value in `dataextension-[Data Extension Key]` format. Note, the Table name field value 
+object, this field will have value in `dataextension_[Data Extension Key]` format. Note, the Table name field value 
 will be ignored if the Mode is set to `Single Object`.
 
 **Client ID**: OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Cask Data, Inc.
+ * Copyright © 2020 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -55,11 +55,18 @@ public enum SourceObject {
   private final String value;
   private final String tableName;
   private final Class<? extends ETApiObject> classRef;
+  private final boolean pagingSupported;
 
   SourceObject(String value, String tableName, Class<? extends ETApiObject> classRef) {
     this.value = value;
     this.tableName = tableName;
     this.classRef = classRef;
+    if (tableName.equals("dataextension")) {
+      this.pagingSupported = true;
+    } else {
+      this.pagingSupported = getClassRef().getSuperclass() != null
+        && !getClassRef().getSuperclass().getSimpleName().equalsIgnoreCase("ETSoapObject");
+    }
   }
 
   /**
@@ -89,5 +96,9 @@ public enum SourceObject {
 
   public Class<? extends ETApiObject> getClassRef() {
     return classRef;
+  }
+
+  public boolean isPagingSupported() {
+    return pagingSupported;
   }
 }

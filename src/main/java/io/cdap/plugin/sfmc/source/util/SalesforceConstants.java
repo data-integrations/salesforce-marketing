@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Cask Data, Inc.
+ * Copyright © 2020 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -86,9 +86,18 @@ public interface SalesforceConstants {
    */
   String PROPERTY_FAIL_ON_ERROR = "failOnError";
 
+  /**
+   * Table prefix to be used in case of Multi-Object support.
+   */
   String TABLE_PREFIX = "multisink.";
 
-  String DATA_EXTENSION_PREFIX = "dataextension-";
+  /**
+   * Table name prefix to be used for data extensions.
+   */
+  String DATA_EXTENSION_PREFIX = "dataextension_";
 
+  /**
+   * The max limit for the page size.
+   */
   int MAX_PAGE_SIZE = 2500;
 }

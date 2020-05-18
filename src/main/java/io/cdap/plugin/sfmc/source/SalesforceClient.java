@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2020 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -27,10 +27,9 @@ import com.exacttarget.fuelsdk.ETFilter;
 import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.plugin.sfmc.source.util.SalesforceColumn;
+import io.cdap.plugin.sfmc.source.util.SalesforceConstants;
 import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +40,6 @@ import java.util.stream.Collectors;
  * Utility class that provides methods to connect to Salesforce instance.
  */
 public class SalesforceClient {
-  private static final Logger LOG = LoggerFactory.getLogger(SalesforceClient.class);
   private final ETClient client;
 
   SalesforceClient(ETClient client) {
@@ -51,10 +49,10 @@ public class SalesforceClient {
   /**
    * Initialize the connection with Salesforce Marketing Cloud using FuelSDK.
    *
-   * @param clientId      The Salesforce Marketing Cloud Client Id
-   * @param clientSecret  The Salesforce Marketing Cloud Client Secret
-   * @param authEndpoint  Auth Endpoint url for Salesforce Marketing Cloud
-   * @param soapEndpoint  SOAP Endpoint url for Salesforce Marketing Cloud
+   * @param clientId The Salesforce Marketing Cloud Client Id
+   * @param clientSecret The Salesforce Marketing Cloud Client Secret
+   * @param authEndpoint Auth Endpoint url for Salesforce Marketing Cloud
+   * @param soapEndpoint SOAP Endpoint url for Salesforce Marketing Cloud
    * @return The instance of SalesforceClient object
    * @throws ETSdkException The FuelSDKException
    */
@@ -78,13 +76,22 @@ public class SalesforceClient {
   /**
    * Fetch records for passed object from Salesforce Marketing Cloud.
    *
-   * @param object  The SourceObject which tells what data to be fetched from Salesforce
-   *                Marketing Cloud
+   * @param object The SourceObject which tells what data to be fetched from Salesforce Marketing Cloud
+   * @param page The page index
+   * @param pageSize The size of the page
    * @return The list of ETApiObject representing the records from requested object
    */
-  public List<? extends ETApiObject> fetchObjectRecords(SourceObject object) {
+  public List<? extends ETApiObject> fetchObjectRecords(SourceObject object, int page, int pageSize) {
     try {
-      return fetchObjectData(client, object.getClassRef());
+      Integer pageIndex = null;
+      Integer maxPageSize = null;
+
+      if (object.isPagingSupported()) {
+        pageIndex = page;
+        maxPageSize = pageSize;
+      }
+
+      return fetchObjectData(client, object.getClassRef(), pageIndex, maxPageSize);
     } catch (ETSdkException e) {
       return Collections.emptyList();
     }
@@ -93,53 +100,47 @@ public class SalesforceClient {
   /**
    * Fetch the schema information for passed object from Salesforce Marketing Cloud.
    *
-   * @param object  The SourceObject which tells for which schema to be fetched from Salesforce
-   *                Marketing Cloud
+   * @param object The SourceObject which tells for which schema to be fetched from Salesforce Marketing Cloud
+   * @param fetchRecordCount the flag to decide whether to fetch record count or not
    * @return The instance of SalesforceObjectInfo object
+   * @throws ETSdkException The FuelSDKException
    */
-  public SalesforceObjectInfo fetchObjectSchema(SourceObject object) {
-    return new SalesforceObjectInfo(object, fetchObjectFields(object.getClassRef()), 0);
+  public SalesforceObjectInfo fetchObjectSchema(SourceObject object, boolean fetchRecordCount) throws ETSdkException {
+    Class<? extends ETApiObject> clazz = object.getClassRef();
+    Integer recordCount = SalesforceConstants.MAX_PAGE_SIZE;
+
+    if (object.isPagingSupported() && fetchRecordCount) {
+      ETResponse<? extends ETApiObject> etResponse = client.retrieve(clazz, 1, 1, new ETFilter());
+      recordCount = etResponse.getTotalCount();
+    }
+
+    return new SalesforceObjectInfo(object, fetchObjectFields(clazz), recordCount);
   }
 
   /**
    * Fetch records for passed object from Salesforce Marketing Cloud.
    *
-   * @param dataExtensionKey  The data extension key for which data to be fetched from Salesforce
-   *                          Marketing Cloud
+   * @param dataExtensionKey The data extension key for which data to be fetched from Salesforce Marketing Cloud
+   * @param page The page index
+   * @param pageSize The size of the page
    * @return The list of ETDataExtensionRow representing the records from requested data extension
    * @throws ETSdkException The FuelSDKException
    */
-  public List<ETDataExtensionRow> fetchDataExtensionRecords(String dataExtensionKey)
+  public List<ETDataExtensionRow> fetchDataExtensionRecords(String dataExtensionKey, int page, int pageSize)
     throws ETSdkException {
-    return call(() -> {
-      ETExpression expression = buildDataExtensionExpression(dataExtensionKey);
-
-      ETFilter filter = new ETFilter();
-      filter.addProperty("key");
-      filter.addProperty("name");
-      filter.setExpression(expression);
-
-      ETResponse<ETDataExtension> response = client.retrieve(ETDataExtension.class, filter);
-      List<ETDataExtension> extensionRows = response.getObjects();
-
-      if (extensionRows.isEmpty()) {
-        return Collections.emptyList();
-      }
-
-      ETDataExtension de = extensionRows.get(0);
-      return de.select().getObjects();
-    });
+    return call(() -> ETDataExtension.select(client, "key=" + dataExtensionKey, page, pageSize)
+      .getObjects());
   }
 
   /**
    * Fetch the schema information for passed object from Salesforce Marketing Cloud.
    *
-   * @param dataExtensionKey  The data extension key for which schema to be fetched from
-   *                          Salesforce Marketing Cloud
+   * @param dataExtensionKey The data extension key for which schema to be fetched from Salesforce Marketing Cloud
+   * @param fetchRecordCount the flag to decide whether to fetch record count or not
    * @return The instance of SalesforceObjectInfo object
    * @throws ETSdkException The FuelSDKException
    */
-  public SalesforceObjectInfo fetchDataExtensionSchema(String dataExtensionKey)
+  public SalesforceObjectInfo fetchDataExtensionSchema(String dataExtensionKey, boolean fetchRecordCount)
     throws ETSdkException {
     return call(() -> {
       ETExpression expression = buildDataExtensionExpression(dataExtensionKey);
@@ -155,8 +156,25 @@ public class SalesforceClient {
         .map(o -> new SalesforceColumn(o.getName(), o.getType().name()))
         .collect(Collectors.toList());
 
-      return new SalesforceObjectInfo(SourceObject.DATA_EXTENSION, dataExtensionKey, columns, 0);
+      Integer recordCount = fetchDataExtensionRecordCount(dataExtensionKey);
+
+      return new SalesforceObjectInfo(SourceObject.DATA_EXTENSION, dataExtensionKey, columns, recordCount);
     });
+  }
+
+  private Integer fetchDataExtensionRecordCount(String dataExtensionKey) throws ETSdkException {
+    Integer totalCount = 0;
+    Integer pageRecordCount;
+    int page = 1;
+
+    do {
+      pageRecordCount = ETDataExtension.select(client, "key=" + dataExtensionKey, page,
+                                               SalesforceConstants.MAX_PAGE_SIZE).getResults().size();
+      totalCount += pageRecordCount;
+      page++;
+    } while (pageRecordCount >= SalesforceConstants.MAX_PAGE_SIZE);
+
+    return totalCount;
   }
 
   private ETExpression buildDataExtensionExpression(String dataExtensionKey) {
@@ -169,12 +187,11 @@ public class SalesforceClient {
     return expression;
   }
 
-  private <T extends ETApiObject> List<T> fetchObjectData(ETClient client, Class<T> clazz)
+  private <T extends ETApiObject> List<T> fetchObjectData(ETClient client, Class<T> clazz, Integer page,
+                                                          Integer pageSize)
     throws ETSdkException {
-    ETResponse<T> etResponse = client.retrieve(clazz, new ETFilter());
-    List<T> rows = etResponse.getObjects();
-
-    return rows;
+    ETResponse<T> etResponse = client.retrieve(clazz, page, pageSize, new ETFilter());
+    return etResponse.getObjects();
   }
 
   private List<SalesforceColumn> fetchObjectFields(Class<?> clazz) {

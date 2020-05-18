@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Cask Data, Inc.
+ * Copyright © 2020 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -33,7 +33,7 @@ public class SalesforceColumn {
    * Constructor for SalesforceColumn.
    *
    * @param fieldName The column name
-   * @param typeName  The data type name
+   * @param typeName The data type name
    */
   public SalesforceColumn(String fieldName, String typeName) {
     this.fieldName = fieldName;
@@ -43,6 +43,14 @@ public class SalesforceColumn {
 
   public String getFieldName() {
     return fieldName;
+  }
+
+  /**
+   * Replaces all space characters in column name with double underscores
+   * @return field name with all characters replaced.
+   */
+  public String getFormattedFieldName() {
+    return fieldName.replaceAll(" ", "__");
   }
 
   public String getTypeName() {

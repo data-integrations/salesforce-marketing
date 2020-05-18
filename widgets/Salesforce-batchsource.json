@@ -52,6 +52,16 @@
           "name": "dataExtensionKey",
           "widget-attributes": {
             "placeholder": "External key of the Data Extension from which data to be read."
+          },
+          "plugin-function": {
+            "label": "Get Schema",
+            "widget": "outputSchema",
+            "output-property": "schema",
+            "omit-properties": [
+              {
+                "name": "schema"
+              }
+            ]
           }
         }
       ]
@@ -175,7 +185,12 @@
       ]
     }
   ],
-  "outputs": [ ],
+  "outputs": [
+    {
+      "name": "schema",
+      "widget-type": "schema"
+    }
+  ],
   "jump-config": {
     "datasets": [
       {
