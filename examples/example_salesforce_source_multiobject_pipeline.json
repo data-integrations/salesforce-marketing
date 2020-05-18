@@ -1,0 +1,101 @@
+{
+  "artifact": {
+    "name": "cdap-data-pipeline",
+    "version": "6.1.1",
+    "scope": "SYSTEM",
+    "label": "Data Pipeline - Batch"
+  },
+  "description": "",
+  "name": "Test_Salesforce_Source_MultiObject_Mode",
+  "config": {
+    "resources": {
+      "memoryMB": 2048,
+      "virtualCores": 1
+    },
+    "driverResources": {
+      "memoryMB": 2048,
+      "virtualCores": 1
+    },
+    "connections": [
+      {
+        "from": "Salesforce Marketing",
+        "to": "GCS Multi File"
+      }
+    ],
+    "comments": [],
+    "postActions": [],
+    "properties": {},
+    "processTimingEnabled": true,
+    "stageLoggingEnabled": false,
+    "stages": [
+      {
+        "name": "Salesforce Marketing",
+        "plugin": {
+          "name": "Salesforce",
+          "type": "batchsource",
+          "label": "Salesforce Marketing",
+          "artifact": {
+            "name": "salesforce-marketing-plugins",
+            "version": "1.2.0-SNAPSHOT",
+            "scope": "USER"
+          },
+          "properties": {
+            "queryMode": "Multi Object",
+            "tableNameField": "tablename",
+            "referenceName": "example_sf_sf_source_1",
+            "clientId": "${CLIENT_ID}",
+            "clientSecret": "${CLIENT_SECRET}",
+            "authEndpoint": "${AUTH_ENDPOINT}",
+            "soapEndpoint": "${SOAP_ENDPOINT}",
+            "restEndpoint": "${REST_ENDPOINT}",
+            "dataExtensionKeyList": "${DATA_EXTENSION_KEY_LIST}",
+            "objectName": "Data Extension",
+            "objectList": "${SFMC_OBJECT_LIST}",
+            "failOnError": "false"
+          }
+        },
+        "outputSchema": [
+          {
+            "name": "etlSchemaBody",
+            "schema": ""
+          }
+        ]
+      },
+      {
+        "name": "GCS Multi File",
+        "plugin": {
+          "name": "GCSMultiFiles",
+          "type": "batchsink",
+          "label": "GCS Multi File",
+          "artifact": {
+            "name": "google-cloud",
+            "version": "0.13.2",
+            "scope": "SYSTEM"
+          },
+          "properties": {
+            "project": "${GCS_PROJECT_ID}",
+            "suffix": "yyyy-MM-dd-HH-mm",
+            "format": "csv",
+            "serviceFilePath": "${GCS_SERVICE_ACCOUNT_FILE_PATH}",
+            "compressionCodec": "None",
+            "splitField": "tablename",
+            "location": "us",
+            "referenceName": "example_sf_gcs_multi_sink_1",
+            "path": "${GCS_BUCKET_PATH}",
+            "delimiter": ","
+          }
+        },
+        "inputSchema": [
+          {
+            "name": "Salesforce Marketing",
+            "schema": ""
+          }
+        ]
+      }
+    ],
+    "schedule": "0 * * * *",
+    "engine": "spark",
+    "numOfRecordsPreview": 100,
+    "maxConcurrentRuns": 1
+  }
+}

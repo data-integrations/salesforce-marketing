@@ -3,7 +3,10 @@
 
 # Overview
 
-Contains CDAP pipeline plugins for Salesforce Marketing Cloud
+Contains CDAP pipeline plugins for Salesforce Marketing Cloud. Following plugins are available in this repository.
+                                                               
+* [Salesforce Marketing Cloud Source](docs/Salesforce-batchsource.md)
+* [Salesforce Marketing Cloud Data Extension Sink](docs/SalesforceDataExtension-batchsink.md)
 
 # Contact
 
@@ -14,7 +17,7 @@ CDAP User Group and Development Discussions:
 * [cdap-user@googlegroups.com](https://groups.google.com/d/forum/cdap-user)
 
 The *cdap-user* mailing list is primarily for users using the product to develop
-applications or building plugins for appplications. You can expect questions from
+applications or building plugins for applications. You can expect questions from
 users, release announcements, and any other discussions that we think will be helpful
 to the users.
 

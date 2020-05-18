@@ -22,7 +22,7 @@
   <name>Salesforce Marketing plugins</name>
   <groupId>io.cdap.plugin</groupId>
   <artifactId>salesforce-marketing-plugins</artifactId>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.2.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
 
@@ -30,11 +30,13 @@
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- version properties -->
-    <cdap.version>6.1.0-SNAPSHOT</cdap.version>
+    <cdap.version>6.1.1</cdap.version>
+    <cdap.plugin.version>2.3.4</cdap.plugin.version>
     <junit.version>4.12</junit.version>
     <hadoop.version>2.3.0</hadoop.version>
     <hydrator.version>2.2.0</hydrator.version>
-    <salesforce.marketing.cloud.version>1.4.0</salesforce.marketing.cloud.version>
+    <guava.version>27.0.1-jre</guava.version>
+    <salesforce.marketing.cloud.version>1.5.0</salesforce.marketing.cloud.version>
   </properties>
 
   <repositories>
@@ -58,20 +60,24 @@
   <dependencies>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
-      <artifactId>cdap-api</artifactId>
-      <version>${cdap.version}</version>
-      <!--scope>provided</scope-->
-    </dependency>
-    <dependency>
-      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-etl-api</artifactId>
       <version>${cdap.version}</version>
-      <!--scope>provided</scope-->
     </dependency>
     <dependency>
       <groupId>io.cdap.plugin</groupId>
       <artifactId>hydrator-common</artifactId>
-      <version>${hydrator.version}</version>
+      <version>${cdap.plugin.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>hydrator-test</artifactId>
+      <version>${cdap.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -208,6 +214,12 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.24.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -368,7 +380,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>3.5.1</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
@@ -389,6 +401,7 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>io.cdap</groupId>
         <artifactId>cdap-maven-plugin</artifactId>
