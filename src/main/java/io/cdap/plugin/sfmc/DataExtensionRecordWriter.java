@@ -73,9 +73,9 @@ public class DataExtensionRecordWriter extends RecordWriter<NullWritable, Struct
   }
 
   private void writeBatch() throws IOException {
+    List<ETResult<ETDataExtensionRow>> results = new ArrayList<>();
+    boolean failed = false;
     try {
-      boolean failed = false;
-      List<ETResult<ETDataExtensionRow>> results;
       switch (operation) {
         case INSERT:
           ETResponse<ETDataExtensionRow> response = client.insert(batch);
@@ -96,33 +96,44 @@ public class DataExtensionRecordWriter extends RecordWriter<NullWritable, Struct
           // should never happen
           throw new IllegalStateException("Unsupported operation " + operation);
       }
-
-      for (ETResult<ETDataExtensionRow> result : results) {
-        if (result.getStatus() == ETResult.Status.ERROR) {
-          failed = true;
-          Integer errorCode = result.getErrorCode();
-          String errorMessage = result.getErrorMessage() == null ? "" : result.getErrorMessage();
-          if (errorCode != null) {
-            errorMessage = String.format("[Error code %d] %s", errorCode, errorMessage);
-          }
-          errorMessage = String.format("Failed to %s record %s:%s",
-                                       operation.name().toLowerCase(), result.getObject().getColumns(), errorMessage);
-          if (failOnError) {
-            LOG.error(errorMessage);
-          } else {
-            LOG.warn(errorMessage);
-          }
+    } catch (Exception e) {
+      failed = true;
+      if (!failOnError) {
+        LOG.warn("Failed to get a response from {} call to Salesforce API", operation.name(), e);
+      }
+      for (ETDataExtensionRow row : batch) {
+        String errorMessage = String.format("Failed to %s record %s", operation.name().toLowerCase(), row.getColumns());
+        if (failOnError) {
+          LOG.error(errorMessage);
         } else {
-          LOG.trace("Successfully wrote {}", result.getObject().getColumns());
+          LOG.warn(errorMessage);
         }
       }
-      batch.clear();
-      if (failed && failOnError) {
-        throw new IOException(String.format("Failed to %s records to data extension '%s'",
-                                            operation.name().toLowerCase(), client.getDataExtensionKey()));
+    }
+
+    for (ETResult<ETDataExtensionRow> result : results) {
+      if (result.getStatus() == ETResult.Status.ERROR) {
+        failed = true;
+        Integer errorCode = result.getErrorCode();
+        String errorMessage = result.getErrorMessage() == null ? "" : result.getErrorMessage();
+        if (errorCode != null) {
+          errorMessage = String.format("[Error code %d] %s", errorCode, errorMessage);
+        }
+        errorMessage = String.format("Failed to %s record %s:%s",
+                                     operation.name().toLowerCase(), result.getObject().getColumns(), errorMessage);
+        if (failOnError) {
+          LOG.error(errorMessage);
+        } else {
+          LOG.warn(errorMessage);
+        }
+      } else {
+        LOG.trace("Successfully wrote {}", result.getObject().getColumns());
       }
-    } catch (ETSdkException e) {
-      throw new IOException(e.getMessage(), e);
+    }
+    batch.clear();
+    if (failed && failOnError) {
+      throw new IOException(String.format("Failed to %s records to data extension '%s'",
+                                          operation.name().toLowerCase(), client.getDataExtensionKey()));
     }
   }
 }
