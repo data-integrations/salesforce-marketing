@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Indicates query mode which will be used when fetching Salesforce data.
+ * Indicates query mode which will be used when fetching MarketingCloud data.
  */
 public enum SourceQueryMode {
 

@@ -17,8 +17,7 @@
 package io.cdap.plugin.sfmc.source;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
-import io.cdap.plugin.sfmc.source.util.SalesforceConstants;
-import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
+import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import io.cdap.plugin.sfmc.source.util.Util;
@@ -40,8 +39,8 @@ import java.util.List;
 /**
  * Salesforce input format.
  */
-public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredRecord> {
-  private static final Logger LOG = LoggerFactory.getLogger(SalesforceInputFormat.class);
+public class MarketingCloudInputFormat extends InputFormat<NullWritable, StructuredRecord> {
+  private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudInputFormat.class);
 
   /**
    * Configure the input format to read tables from Salesforce. Should be called from the mapreduce client.
@@ -49,16 +48,15 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
    * @param jobConfig the job configuration
    * @param mode the query mode
    * @param conf the plugin conf
-   * @param fetchRecordCount the flag to decide whether to fetch record count or not
-   * @return Collection of SalesforceObjectInfo containing table and schema.
+   * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
-  public static List<SalesforceObjectInfo> setInput(Configuration jobConfig, SourceQueryMode mode,
-                                                    SalesforceSourceConfig conf, boolean fetchRecordCount) {
-    SalesforceJobConfiguration jobConf = new SalesforceJobConfiguration(jobConfig);
+  public static List<MarketingCloudObjectInfo> setInput(Configuration jobConfig, SourceQueryMode mode,
+                                                        MarketingCloudSourceConfig conf) {
+    MarketingCloudJobConfiguration jobConf = new MarketingCloudJobConfiguration(jobConfig);
     jobConf.setPluginConfiguration(conf);
 
-    //Depending on the selected objects in the conf, get the schema for each object as SalesforceObjectInfo
-    List<SalesforceObjectInfo> tableInfos = fetchTableInfo(mode, conf, fetchRecordCount);
+    //Depending on the selected objects in the conf, get the schema for each object as MarketingCloudObjectInfo
+    List<MarketingCloudObjectInfo> tableInfos = fetchTableInfo(mode, conf);
 
     jobConf.setTableInfos(tableInfos);
 
@@ -71,45 +69,43 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
    *
    * @param mode the query mode
    * @param conf the plugin conf
-   * @param fetchRecordCount the flag to decide whether to fetch record count or not
-   * @return Collection of SalesforceObjectInfo containing table and schema.
+   * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
-  private static List<SalesforceObjectInfo> fetchTableInfo(SourceQueryMode mode, SalesforceSourceConfig conf,
-                                                           boolean fetchRecordCount) {
+  private static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode, MarketingCloudSourceConfig conf) {
     try {
-      SalesforceClient client = SalesforceClient.create(conf.getClientId(), conf.getClientSecret(),
-        conf.getAuthEndpoint(), conf.getSoapEndpoint());
+      MarketingCloudClient client = MarketingCloudClient.create(conf.getClientId(), conf.getClientSecret(),
+                                                                conf.getAuthEndpoint(), conf.getSoapEndpoint());
 
       boolean failOnError = conf.isFailOnError();
 
       //When mode = SingleObject, fetch fields for the object selected in plugin config
       if (mode == SourceQueryMode.SINGLE_OBJECT) {
-        SalesforceObjectInfo tableInfo = getTableMetaData(conf.getObject(), conf.getDataExtensionKey(), client,
-          failOnError, fetchRecordCount);
+        MarketingCloudObjectInfo tableInfo = getTableMetaData(conf.getObject(), conf.getDataExtensionKey(), client,
+                                                              failOnError);
         return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
       }
 
       //When mode = MultiObject, get the list of objects provided in plugin config and the fetch fields for each of
       //then objects.
-      List<SalesforceObjectInfo> tableInfos = new ArrayList<>();
+      List<MarketingCloudObjectInfo> tableInfos = new ArrayList<>();
       List<SourceObject> objectList = conf.getObjectList();
 
       for (SourceObject object : objectList) {
-        SalesforceObjectInfo tableInfo = null;
+        MarketingCloudObjectInfo tableInfo = null;
 
         if (object == SourceObject.DATA_EXTENSION) {
           //if the object = Data Extension then get the list of data extension keys and then fetch fields for each of
           //the data extension objects.
           List<String> dataExtensionKeys = Util.splitToList(conf.getDataExtensionKeys(), ',');
           for (String dataExtensionKey : dataExtensionKeys) {
-            tableInfo = getTableMetaData(object, dataExtensionKey, client, failOnError, fetchRecordCount);
+            tableInfo = getTableMetaData(object, dataExtensionKey, client, failOnError);
             if (tableInfo == null) {
               continue;
             }
             tableInfos.add(tableInfo);
           }
         } else {
-          tableInfo = getTableMetaData(object, "", client, failOnError, fetchRecordCount);
+          tableInfo = getTableMetaData(object, "", client, failOnError);
           if (tableInfo != null) {
             tableInfos.add(tableInfo);
           }
@@ -130,14 +126,13 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
   /**
    * Fetch the fields for passed object.
    */
-  private static SalesforceObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
-                                                       SalesforceClient client, boolean failOnError,
-                                                       boolean fetchRecordCount) {
+  private static MarketingCloudObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
+                                                           MarketingCloudClient client, boolean failOnError) {
     try {
       if (object == SourceObject.DATA_EXTENSION) {
-        return client.fetchDataExtensionSchema(dataExtensionKey, fetchRecordCount);
+        return client.fetchDataExtensionSchema(dataExtensionKey);
       } else {
-        return client.fetchObjectSchema(object, fetchRecordCount);
+        return client.fetchObjectSchema(object);
       }
     } catch (Exception e) {
       if (failOnError) {
@@ -151,26 +146,16 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
 
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException, InterruptedException {
-    SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(jobContext.getConfiguration());
-    SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
+    MarketingCloudJobConfiguration jobConfig = new MarketingCloudJobConfiguration(jobContext.getConfiguration());
+    MarketingCloudSourceConfig pluginConf = jobConfig.getPluginConf();
 
-    List<SalesforceObjectInfo> tableInfos = jobConfig.getTableInfos();
+    List<MarketingCloudObjectInfo> tableInfos = jobConfig.getTableInfos();
     List<InputSplit> resultSplits = new ArrayList<>();
 
-    for (SalesforceObjectInfo tableInfo : tableInfos) {
+    for (MarketingCloudObjectInfo tableInfo : tableInfos) {
       String tableKey = tableInfo.getObject().name();
       String tableName = tableInfo.getTableName();
-      int totalRecords = tableInfo.getRecordCount();
-      if (totalRecords <= SalesforceConstants.MAX_PAGE_SIZE) {
-        //add single split for table and continue
-        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, 1, totalRecords));
-        continue;
-      }
-
-      int pages = (tableInfo.getRecordCount() / SalesforceConstants.MAX_PAGE_SIZE) + 1;
-      for (int page = 1; page <= pages; page++) {
-        resultSplits.add(new SalesforceInputSplit(tableKey, tableName, page, SalesforceConstants.MAX_PAGE_SIZE));
-      }
+        resultSplits.add(new MarketingCloudInputSplit(tableKey, tableName));
     }
 
     LOG.debug("# of split = {}", resultSplits.size());
@@ -182,9 +167,10 @@ public class SalesforceInputFormat extends InputFormat<NullWritable, StructuredR
   public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
                                                                          TaskAttemptContext taskAttemptContext)
     throws IOException, InterruptedException {
-    SalesforceJobConfiguration jobConfig = new SalesforceJobConfiguration(taskAttemptContext.getConfiguration());
-    SalesforceSourceConfig pluginConf = jobConfig.getPluginConf();
+    MarketingCloudJobConfiguration jobConfig = new MarketingCloudJobConfiguration(
+      taskAttemptContext.getConfiguration());
+    MarketingCloudSourceConfig pluginConf = jobConfig.getPluginConf();
 
-    return new SalesforceRecordReader(pluginConf);
+    return new MarketingCloudRecordReader(pluginConf);
   }
 }

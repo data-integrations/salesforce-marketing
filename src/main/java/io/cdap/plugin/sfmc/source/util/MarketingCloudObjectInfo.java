@@ -25,40 +25,38 @@ import java.util.stream.Collectors;
 /**
  * Information about a Salesforce table.
  */
-public class SalesforceObjectInfo {
+public class MarketingCloudObjectInfo {
   private final SourceObject object;
   private final String dataExtensionKey;
   private final Schema schema;
   private final Map<String, String> mapSchemaFieldToSFMCField;
-  private final int recordCount;
+
 
   /**
-   * Constructor for SalesforceObjectInfo for non-dataextension object.
+   * Constructor for MarketingCloudObjectInfo for non-dataextension object.
    * @param object The Salesforce Marketing Cloud object
    * @param columns The list of columns
-   * @param recordCount The total number of records
    */
-  public SalesforceObjectInfo(SourceObject object, List<SalesforceColumn> columns, int recordCount) {
-    this(object, null, columns, recordCount);
+  public MarketingCloudObjectInfo(SourceObject object, List<MarketingCloudColumn> columns) {
+    this(object, null, columns);
   }
 
   /**
-   * Constructor for SalesforceObjectInfo for dataextension object.
+   * Constructor for MarketingCloudObjectInfo for dataextension object.
    *
    * @param object The Salesforce Marketing Cloud object as DataExtension
    * @param dataExtensionKey The data extension key
    * @param columns The list of columns
-   * @param recordCount The total number of records
    */
-  public SalesforceObjectInfo(SourceObject object, String dataExtensionKey, List<SalesforceColumn> columns,
-                              int recordCount) {
+  public MarketingCloudObjectInfo(SourceObject object, String dataExtensionKey, List<MarketingCloudColumn> columns
+                                  ) {
     this.object = object;
     this.dataExtensionKey = dataExtensionKey;
     SchemaBuilder schemaBuilder = new SchemaBuilder();
     this.schema = schemaBuilder.constructSchema(getFormattedTableName(), columns);
     this.mapSchemaFieldToSFMCField = columns.stream()
-      .collect(Collectors.toMap(SalesforceColumn::getFormattedFieldName, SalesforceColumn::getFieldName));
-    this.recordCount = recordCount;
+      .collect(Collectors.toMap(MarketingCloudColumn::getFormattedFieldName, MarketingCloudColumn::getFieldName));
+
   }
 
   public SourceObject getObject() {
@@ -73,7 +71,7 @@ public class SalesforceObjectInfo {
    */
   public String getTableName() {
     if (getObject() == SourceObject.DATA_EXTENSION) {
-      return String.format("%s%s", SalesforceConstants.DATA_EXTENSION_PREFIX, dataExtensionKey);
+      return String.format("%s%s", MarketingCloudConstants.DATA_EXTENSION_PREFIX, dataExtensionKey);
     } else {
       return getObject().getTableName();
     }
@@ -91,9 +89,7 @@ public class SalesforceObjectInfo {
     return schema;
   }
 
-  public int getRecordCount() {
-    return recordCount;
-  }
+
 
   public String lookupFieldsMap(String schemaFieldName) {
     if (this.mapSchemaFieldToSFMCField == null) {

@@ -26,29 +26,23 @@ import java.io.IOException;
 /**
  * Salesforce input split.
  */
-public class SalesforceInputSplit extends InputSplit implements Writable {
+public class MarketingCloudInputSplit extends InputSplit implements Writable {
   private String objectName;
   private String tableName;
-  private int page;
-  private int pageSize;
 
   // used by mapreduce
-  public SalesforceInputSplit() {
+  public MarketingCloudInputSplit() {
   }
 
   /**
-   * Constructor for SalesforceInputSplit.
+   * Constructor for MarketingCloudInputSplit.
    *
    * @param objectName The object name
    * @param tableName The corresponding table name
-   * @param page The page index
-   * @param pageSize The page size
    */
-  public SalesforceInputSplit(String objectName, String tableName, int page, int pageSize) {
+  public MarketingCloudInputSplit(String objectName, String tableName) {
     this.objectName = objectName;
     this.tableName = tableName;
-    this.page = page;
-    this.pageSize = pageSize;
   }
 
   public String getObjectName() {
@@ -59,28 +53,17 @@ public class SalesforceInputSplit extends InputSplit implements Writable {
     return tableName;
   }
 
-  public int getPage() {
-    return page;
-  }
-
-  public int getPageSize() {
-    return pageSize;
-  }
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
     dataOutput.writeUTF(this.objectName);
     dataOutput.writeUTF(this.tableName);
-    dataOutput.writeInt(this.page);
-    dataOutput.writeInt(this.pageSize);
   }
 
   @Override
   public void readFields(DataInput dataInput) throws IOException {
     this.objectName = dataInput.readUTF();
     this.tableName = dataInput.readUTF();
-    this.page = dataInput.readInt();
-    this.pageSize = dataInput.readInt();
   }
 
   @Override

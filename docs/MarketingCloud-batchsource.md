@@ -64,6 +64,8 @@ name of any column for any of the objects that will be read. Defaults to `tablen
 object, this field will have value in `dataextension_[Data Extension Key]` format. Note, the Table name field value 
 will be ignored if the Mode is set to `Single Object`.
 
+**Filter**: The filter selection criteria. eg: eventDate > '2010-01-01' and subscriberKey = 1001
+
 **Client ID**: OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.
 
 **Client Secret**: TOAuth2 client secret associated with an installed package in the Salesforce Marketing Cloud.

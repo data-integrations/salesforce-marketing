@@ -16,11 +16,15 @@
 
 package io.cdap.plugin.sfmc.source.util;
 
-import com.exacttarget.fuelsdk.ETApiObject;
-import com.exacttarget.fuelsdk.ETCampaign;
+import com.custom.fuelsdk.ETNotSentEvent;
+import com.exacttarget.fuelsdk.ETBounceEvent;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.exacttarget.fuelsdk.ETEmail;
 import com.exacttarget.fuelsdk.ETList;
+import com.exacttarget.fuelsdk.ETOpenEvent;
+import com.exacttarget.fuelsdk.ETSentEvent;
+import com.exacttarget.fuelsdk.ETSoapObject;
+import com.exacttarget.fuelsdk.ETUnsubEvent;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -28,7 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Indicates the object for which data to be fetched from Salesforce.
+ * Indicates the object for which data to be fetched from MarketingCloud.
  */
 public enum SourceObject {
 
@@ -40,7 +44,7 @@ public enum SourceObject {
   /**
    * This indicates data to be fetched from Campaign.
    */
-  CAMPAIGN("Campaign", "campaign", ETCampaign.class),
+//  CAMPAIGN("Campaign", "campaign", ETCampaign.class),
 
   /**
    * This indicates data to be fetched from Email.
@@ -50,23 +54,48 @@ public enum SourceObject {
   /**
    * This indicates data to be fetched from Mailing List.
    */
-  MAILING_LIST("Mailing List", "mailinglist", ETList.class);
+  MAILING_LIST("Mailing List", "mailinglist", ETList.class),
+
+  /**
+   * This indicates data to be fetched from Tracking Bounce Events.
+   */
+  TRACKING_BOUNCE_EVENT("Bounce Event", "bounce", ETBounceEvent.class),
+
+  /**
+   * This indicates data to be fetched from Tracking Open Events.
+   */
+  TRACKING_OPEN_EVENT("Open Event", "open", ETOpenEvent.class),
+
+  /**
+   * This indicates data to be fetched from Tracking Click Events.
+   */
+  //TRACKING_CLICK_EVENT("Click Event", "click", ETClickEvent.class),
+
+  /**
+   * This indicates data to be fetched from Tracking UnSub Events.
+   */
+  TRACKING_UNSUB_EVENT("Unsub Event", "unsub", ETUnsubEvent.class),
+
+  /**
+   * This indicates data to be fetched from Tracking Sent Events.
+   */
+  TRACKING_SENT_EVENT("Sent Event", "sent", ETSentEvent.class),
+
+  /**
+   * This indicates data to be fetched from Tracking Notsent Events.
+   */
+  TRACKING_NOTSENT_EVENT("Notsent Event", "notsent", ETNotSentEvent.class);
 
   private final String value;
   private final String tableName;
-  private final Class<? extends ETApiObject> classRef;
-  private final boolean pagingSupported;
+  private final Class<? extends ETSoapObject> classRef;
+  private String filter = "";
 
-  SourceObject(String value, String tableName, Class<? extends ETApiObject> classRef) {
+
+  SourceObject(String value, String tableName, Class<? extends ETSoapObject> classRef) {
     this.value = value;
     this.tableName = tableName;
     this.classRef = classRef;
-    if (tableName.equals("dataextension")) {
-      this.pagingSupported = true;
-    } else {
-      this.pagingSupported = getClassRef().getSuperclass() != null
-        && !getClassRef().getSuperclass().getSimpleName().equalsIgnoreCase("ETSoapObject");
-    }
   }
 
   /**
@@ -94,11 +123,16 @@ public enum SourceObject {
     return tableName;
   }
 
-  public Class<? extends ETApiObject> getClassRef() {
+  public Class<? extends ETSoapObject> getClassRef() {
     return classRef;
   }
 
-  public boolean isPagingSupported() {
-    return pagingSupported;
+  public String getFilter() {
+    return filter;
   }
+
+  public void setFilter(String filter) {
+    this.filter = filter;
+  }
+
 }

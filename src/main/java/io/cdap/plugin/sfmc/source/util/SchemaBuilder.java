@@ -34,21 +34,21 @@ public class SchemaBuilder {
    * @param columns The list of SalesforceColumn objects that will be added as Schema.Field
    * @return The instance of Schema object
    */
-  public Schema constructSchema(String tableName, List<SalesforceColumn> columns) {
+  public Schema constructSchema(String tableName, List<MarketingCloudColumn> columns) {
     SchemaBuilder schemaBuilder = new SchemaBuilder();
     List<Schema.Field> fields = schemaBuilder.constructSchemaFields(columns);
 
     return Schema.recordOf(tableName, fields);
   }
 
-  private List<Schema.Field> constructSchemaFields(List<SalesforceColumn> columns) {
+  private List<Schema.Field> constructSchemaFields(List<MarketingCloudColumn> columns) {
     return columns.stream()
       .map(o -> transformToField(o))
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
 
-  private Schema.Field transformToField(SalesforceColumn column) {
+  private Schema.Field transformToField(MarketingCloudColumn column) {
     String name = column.getFormattedFieldName();
     if (Strings.isNullOrEmpty(name)) {
       return null;
@@ -64,7 +64,7 @@ public class SchemaBuilder {
       : Schema.Field.of(name, Schema.nullableOf(schema));
   }
 
-  private Schema createSchema(SalesforceColumn column) {
+  private Schema createSchema(MarketingCloudColumn column) {
     switch (column.getTypeName().toLowerCase()) {
       case "decimal":
       case "double":

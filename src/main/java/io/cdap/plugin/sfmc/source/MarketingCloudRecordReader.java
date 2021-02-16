@@ -21,8 +21,8 @@ import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
-import io.cdap.plugin.sfmc.source.util.SalesforceConstants;
-import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
+import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
+import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import org.apache.hadoop.io.NullWritable;
@@ -42,13 +42,13 @@ import java.util.List;
 /**
  * Record reader that reads the entire contents of a Salesforce table.
  */
-public class SalesforceRecordReader extends RecordReader<NullWritable, StructuredRecord> {
-  private static final Logger LOG = LoggerFactory.getLogger(SalesforceRecordReader.class);
-  private final SalesforceSourceConfig pluginConf;
-  private SalesforceInputSplit split;
+public class MarketingCloudRecordReader extends RecordReader<NullWritable, StructuredRecord> {
+  private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudRecordReader.class);
+  private final MarketingCloudSourceConfig pluginConf;
+  private MarketingCloudInputSplit split;
   private int pos;
   private List<Schema.Field> tableFields;
-  private SalesforceObjectInfo sfObjectMetaData;
+  private MarketingCloudObjectInfo sfObjectMetaData;
   private Schema schema;
 
   private SourceObject object;
@@ -59,13 +59,13 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
   private Iterator<? extends ETApiObject> iterator;
   private ETApiObject row;
 
-  SalesforceRecordReader(SalesforceSourceConfig pluginConf) {
+  MarketingCloudRecordReader(MarketingCloudSourceConfig pluginConf) {
     this.pluginConf = pluginConf;
   }
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) {
-    this.split = (SalesforceInputSplit) split;
+    this.split = (MarketingCloudInputSplit) split;
     this.pos = 0;
   }
 
@@ -135,20 +135,21 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
     object = SourceObject.valueOf(split.getObjectName());
     tableName = split.getTableName();
     if (object == SourceObject.DATA_EXTENSION) {
-      dataExtensionKey = tableName.replaceAll(SalesforceConstants.DATA_EXTENSION_PREFIX, "");
+      dataExtensionKey = tableName.replaceAll(MarketingCloudConstants.DATA_EXTENSION_PREFIX, "");
     }
     tableNameField = pluginConf.getTableNameField();
 
     //Get the table data
     try {
-      SalesforceClient client = SalesforceClient.create(pluginConf.getClientId(),
-        pluginConf.getClientSecret(), pluginConf.getAuthEndpoint(), pluginConf.getSoapEndpoint());
+      MarketingCloudClient client = MarketingCloudClient.create(pluginConf.getClientId(), pluginConf.getClientSecret(),
+                                                                pluginConf.getAuthEndpoint(),
+                                                                pluginConf.getSoapEndpoint());
 
       //Fetch data
       if (object == SourceObject.DATA_EXTENSION) {
-        results = client.fetchDataExtensionRecords(dataExtensionKey, split.getPage(), split.getPageSize());
+        results = client.fetchDataExtensionRecords(dataExtensionKey, object.getFilter());
       } else {
-        results = client.fetchObjectRecords(object, split.getPage(), split.getPageSize());
+        results = client.fetchObjectRecords(object);
       }
 
       LOG.debug("size={}", results.size());
@@ -167,15 +168,15 @@ public class SalesforceRecordReader extends RecordReader<NullWritable, Structure
     iterator = results.iterator();
   }
 
-  private void fetchSchema(SalesforceClient client) {
+  private void fetchSchema(MarketingCloudClient client) {
     //Fetch the column definition
     List<Schema.Field> schemaFields;
 
     try {
       if (object == SourceObject.DATA_EXTENSION) {
-        sfObjectMetaData = client.fetchDataExtensionSchema(dataExtensionKey, false);
+        sfObjectMetaData = client.fetchDataExtensionSchema(dataExtensionKey);
       } else {
-        sfObjectMetaData = client.fetchObjectSchema(object, false);
+        sfObjectMetaData = client.fetchObjectSchema(object);
       }
 
       //Build schema

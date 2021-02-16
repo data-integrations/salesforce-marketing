@@ -38,20 +38,16 @@
           "name": "objectName",
           "widget-attributes": {
             "values": [
+              "Bounce Event",
               "Data Extension",
-              "Campaign",
               "Email",
-              "Mailing List"
+              "Mailing List",
+              "Notsent Event",
+              "Open Event",
+              "Sent Event",
+              "Unsub Event"
             ],
             "default": "Data Extension"
-          }
-        },
-        {
-          "widget-type": "textbox",
-          "label": "Data Extension External Key",
-          "name": "dataExtensionKey",
-          "widget-attributes": {
-            "placeholder": "External key of the Data Extension from which data to be read."
           },
           "plugin-function": {
             "label": "Get Schema",
@@ -62,6 +58,14 @@
                 "name": "schema"
               }
             ]
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Data Extension External Key",
+          "name": "dataExtensionKey",
+          "widget-attributes": {
+            "placeholder": "External key of the Data Extension from which data to be read."
           }
         }
       ]
@@ -76,12 +80,12 @@
           "widget-attributes": {
             "options": [
               {
-                "id": "Data Extension",
-                "label": "Data Extension"
+                "id": "Bounce Event",
+                "label": "Bounce Event"
               },
               {
-                "id": "Campaign",
-                "label": "Campaign"
+                "id": "Data Extension",
+                "label": "Data Extension"
               },
               {
                 "id": "Email",
@@ -90,6 +94,22 @@
               {
                 "id": "Mailing List",
                 "label": "Mailing List"
+              },
+              {
+                "id": "Notsent Event",
+                "label": "Notsent Event"
+              },
+              {
+                "id": "Open Event",
+                "label": "Open Event"
+              },
+              {
+                "id": "Sent Event",
+                "label": "Sent Event"
+              },
+              {
+                "id": "Unsub Event",
+                "label": "Unsub Event"
               }
             ],
             "delimiter": ",",
@@ -111,6 +131,19 @@
           "widget-attributes": {
             "placeholder": "The name of the field that holds the table name.",
             "default": "tablename"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Filter",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "filter",
+          "name": "filter",
+          "widget-attributes": {
+            "placeholder": "data filter criteria"
           }
         }
       ]

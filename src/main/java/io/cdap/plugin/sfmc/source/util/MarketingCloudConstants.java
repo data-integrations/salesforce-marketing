@@ -19,12 +19,12 @@ package io.cdap.plugin.sfmc.source.util;
 /**
  * Salesforce constants.
  */
-public interface SalesforceConstants {
+public interface MarketingCloudConstants {
 
   /**
    * Salesforce plugin name.
    */
-  String PLUGIN_NAME = "Salesforce";
+  String PLUGIN_NAME = "MarketingCloud";
 
   /**
    * Configuration property name used to specify the query mode.
@@ -97,7 +97,8 @@ public interface SalesforceConstants {
   String DATA_EXTENSION_PREFIX = "dataextension_";
 
   /**
-   * The max limit for the page size.
+   * Filter to be used when retrieving data from Salesforce Marketing Cloud.
    */
-  int MAX_PAGE_SIZE = 2500;
+  String PROPERTY_FILTER = "filter";
+
 }

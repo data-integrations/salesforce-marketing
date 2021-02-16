@@ -33,9 +33,8 @@ import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
 import io.cdap.plugin.common.LineageRecorder;
 import io.cdap.plugin.common.SourceInputFormatProvider;
-import io.cdap.plugin.sfmc.source.util.SalesforceConstants;
-import io.cdap.plugin.sfmc.source.util.SalesforceObjectInfo;
-import io.cdap.plugin.sfmc.source.util.SourceObject;
+import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
+import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -54,16 +53,16 @@ import java.util.stream.Collectors;
  * A {@link BatchSource} that reads data from multiple objects in Salesforce.
  */
 @Plugin(type = BatchSource.PLUGIN_TYPE)
-@Name(SalesforceConstants.PLUGIN_NAME)
+@Name(MarketingCloudConstants.PLUGIN_NAME)
 @Description("Reads from multiple objects in Salesforce. " +
   "Outputs one record for each row in each object, with the object name as a record field. " +
   "Also sets a pipeline argument for each object read, which contains the object schema.")
-public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord, StructuredRecord> {
-  private static final Logger LOG = LoggerFactory.getLogger(SalesforceSource.class);
+public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRecord, StructuredRecord> {
+  private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudSource.class);
 
-  private final SalesforceSourceConfig conf;
+  private final MarketingCloudSourceConfig conf;
 
-  public SalesforceSource(SalesforceSourceConfig conf) {
+  public MarketingCloudSource(MarketingCloudSourceConfig conf) {
     this.conf = conf;
   }
 
@@ -105,16 +104,16 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     SourceQueryMode mode = conf.getQueryMode(collector);
 
     Configuration hConf = new Configuration();
-    Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf, true);
+    Collection<MarketingCloudObjectInfo> tables = MarketingCloudInputFormat.setInput(hConf, mode, conf);
     SettableArguments arguments = context.getArguments();
-    for (SalesforceObjectInfo tableInfo : tables) {
-      arguments.set(SalesforceConstants.TABLE_PREFIX + tableInfo.getFormattedTableName(),
+    for (MarketingCloudObjectInfo tableInfo : tables) {
+      arguments.set(MarketingCloudConstants.TABLE_PREFIX + tableInfo.getFormattedTableName(),
                     tableInfo.getSchema().toString());
       recordLineage(context, tableInfo);
     }
 
     context.setInput(Input.of(conf.getReferenceName(),
-      new SourceInputFormatProvider(SalesforceInputFormat.class, hConf)));
+      new SourceInputFormatProvider(MarketingCloudInputFormat.class, hConf)));
   }
 
   @Override
@@ -125,9 +124,10 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
   private Schema getSchema(SourceQueryMode mode) {
     Schema schema = null;
 
-    if (mode == SourceQueryMode.SINGLE_OBJECT && conf.getObject() == SourceObject.DATA_EXTENSION) {
+//    if (mode == SourceQueryMode.SINGLE_OBJECT && conf.getObject() == SourceObject.DATA_EXTENSION) {
+    if (mode == SourceQueryMode.SINGLE_OBJECT) {
       Configuration hConf = new Configuration();
-      Collection<SalesforceObjectInfo> tables = SalesforceInputFormat.setInput(hConf, mode, conf, false);
+      Collection<MarketingCloudObjectInfo> tables = MarketingCloudInputFormat.setInput(hConf, mode, conf);
       if (tables != null && !tables.isEmpty()) {
         schema = tables.iterator().next().getSchema();
       }
@@ -136,7 +136,7 @@ public class SalesforceSource extends BatchSource<NullWritable, StructuredRecord
     return schema;
   }
 
-  private void recordLineage(BatchSourceContext context, SalesforceObjectInfo tableInfo) {
+  private void recordLineage(BatchSourceContext context, MarketingCloudObjectInfo tableInfo) {
     String tableName = tableInfo.getFormattedTableName();
     String outputName = String.format("%s-%s", conf.getReferenceName(), tableName);
     Schema schema = tableInfo.getSchema();
