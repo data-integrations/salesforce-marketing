@@ -70,7 +70,6 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
   public void configurePipeline(PipelineConfigurer pipelineConfigurer) {
     super.configurePipeline(pipelineConfigurer);
 
-    LOG.debug("Validate config during `configurePipeline` stage: {}", conf);
     StageConfigurer stageConfigurer = pipelineConfigurer.getStageConfigurer();
     FailureCollector collector = stageConfigurer.getFailureCollector();
 

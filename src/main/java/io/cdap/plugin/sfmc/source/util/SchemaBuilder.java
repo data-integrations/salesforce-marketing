@@ -74,8 +74,9 @@ public class SchemaBuilder {
         return Schema.of(Schema.Type.INT);
       case "boolean":
         return Schema.of(Schema.Type.BOOLEAN);
-      case "phone":
       case "date":
+        return Schema.of(Schema.LogicalType.TIMESTAMP_MICROS);
+      case "phone":
       case "email_address":
       case "locale":
       case "string":

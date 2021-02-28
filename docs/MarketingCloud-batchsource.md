@@ -25,11 +25,19 @@ Properties
 
 `Data Extension` - will allow user to fetch data for a single Data Extension object,
 
-`Campaign` - will allow user to fetch data for Campaign object,
-
 `Email` - will allow user to fetch data for Email object,
 
-`Mailing List` - will allow user to fetch data for Mailing List object.
+`Mailing List` - will allow user to fetch data for Mailing List object,
+
+`Bounce Event` - will allow user to fetch Tracking Bounce Events,
+
+`Open Event` - will allow user to fetch Tracking Open Events,
+
+`Unsub Event` - will allow user to fetch Tracking UnSubscribe Events,
+
+`Sent Event` - will allow user to fetch Tracking Sent Events,
+
+`UnSent Event` - will allow user to fetch Tracking UnSent Events.
 
 Note, this value will be ignored if the Mode is set to `Multi Object`.  
 
@@ -44,11 +52,19 @@ be ignored in following two cases:
 
 `Data Extension` - will allow user to fetch data for a single Data Extension object,
 
-`Campaign` - will allow user to fetch data for Campaign object,
-
 `Email` - will allow user to fetch data for Email object,
 
-`Mailing List` - will allow user to fetch data for Mailing List object.
+`Mailing List` - will allow user to fetch data for Mailing List object
+
+`Bounce Event` - will allow user to fetch Tracking Bounce Events,
+
+`Open Event` - will allow user to fetch Tracking Open Events,
+
+`Unsub Event` - will allow user to fetch Tracking UnSubscribe Events,
+
+`Sent Event` - will allow user to fetch Tracking Sent Events,
+
+`UnSent Event` - will allow user to fetch Tracking UnSent Events.
 
 Note, this value will be ignored if the Mode is set to `Single Object`.
 

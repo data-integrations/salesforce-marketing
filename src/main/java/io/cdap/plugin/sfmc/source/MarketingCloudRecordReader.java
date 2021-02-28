@@ -36,8 +36,10 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Record reader that reads the entire contents of a Salesforce table.
@@ -245,6 +247,10 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
    */
   private Object convertToValue(String fieldName, Schema fieldSchema, Object fieldValue) {
     Schema.Type fieldType = fieldSchema.getType();
+    Schema.LogicalType logicalType = fieldSchema.getLogicalType();
+    if (fieldSchema.getLogicalType() != null) {
+      return transformLogicalType(fieldName, logicalType, fieldValue);
+    }
 
     switch (fieldType) {
       case STRING:
@@ -294,5 +300,17 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     }
 
     return Boolean.parseBoolean(String.valueOf(fieldValue));
+  }
+  private Object transformLogicalType(String fieldName, Schema.LogicalType logicalType, Object value) {
+    switch (logicalType) {
+      case TIMESTAMP_MICROS:
+        if (value instanceof Date) {
+          return TimeUnit.MILLISECONDS.toMicros((((Date) value).getTime()));
+        }
+        return null;
+      default:
+        throw new IllegalArgumentException(
+          String.format("Field '%s' is of unsupported type '%s'", fieldName, logicalType.getToken()));
+    }
   }
 }

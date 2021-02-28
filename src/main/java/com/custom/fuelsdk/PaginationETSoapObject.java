@@ -106,7 +106,6 @@ public class PaginationETSoapObject extends ETSoapObject {
                                                                ETFilter filter) throws ETSdkException {
     ETResponse<ETDataExtensionRow> response = customRetrieve(client, soapObject, filter, requestID,
                                                              ETDataExtensionRow.class);
-    logger.debug("final response: " + response);
     return response;
   }
 
