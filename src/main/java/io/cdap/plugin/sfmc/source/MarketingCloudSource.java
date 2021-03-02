@@ -122,8 +122,6 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
 
   private Schema getSchema(SourceQueryMode mode) {
     Schema schema = null;
-
-//    if (mode == SourceQueryMode.SINGLE_OBJECT && conf.getObject() == SourceObject.DATA_EXTENSION) {
     if (mode == SourceQueryMode.SINGLE_OBJECT) {
       Configuration hConf = new Configuration();
       Collection<MarketingCloudObjectInfo> tables = MarketingCloudInputFormat.setInput(hConf, mode, conf);
@@ -131,7 +129,6 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
         schema = tables.iterator().next().getSchema();
       }
     }
-
     return schema;
   }
 
@@ -144,7 +141,7 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
     List<Schema.Field> fields = Objects.requireNonNull(schema).getFields();
     if (fields != null && !fields.isEmpty()) {
       lineageRecorder.recordRead("Read",
-        String.format("Read from '%s' Salesforce object.", tableName),
+        String.format("Read from '%s' Marketing Cloud object.", tableName),
         fields.stream().map(Schema.Field::getName).collect(Collectors.toList()));
     }
   }
