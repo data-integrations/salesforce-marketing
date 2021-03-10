@@ -56,6 +56,7 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   private SourceObject object;
   private String dataExtensionKey = "";
   private String tableName;
+  private String formattedTableName;
   private String tableNameField;
   private List<? extends ETApiObject> results;
   private Iterator<? extends ETApiObject> iterator;
@@ -106,7 +107,7 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
 
     if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {
-      recordBuilder.set(tableNameField, tableName);
+      recordBuilder.set(tableNameField, formattedTableName);
     }
 
     try {
@@ -136,6 +137,8 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   private void fetchData() {
     object = SourceObject.valueOf(split.getObjectName());
     tableName = split.getTableName();
+    formattedTableName = tableName.replaceAll("-", "_");
+
     if (object == SourceObject.DATA_EXTENSION) {
       dataExtensionKey = tableName.replaceAll(MarketingCloudConstants.DATA_EXTENSION_PREFIX, "");
     }
