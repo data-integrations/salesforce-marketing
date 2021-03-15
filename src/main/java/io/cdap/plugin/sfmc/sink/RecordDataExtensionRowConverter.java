@@ -14,7 +14,7 @@
  * the License.
  */
 
-package io.cdap.plugin.sfmc;
+package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETDataExtensionColumn;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
@@ -25,8 +25,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Converts StructuredRecords into DataExtensionRows.

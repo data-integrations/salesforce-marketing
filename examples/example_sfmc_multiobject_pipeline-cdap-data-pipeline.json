@@ -1,0 +1,101 @@
+{
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "6.2.1",
+        "scope": "SYSTEM"
+    },
+    "description": "Data Pipeline Application",
+    "name": "example_sfmc_multiobject_pipeline",
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "Salesforce-Marketing",
+                "to": "File"
+            }
+        ],
+        "comments": [],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": false,
+        "stages": [
+            {
+                "name": "Salesforce-Marketing",
+                "plugin": {
+                    "name": "MarketingCloud",
+                    "type": "batchsource",
+                    "label": "Salesforce Marketing",
+                    "artifact": {
+                        "name": "salesforce-marketing-plugins",
+                        "version": "1.2.2-SNAPSHOT",
+                        "scope": "USER"
+                    },
+                    "properties": {
+                        "queryMode": "Multi Object",
+                        "objectList": "Data Extension",
+                        "tableNameField": "tablename",
+                        "failOnError": "false",
+                        "referenceName": "SFMC",
+                        "clientId": "${SFMC_CLIENT_ID}",
+                        "clientSecret": "${SFMC_CLIENT_SECRET}",
+                        "authEndpoint": "${SFMC_AUTH_URI}",
+                        "soapEndpoint": "${SFMC_SOAP_URI}",
+                        "restEndpoint": "${SFMC_REST_URI}",
+                        "dataExtensionKeyList": "CA397115-F3E1-4180-B7D0-AF91A60E8B2D,CFA3EE8B-320E-4E27-BBCC-CF4291556BE0"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": ""
+                    }
+                ]
+            },
+            {
+                "name": "File",
+                "plugin": {
+                    "name": "File",
+                    "type": "batchsink",
+                    "label": "File",
+                    "artifact": {
+                        "name": "core-plugins",
+                        "version": "2.4.1",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "suffix": "yyyy-MM-dd-HH-mm",
+                        "format": "csv",
+                        "referenceName": "SFMCData",
+                        "path": "${OUTPUT_DIR}",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"subscriber_key\",\"type\":[\"string\",\"null\"]},{\"name\":\"campaign_c\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_address\",\"type\":[\"string\",\"null\"]},{\"name\":\"campaign_a\",\"type\":[\"string\",\"null\"]},{\"name\":\"account_unsub\",\"type\":[\"string\",\"null\"]},{\"name\":\"campaign_b\",\"type\":[\"string\",\"null\"]},{\"name\":\"first__name\",\"type\":[\"string\",\"null\"]},{\"name\":\"emailaddress\",\"type\":[\"string\",\"null\"]},{\"name\":\"subscriberkey\",\"type\":[\"string\",\"null\"]},{\"name\":\"tablename\",\"type\":\"string\"}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"subscriber_key\",\"type\":[\"string\",\"null\"]},{\"name\":\"campaign_c\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_address\",\"type\":[\"string\",\"null\"]},{\"name\":\"campaign_a\",\"type\":[\"string\",\"null\"]},{\"name\":\"account_unsub\",\"type\":[\"string\",\"null\"]},{\"name\":\"campaign_b\",\"type\":[\"string\",\"null\"]},{\"name\":\"first__name\",\"type\":[\"string\",\"null\"]},{\"name\":\"emailaddress\",\"type\":[\"string\",\"null\"]},{\"name\":\"subscriberkey\",\"type\":[\"string\",\"null\"]},{\"name\":\"tablename\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Salesforce Marketing",
+                        "schema": ""
+                    }
+                ]
+            }
+        ],
+        "schedule": "0 * * * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "description": "Data Pipeline Application",
+        "maxConcurrentRuns": 1
+    }
+}
