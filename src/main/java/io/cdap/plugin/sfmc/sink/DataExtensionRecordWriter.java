@@ -14,12 +14,11 @@
  * the License.
  */
 
-package io.cdap.plugin.sfmc;
+package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETResult;
-import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
