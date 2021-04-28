@@ -32,7 +32,7 @@
     <!-- version properties -->
     <cdap.version>6.1.1</cdap.version>
     <cdap.plugin.version>2.3.4</cdap.plugin.version>
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13.1</junit.version>
     <hadoop.version>2.3.0</hadoop.version>
     <hydrator.version>2.2.0</hydrator.version>
     <guava.version>27.0.1-jre</guava.version>
