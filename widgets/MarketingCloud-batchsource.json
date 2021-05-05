@@ -1,0 +1,260 @@
+{
+  "metadata": {
+    "spec-version": "1.0"
+  },
+  "display-name": "Salesforce Marketing",
+  "configuration-groups": [
+    {
+      "label": "Basic",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Reference Name",
+          "name": "referenceName",
+          "widget-attributes": {
+            "placeholder": "Name used to identify this source for lineage"
+          }
+        },
+        {
+          "widget-type": "select",
+          "label": "Data Retrieval Mode",
+          "name": "queryMode",
+          "widget-attributes": {
+            "values": [
+              "Multi Object",
+              "Single Object"
+            ],
+            "default": "Single Object"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Single Object Retrieval",
+      "properties": [
+        {
+          "widget-type": "select",
+          "label": "Object",
+          "name": "objectName",
+          "widget-attributes": {
+            "values": [
+              "Bounce Event",
+              "Data Extension",
+              "Email",
+              "Mailing List",
+              "Notsent Event",
+              "Open Event",
+              "Sent Event",
+              "Unsub Event"
+            ],
+            "default": "Data Extension"
+          },
+          "plugin-function": {
+            "label": "Get Schema",
+            "widget": "outputSchema",
+            "output-property": "schema",
+            "omit-properties": [
+              {
+                "name": "schema"
+              }
+            ]
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Data Extension External Key",
+          "name": "dataExtensionKey",
+          "widget-attributes": {
+            "placeholder": "External key of the Data Extension from which data to be read."
+          }
+        }
+      ]
+    },
+    {
+      "label": "Multi Object Retrieval",
+      "properties": [
+        {
+          "widget-type": "multi-select",
+          "label": "Object List",
+          "name": "objectList",
+          "widget-attributes": {
+            "options": [
+              {
+                "id": "Bounce Event",
+                "label": "Bounce Event"
+              },
+              {
+                "id": "Data Extension",
+                "label": "Data Extension"
+              },
+              {
+                "id": "Email",
+                "label": "Email"
+              },
+              {
+                "id": "Mailing List",
+                "label": "Mailing List"
+              },
+              {
+                "id": "Notsent Event",
+                "label": "Notsent Event"
+              },
+              {
+                "id": "Open Event",
+                "label": "Open Event"
+              },
+              {
+                "id": "Sent Event",
+                "label": "Sent Event"
+              },
+              {
+                "id": "Unsub Event",
+                "label": "Unsub Event"
+              }
+            ],
+            "delimiter": ",",
+            "default": "Data Extension"
+          }
+        },
+        {
+          "widget-type": "csv",
+          "label": "Data Extension External Keys",
+          "name": "dataExtensionKeyList",
+          "widget-attributes": {
+            "placeholder": "External keys of the Data Extensions from which data to be read."
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Table Name Field",
+          "name": "tableNameField",
+          "widget-attributes": {
+            "placeholder": "The name of the field that holds the table name.",
+            "default": "tablename"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Filter",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "filter",
+          "name": "filter",
+          "widget-attributes": {
+            "placeholder": "data filter criteria"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Authentication",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Client ID",
+          "name": "clientId",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Marketing Cloud Client ID"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Client Secret",
+          "name": "clientSecret",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Marketing Cloud Client Secret"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Authentication Base URI",
+          "name": "authEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Auth API Endpoint e.g. https://instance.auth.marketingcloudapis.com"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "SOAP API Endpoint",
+          "name": "soapEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "REST API Base URI",
+          "name": "restEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce REST API Endpoint e.g. https://instance.rest.marketingcloudapis.com"
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "schema",
+      "widget-type": "schema"
+    }
+  ],
+  "jump-config": {
+    "datasets": [
+      {
+        "ref-property-name": "referenceName"
+      }
+    ]
+  },
+  "filters": [
+    {
+      "name": "showSingleObject",
+      "condition": {
+        "expression": "queryMode == 'Single Object'"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "objectName"
+        },
+        {
+          "type": "property",
+          "name": "dataExtensionKey"
+        }
+      ]
+    },
+    {
+      "name": "showMultiObject",
+      "condition": {
+        "expression": "queryMode == 'Multi Object'"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "objectList"
+        },
+        {
+          "type": "property",
+          "name": "dataExtensionKeyList"
+        },
+        {
+          "type": "property",
+          "name": "tableNameField"
+        }
+      ]
+    },
+    {
+      "name": "showSingleObjectDataExtKey",
+      "condition": {
+        "expression": "objectName == 'Data Extension'"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "dataExtensionKey"
+        }
+      ]
+    }
+  ]
+}

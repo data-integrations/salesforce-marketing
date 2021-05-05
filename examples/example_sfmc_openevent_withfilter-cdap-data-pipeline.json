@@ -1,0 +1,93 @@
+{
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "6.2.1",
+        "scope": "SYSTEM"
+    },
+    "description": "",
+    "name": "example_sfmc_openevent_withfilter",
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "Salesforce-Marketing",
+                "to": "File"
+            }
+        ],
+        "comments": [],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": false,
+        "stages": [
+            {
+                "name": "Salesforce-Marketing",
+                "plugin": {
+                    "name": "MarketingCloud",
+                    "type": "batchsource",
+                    "label": "Salesforce Marketing",
+                    "artifact": {
+                        "name": "salesforce-marketing-plugins",
+                        "version": "1.2.2-SNAPSHOT",
+                        "scope": "USER"
+                    },
+                    "properties": {
+                        "queryMode": "Single Object",
+                        "objectName": "Open Event",
+                        "referenceName": "SFMC",
+                        "clientId": "${SFMC_CLIENT_ID}",
+                        "clientSecret": "${SFMC_CLIENT_SECRET}",
+                        "authEndpoint": "${SFMC_AUTH_URI}",
+                        "soapEndpoint": "${SFMC_SOAP_URI}",
+                        "restEndpoint": "${SFMC_REST_URI}",
+                        "filter": "subscriberKey = 'manoj.muralidharan@verticurl.com' and eventDate > '04-19-2019'"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"sendID\",\"type\":[\"int\",\"null\"]},{\"name\":\"subscriberKey\",\"type\":[\"string\",\"null\"]},{\"name\":\"eventDate\",\"type\":[\"string\",\"null\"]},{\"name\":\"eventType\",\"type\":[\"string\",\"null\"]},{\"name\":\"triggeredSendDefinitionObjectID\",\"type\":[\"string\",\"null\"]},{\"name\":\"batchID\",\"type\":[\"int\",\"null\"]}]}"
+                    }
+                ]
+            },
+            {
+                "name": "File",
+                "plugin": {
+                    "name": "File",
+                    "type": "batchsink",
+                    "label": "File",
+                    "artifact": {
+                        "name": "core-plugins",
+                        "version": "2.4.1",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "suffix": "yyyy-MM-dd-HH-mm",
+                        "format": "csv",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"sendID\",\"type\":[\"int\",\"null\"]},{\"name\":\"subscriberKey\",\"type\":[\"string\",\"null\"]},{\"name\":\"eventDate\",\"type\":[\"string\",\"null\"]},{\"name\":\"eventType\",\"type\":[\"string\",\"null\"]},{\"name\":\"triggeredSendDefinitionObjectID\",\"type\":[\"string\",\"null\"]},{\"name\":\"batchID\",\"type\":[\"int\",\"null\"]}]}",
+                        "referenceName": "FILEOUT",
+                        "path": "${OUTPUT_DIR}"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"sendID\",\"type\":[\"int\",\"null\"]},{\"name\":\"subscriberKey\",\"type\":[\"string\",\"null\"]},{\"name\":\"eventDate\",\"type\":[\"string\",\"null\"]},{\"name\":\"eventType\",\"type\":[\"string\",\"null\"]},{\"name\":\"triggeredSendDefinitionObjectID\",\"type\":[\"string\",\"null\"]},{\"name\":\"batchID\",\"type\":[\"int\",\"null\"]}]}",
+                "inputSchema": [
+                    {
+                        "name": "Salesforce Marketing",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"sendID\",\"type\":[\"int\",\"null\"]},{\"name\":\"subscriberKey\",\"type\":[\"string\",\"null\"]},{\"name\":\"eventDate\",\"type\":[\"string\",\"null\"]},{\"name\":\"eventType\",\"type\":[\"string\",\"null\"]},{\"name\":\"triggeredSendDefinitionObjectID\",\"type\":[\"string\",\"null\"]},{\"name\":\"batchID\",\"type\":[\"int\",\"null\"]}]}"
+                    }
+                ]
+            }
+        ],
+        "schedule": "0 * * * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "maxConcurrentRuns": 1
+    }
+}
