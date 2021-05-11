@@ -22,7 +22,7 @@
   <name>Salesforce Marketing plugins</name>
   <groupId>io.cdap.plugin</groupId>
   <artifactId>salesforce-marketing-plugins</artifactId>
-  <version>1.2.2-SNAPSHOT</version>
+  <version>1.2.2</version>
   <packaging>jar</packaging>
 
 
@@ -237,8 +237,8 @@
           <version>1.1.0</version>
           <configuration>
             <cdapArtifacts>
-              <parent>system:cdap-data-pipeline[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
-              <parent>system:cdap-data-streams[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
+              <parent>system:cdap-data-pipeline[6.1.1,7.0.0-SNAPSHOT)</parent>
+              <parent>system:cdap-data-streams[6.1.1,7.0.0-SNAPSHOT)</parent>
             </cdapArtifacts>
           </configuration>
           <executions>
