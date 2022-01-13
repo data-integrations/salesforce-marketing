@@ -136,27 +136,38 @@ public class MarketingCloudSourceConfig extends PluginConfig {
     "For example, https://instance.soap.marketingcloudapis.com/Service.asmx")
   private String soapEndpoint;
 
+  @Name(MarketingCloudConstants.PROPERTY_ACCOUNT_ID)
+  @Macro
+  @Description("The account Id")
+  private String accountId;
+
   /**
    * Constructor for MarketingCloudSourceConfig object.
    *
    * @param referenceName     The reference name
    * @param queryMode         The query mode
-   * @param objectName        The object name to be fetched from Salesforce Marketing Cloud
-   * @param dataExtensionKey  The data extension key to be fetched from Salesforce Marketing Cloud
-   * @param objectList        The list of objects to be fetched from Salesforce Marketing Cloud
-   * @param dataExtensionKeys The list of data extension keys to be fetched from Salesforce Marketing Cloud
+   * @param objectName        The object name to be fetched from Salesforce
+   *                          Marketing Cloud
+   * @param dataExtensionKey  The data extension key to be fetched from Salesforce
+   *                          Marketing Cloud
+   * @param objectList        The list of objects to be fetched from Salesforce
+   *                          Marketing Cloud
+   * @param dataExtensionKeys The list of data extension keys to be fetched from
+   *                          Salesforce Marketing Cloud
    * @param tableNameField    The field name to hold the table name value
    * @param clientId          The Salesforce Marketing Cloud Client Id
    * @param clientSecret      The Salesforce Marketing Cloud Client Secret
    * @param restEndpoint      The REST API endpoint for Salesforce Marketing Cloud
    * @param authEndpoint      The AUTH API endpoint for Salesforce Marketing Cloud
    * @param soapEndpoint      The SOAP API endpoint for Salesforce Marketing Cloud
+   * @param accountId         The account id for Salesforce Marketing Cloud
    */
   public MarketingCloudSourceConfig(String referenceName, String queryMode, @Nullable String objectName,
                                     @Nullable String dataExtensionKey, @Nullable String objectList,
                                     @Nullable String dataExtensionKeys, @Nullable String tableNameField,
                                     @Nullable String filter, String clientId, String clientSecret,
-                                    String restEndpoint, String authEndpoint, String soapEndpoint) {
+      String restEndpoint, String authEndpoint, String soapEndpoint,
+                                    String accountId) {
     this.referenceName = referenceName;
     this.queryMode = queryMode;
     this.objectName = objectName;
@@ -170,7 +181,7 @@ public class MarketingCloudSourceConfig extends PluginConfig {
     this.restEndpoint = restEndpoint;
     this.authEndpoint = authEndpoint;
     this.soapEndpoint = soapEndpoint;
-
+    this.accountId = accountId;
   }
 
   public String getReferenceName() {
@@ -316,6 +327,9 @@ public class MarketingCloudSourceConfig extends PluginConfig {
     return soapEndpoint;
   }
 
+  public String getAccountId() {
+    return accountId;
+  }
 
   /**
    * Validates {@link MarketingCloudSourceConfig} instance.
@@ -377,7 +391,7 @@ public class MarketingCloudSourceConfig extends PluginConfig {
   @VisibleForTesting
   void validateSalesforceConnection(FailureCollector collector) {
     try {
-      MarketingCloudClient.create(clientId, clientSecret, authEndpoint, soapEndpoint);
+      MarketingCloudClient.create(clientId, clientSecret, authEndpoint, soapEndpoint, accountId);
     } catch (ETSdkException e) {
       collector.addFailure("Unable to connect to Salesforce Instance.",
                            "Ensure properties like Client ID, Client Secret, API Endpoint " +

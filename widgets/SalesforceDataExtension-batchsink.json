@@ -64,6 +64,14 @@
           "widget-type": "textbox",
           "label": "SOAP Base URI",
           "name": "soapEndpoint"
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Account ID",
+          "name": "accountId",
+          "widget-attributes": {
+            "placeholder": "Salesforce account ID"
+          }
         }
       ]
     },

@@ -82,6 +82,11 @@ public interface MarketingCloudConstants {
   String PROPERTY_SOAP_API_ENDPOINT = "soapEndpoint";
 
   /**
+   * Configuration property name used to specify account id.
+   */
+  String PROPERTY_ACCOUNT_ID = "accountId";
+
+  /**
    * Table prefix to be used in case of Multi-Object support.
    */
   String TABLE_PREFIX = "multisink.";

@@ -59,13 +59,16 @@ public class DataExtensionClient {
     this.dataExtensionKey = dataExtensionKey;
   }
 
-  public static DataExtensionClient create(String dataExtensionKey, String clientId, String clientSecret,
-                                           String authEndpoint, String soapEndpoint) throws ETSdkException {
+  public static DataExtensionClient create(String dataExtensionKey, String clientId,
+                                           String clientSecret,
+                                           String authEndpoint, String soapEndpoint,
+                                           String accountId) throws ETSdkException {
     ETConfiguration conf = new ETConfiguration();
     conf.set("clientId", clientId);
     conf.set("clientSecret", clientSecret);
     conf.set("authEndpoint", authEndpoint);
     conf.set("soapEndpoint", soapEndpoint);
+    conf.set("accountId", accountId);
     conf.set("useOAuth2Authentication", "true");
     ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
     try {

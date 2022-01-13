@@ -28,11 +28,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
+import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_ACCOUNT_ID;
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_AUTH_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_CLIENT_ID;
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_CLIENT_SECRET;
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_REST_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_SOAP_ENDPOINT;
+import static io.cdap.plugin.sfmc.source.util.MarketingCloudConstants.PROPERTY_ACCOUNT_ID;
 import static io.cdap.plugin.sfmc.source.util.MarketingCloudConstants.PROPERTY_AUTH_API_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.MarketingCloudConstants.PROPERTY_CLIENT_ID;
 import static io.cdap.plugin.sfmc.source.util.MarketingCloudConstants.PROPERTY_CLIENT_SECRET;
@@ -100,6 +102,7 @@ public class SalesforceSourceConfigTest {
       .setRestEndpoint(TEST_REST_ENDPOINT)
       .setAuthEndpoint(TEST_AUTH_ENDPOINT)
       .setSoapEndpoint(TEST_SOAP_ENDPOINT)
+      .setAccountId(TEST_ACCOUNT_ID)
       .build(), collector);
 
     try {
