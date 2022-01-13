@@ -138,7 +138,8 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
 
     MarketingCloudClient client = MarketingCloudClient.create(pluginConf.getClientId(), pluginConf.getClientSecret(),
                                                               pluginConf.getAuthEndpoint(),
-                                                              pluginConf.getSoapEndpoint());
+                                                              pluginConf.getSoapEndpoint(),
+                                                              pluginConf.getAccountId());
     //Fetch data
     if (object == SourceObject.DATA_EXTENSION) {
       results = client.fetchDataExtensionRecords(dataExtensionKey, object.getFilter());

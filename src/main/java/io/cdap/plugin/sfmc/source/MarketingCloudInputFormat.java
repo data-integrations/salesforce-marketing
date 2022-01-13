@@ -74,7 +74,8 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
   private static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode, MarketingCloudSourceConfig conf) {
     try {
       MarketingCloudClient client = MarketingCloudClient.create(conf.getClientId(), conf.getClientSecret(),
-                                                                conf.getAuthEndpoint(), conf.getSoapEndpoint());
+                                                                conf.getAuthEndpoint(), conf.getSoapEndpoint(),
+                                                                conf.getAccountId());
 
       //When mode = SingleObject, fetch fields for the object selected in plugin config
       if (mode == SourceQueryMode.SINGLE_OBJECT) {

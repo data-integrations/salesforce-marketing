@@ -40,6 +40,7 @@ public class MarketingCloudConf extends PluginConfig {
   public static final String DATA_EXTENSION = "dataExtension";
   public static final String AUTH_ENDPOINT = "authEndpoint";
   public static final String SOAP_ENDPOINT = "soapEndpoint";
+  public static final String ACCOUNT_ID = "accountId";
   public static final String BATCH_SIZE = "maxBatchSize";
   public static final String FAIL_ON_ERROR = "failOnError";
   public static final String OPERATION = "operation";
@@ -74,6 +75,11 @@ public class MarketingCloudConf extends PluginConfig {
   @Name(SOAP_ENDPOINT)
   @Description("Endpoint to use when communicating with the Marketing Cloud SOAP API.")
   private String soapEndpoint;
+
+  @Macro
+  @Name(ACCOUNT_ID)
+  @Description("Account ID to use when communicating with the Marketing Cloud SOAP API.")
+  private String accountId;
 
   @Macro
   @Nullable
@@ -135,6 +141,10 @@ public class MarketingCloudConf extends PluginConfig {
     return soapEndpoint;
   }
 
+  String getAccountId() {
+    return accountId;
+  }
+
   int getMaxBatchSize() {
     return maxBatchSize == null ? 500 : maxBatchSize;
   }
@@ -194,10 +204,10 @@ public class MarketingCloudConf extends PluginConfig {
       return;
     }
     if (!containsMacro(CLIENT_ID) && !containsMacro(CLIENT_SECRET) && !containsMacro(DATA_EXTENSION) &&
-      !containsMacro(AUTH_ENDPOINT) && !containsMacro(SOAP_ENDPOINT)) {
+      !containsMacro(AUTH_ENDPOINT) && !containsMacro(SOAP_ENDPOINT) && !containsMacro(ACCOUNT_ID)) {
       try {
         DataExtensionClient client = DataExtensionClient.create(dataExtension, clientId, clientSecret,
-                                                                authEndpoint, soapEndpoint);
+                                                                authEndpoint, soapEndpoint, accountId);
         client.validateSchemaCompatibility(inputSchema, collector);
       } catch (ETSdkException e) {
         collector.addFailure("Error while validating Marketing Cloud client: " + e.getMessage(), null)

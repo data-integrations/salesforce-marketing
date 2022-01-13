@@ -190,6 +190,14 @@
           "widget-attributes" : {
             "placeholder": "Salesforce REST API Endpoint e.g. https://instance.rest.marketingcloudapis.com"
           }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Account ID",
+          "name": "accountId",
+          "widget-attributes": {
+            "placeholder": "Salesforce account ID"
+          }
         }
       ]
     }

@@ -36,6 +36,7 @@ public class DataExtensionOutputFormat extends OutputFormat<NullWritable, Struct
   public static final String CLIENT_SECRET = "cdap.sfmc.client.secret";
   public static final String AUTH_ENDPOINT = "cdap.sfmc.auth.endpoint";
   public static final String SOAP_ENDPOINT = "cdap.sfmc.soap.endpoint";
+  public static final String ACCOUNT_ID = "cdap.sfmc.account.id";
   public static final String DATA_EXTENSION_KEY = "cdap.sfmc.data.extension.key";
   public static final String MAX_BATCH_SIZE = "cdap.sfmc.max.batch.size";
   public static final String FAIL_ON_ERROR = "cdap.sfmc.fail.on.error";
@@ -49,6 +50,7 @@ public class DataExtensionOutputFormat extends OutputFormat<NullWritable, Struct
     String clientSecret = getOrError(conf, CLIENT_SECRET);
     String authEndpoint = getOrError(conf, AUTH_ENDPOINT);
     String soapEndpoint = getOrError(conf, SOAP_ENDPOINT);
+    String accountId = getOrError(conf, ACCOUNT_ID);
     String dataExtensionKey = getOrError(conf, DATA_EXTENSION_KEY);
     Operation operation = Operation.valueOf(getOrError(conf, OPERATION));
     int maxBatchSize = Integer.parseInt(getOrError(conf, MAX_BATCH_SIZE));
@@ -56,7 +58,7 @@ public class DataExtensionOutputFormat extends OutputFormat<NullWritable, Struct
     boolean shouldTruncate = Boolean.parseBoolean(getOrError(conf, TRUNCATE));
     try {
       DataExtensionClient client = DataExtensionClient.create(dataExtensionKey, clientId, clientSecret,
-                                                              authEndpoint, soapEndpoint);
+                                                              authEndpoint, soapEndpoint, accountId);
       RecordDataExtensionRowConverter converter = new RecordDataExtensionRowConverter(client.getDataExtensionInfo(),
                                                                                       shouldTruncate);
       return new DataExtensionRecordWriter(client, converter, operation, maxBatchSize, failOnError);

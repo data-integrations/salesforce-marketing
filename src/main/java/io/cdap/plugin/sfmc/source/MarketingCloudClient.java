@@ -59,12 +59,13 @@ public class MarketingCloudClient {
    * @throws ETSdkException The FuelSDKException
    */
   public static MarketingCloudClient create(String clientId, String clientSecret, String authEndpoint,
-                                            String soapEndpoint) throws ETSdkException {
+                                            String soapEndpoint, String accountId) throws ETSdkException {
     ETConfiguration conf = new ETConfiguration();
     conf.set("clientId", clientId);
     conf.set("clientSecret", clientSecret);
     conf.set("authEndpoint", authEndpoint);
     conf.set("soapEndpoint", soapEndpoint);
+    conf.set("accountId", accountId);
     conf.set("useOAuth2Authentication", "true");
     ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
     try {
