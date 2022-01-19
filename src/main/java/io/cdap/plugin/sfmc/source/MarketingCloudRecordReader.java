@@ -18,6 +18,8 @@ package io.cdap.plugin.sfmc.source;
 
 import com.exacttarget.fuelsdk.ETApiObject;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
+import com.exacttarget.fuelsdk.ETResponse;
+import com.exacttarget.fuelsdk.ETSoapObject;
 import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
@@ -61,6 +63,9 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   private List<? extends ETApiObject> results;
   private Iterator<? extends ETApiObject> iterator;
   private ETApiObject row;
+  private ETResponse<? extends ETSoapObject> response;
+  private boolean hasMoreRecords;
+  private String requestId;
 
   MarketingCloudRecordReader(MarketingCloudSourceConfig pluginConf) {
     this.pluginConf = pluginConf;
@@ -80,7 +85,11 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
       }
 
       if (!iterator.hasNext()) {
-        return false;
+        if (hasMoreRecords) {
+          fetchData();
+        } else {
+          return false;
+        }
       }
 
       row = iterator.next();
@@ -141,9 +150,18 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
                                                               pluginConf.getSoapEndpoint());
     //Fetch data
     if (object == SourceObject.DATA_EXTENSION) {
-      results = client.fetchDataExtensionRecords(dataExtensionKey, object.getFilter());
+      response = client.fetchDataExtensionRecords(dataExtensionKey, object.getFilter(), requestId);
+      results = response.getObjects();
+      requestId = response.getRequestId();
     } else {
-      results = client.fetchObjectRecords(object);
+      response = client.fetchObjectRecords(object, requestId);
+      results = response.getObjects();
+      requestId = response.getRequestId();
+    }
+    if (response.getResponseMessage().equals("MoreDataAvailable")) {
+      hasMoreRecords = true;
+    } else {
+      hasMoreRecords = false;
     }
     LOG.debug("size={}", results.size());
     if (!results.isEmpty()) {

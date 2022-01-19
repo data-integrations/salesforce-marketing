@@ -30,6 +30,7 @@ import io.cdap.plugin.sfmc.source.util.MarketingCloudColumn;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.Util;
+import jline.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,10 +102,11 @@ public class MarketingCloudClient {
    * @param object The SourceObject which tells what data to be fetched from Salesforce Marketing Cloud
    * @return The list of ETApiObject representing the records from requested object
    */
-  public List<? extends ETSoapObject> fetchObjectRecords(SourceObject object) throws ETSdkException {
+  public ETResponse<? extends ETSoapObject> fetchObjectRecords(SourceObject object,
+                                                               @Nullable String requestId) throws ETSdkException {
     ETFilter filter = new ETFilter();
     filter.setExpression(getExpressionfromString(object.getFilter()));
-    return fetchObjectData(client, object.getClassRef(), filter);
+    return fetchObjectData(client, object.getClassRef(), filter, requestId);
   }
 
   /**
@@ -127,21 +129,21 @@ public class MarketingCloudClient {
    * @return The list of ETDataExtensionRow representing the records from requested data extension
    * @throws ETSdkException The FuelSDKException
    */
-  public List<ETDataExtensionRow> fetchDataExtensionRecords(String dataExtensionKey, String filterStr)
-    throws ETSdkException {
+  public ETResponse<ETDataExtensionRow> fetchDataExtensionRecords(String dataExtensionKey, String filterStr,
+                                                                  @Nullable String requestId) throws ETSdkException {
 
     ETFilter filter = new ETFilter();
     filter.setExpression(getExpressionfromString(filterStr));
+    ETResponse<ETDataExtensionRow> response = null;
 
-    ETResponse<ETDataExtensionRow> response = PaginationETSoapObject.select(client, "key=" + dataExtensionKey,
-                                                                            filter);
-    List<ETDataExtensionRow> rows = response.getObjects();
-    while (response.getResponseMessage().equals("MoreDataAvailable")) {
-      response = PaginationETSoapObject.continueRequest(client, null, response.getRequestId(),
+    if (requestId == null) {
+      response = PaginationETSoapObject.select(client, "key=" + dataExtensionKey,
+                                               filter);
+    } else {
+      response = PaginationETSoapObject.continueRequest(client, null, requestId,
                                                         filter);
-      rows.addAll(response.getObjects());
     }
-    return rows;
+    return response;
   }
 
   /**
@@ -180,23 +182,23 @@ public class MarketingCloudClient {
     return expression;
   }
 
-  private <T extends ETSoapObject> List<T> fetchObjectData(ETClient client, Class<T> clazz, ETFilter filter)
-    throws ETSdkException {
+  private <T extends ETSoapObject> ETResponse<T> fetchObjectData(ETClient client, Class<T> clazz, ETFilter filter,
+                                                                 @Nullable String requestId) throws ETSdkException {
 
     ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(MarketingCloudClient.class.getClassLoader());
-      ETResponse<T> response = (ETResponse<T>) PaginationETSoapObject.customRetrieve(client, null,
-                                                                                     filter, null,
-                                                                                     clazz);
-      List<T> rows = response.getObjects();
-      while (response.getResponseMessage().equals("MoreDataAvailable")) {
-        response = (ETResponse<T>) PaginationETSoapObject.customRetrieve(client, null,
-                                                                         filter, response.getRequestId(),
-                                                                         clazz);
-        rows.addAll(response.getObjects());
+      ETResponse<T> response = null;
+
+      if (requestId == null) {
+        response = PaginationETSoapObject.customRetrieve(client, null,
+                                                         filter, null,
+                                                         clazz);
+      } else {
+        response = PaginationETSoapObject.customRetrieve(client, null,
+                                                         filter, requestId, clazz);
       }
-      return rows;
+      return response;
     } finally {
       Thread.currentThread().setContextClassLoader(oldCL);
     }
