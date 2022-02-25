@@ -26,6 +26,14 @@ import com.exacttarget.fuelsdk.ETFilter;
 import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETSdkException;
 import com.exacttarget.fuelsdk.ETSoapObject;
+import com.exacttarget.fuelsdk.annotations.SoapObject;
+import com.exacttarget.fuelsdk.internal.APIObject;
+import com.exacttarget.fuelsdk.internal.ArrayOfObjectDefinitionRequest;
+import com.exacttarget.fuelsdk.internal.DefinitionRequestMsg;
+import com.exacttarget.fuelsdk.internal.DefinitionResponseMsg;
+import com.exacttarget.fuelsdk.internal.ObjectDefinition;
+import com.exacttarget.fuelsdk.internal.ObjectDefinitionRequest;
+import com.exacttarget.fuelsdk.internal.PropertyDefinition;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudColumn;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
@@ -33,7 +41,7 @@ import io.cdap.plugin.sfmc.source.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -204,9 +212,34 @@ public class MarketingCloudClient {
 
 
   private List<MarketingCloudColumn> fetchObjectFields(Class<?> clazz) {
-    return Arrays.stream(clazz.getDeclaredFields())
-      .map(o -> new MarketingCloudColumn(o.getName(), o.getType().getSimpleName().toUpperCase()))
-      .collect(Collectors.toList());
+    SoapObject internalTypeAnnotation
+            = clazz.getAnnotation(SoapObject.class);
+    assert internalTypeAnnotation != null;
+    Class<? extends APIObject> internalType = internalTypeAnnotation.internalType();
+    assert internalType != null;
+    List<MarketingCloudColumn> marketingCloudColumns = new ArrayList<>();
+    MarketingCloudColumn marketingCloudColumn = new MarketingCloudColumn();
+    DefinitionRequestMsg definitionRequestMsg = new DefinitionRequestMsg();
+    List<ObjectDefinitionRequest> objectDefinitionRequests = new ArrayList<>();
+    ObjectDefinitionRequest objectDefinitionRequest = new ObjectDefinitionRequest();
+    objectDefinitionRequest.setObjectType(internalType.getSimpleName());
+    objectDefinitionRequests.add(objectDefinitionRequest);
+    ArrayOfObjectDefinitionRequest arrayOfObjectDefinitionRequest = new ArrayOfObjectDefinitionRequest();
+    arrayOfObjectDefinitionRequest.getObjectDefinitionRequest().add(objectDefinitionRequest);
+    definitionRequestMsg.setDescribeRequests(arrayOfObjectDefinitionRequest);
+
+    DefinitionResponseMsg definitionResponseMsg = client.getSoapConnection().getSoap().describe(definitionRequestMsg);
+
+    for (ObjectDefinition result : definitionResponseMsg.getObjectDefinition()) {
+      for (PropertyDefinition propertyDefinition : result.getProperties()) {
+        if (propertyDefinition.getIsRetrievable() && !propertyDefinition.getName().contains(".")) {
+          marketingCloudColumn = new MarketingCloudColumn(propertyDefinition.getName(),
+                  propertyDefinition.getDataType());
+          marketingCloudColumns.add(marketingCloudColumn);
+        }
+      }
+    }
+    return marketingCloudColumns;
   }
 
   private <T> T call(SFMCCall<T> callable) throws ETSdkException {
