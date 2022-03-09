@@ -17,11 +17,13 @@
 package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETSdkException;
+import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginConfig;
+import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.etl.api.FailureCollector;
 
 import java.util.Collections;
@@ -48,7 +50,7 @@ public class MarketingCloudConf extends PluginConfig {
   public static final String TRUNCATE_TEXT = "truncateText";
 
   @Description("This will be used to uniquely identify this sink for lineage, annotating metadata, etc.")
-  private String referenceName;
+  public String referenceName;
 
   @Macro
   @Name(CLIENT_ID)
@@ -111,7 +113,7 @@ public class MarketingCloudConf extends PluginConfig {
   @Description("Whether to truncate text that is longer than the max length specified in the data extension column.")
   private Boolean truncateText;
 
-  String getReferenceName() {
+  public String getReferenceName() {
     return referenceName;
   }
 
@@ -165,7 +167,7 @@ public class MarketingCloudConf extends PluginConfig {
         String[] parts = kv.split("=");
         if (parts.length != 2) {
           collector.addFailure(String.format("Invalid column mapping: %s", kv),
-                               "Make sure column mapping is in the format of <key=value>")
+              "Make sure column mapping is in the format of <key=value>")
             .withConfigProperty(COLUMN_MAPPING);
           throw collector.getOrThrowException();
         }
@@ -189,6 +191,27 @@ public class MarketingCloudConf extends PluginConfig {
     return mapping;
   }
 
+  @VisibleForTesting
+  public MarketingCloudConf(String referenceName, String clientId, String clientSecret, String dataExtension,
+                            String authEndpoint,
+                            String soapEndpoint, @Nullable Integer maxBatchSize, @Nullable String operation,
+                            @Nullable String columnMapping, Boolean failOnError, Boolean replaceWithSpaces, Boolean
+                            truncateText) {
+    this.referenceName = referenceName;
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.authEndpoint = authEndpoint;
+    this.soapEndpoint = soapEndpoint;
+    this.maxBatchSize = maxBatchSize;
+    this.operation = operation;
+    this.columnMapping = columnMapping;
+    this.failOnError = failOnError;
+    this.replaceWithSpaces = replaceWithSpaces;
+    this.truncateText = truncateText;
+    this.dataExtension = dataExtension;
+
+  }
+
   public void validate(@Nullable Schema inputSchema, FailureCollector collector) {
     if (inputSchema == null) {
       return;
@@ -197,7 +220,7 @@ public class MarketingCloudConf extends PluginConfig {
       !containsMacro(AUTH_ENDPOINT) && !containsMacro(SOAP_ENDPOINT)) {
       try {
         DataExtensionClient client = DataExtensionClient.create(dataExtension, clientId, clientSecret,
-                                                                authEndpoint, soapEndpoint);
+          authEndpoint, soapEndpoint);
         client.validateSchemaCompatibility(inputSchema, collector);
       } catch (ETSdkException e) {
         collector.addFailure("Error while validating Marketing Cloud client: " + e.getMessage(), null)
@@ -208,8 +231,9 @@ public class MarketingCloudConf extends PluginConfig {
       int batchSize = getMaxBatchSize();
       if (batchSize < 0) {
         collector.addFailure(String.format("Invalid batch size '%d'.", batchSize),
-                             "The batch size must be at least 1.").withConfigProperty(BATCH_SIZE);
+          "The batch size must be at least 1.").withConfigProperty(BATCH_SIZE);
       }
     }
   }
 }
+

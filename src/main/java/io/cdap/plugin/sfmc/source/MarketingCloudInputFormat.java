@@ -71,7 +71,8 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
    * @param conf the plugin conf
    * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
-  private static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode, MarketingCloudSourceConfig conf) {
+  protected static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode,
+                                                                 MarketingCloudSourceConfig conf) {
     try {
       MarketingCloudClient client = MarketingCloudClient.create(conf.getClientId(), conf.getClientSecret(),
                                                                 conf.getAuthEndpoint(), conf.getSoapEndpoint());
@@ -120,7 +121,7 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
    * Fetch the fields for passed object.
    */
   private static MarketingCloudObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
-                                                           MarketingCloudClient client) {
+                                                   MarketingCloudClient client) {
     try {
       if (object == SourceObject.DATA_EXTENSION) {
         return client.fetchDataExtensionSchema(dataExtensionKey);

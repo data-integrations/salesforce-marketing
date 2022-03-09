@@ -24,8 +24,6 @@ public class MarketingCloudColumn {
   private String typeName;
   private String mandatory;
 
-  public MarketingCloudColumn() {
-  }
 
   /**
    * Constructor for MarketingCloudColumn.

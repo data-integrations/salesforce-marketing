@@ -93,7 +93,7 @@ public class RecordDataExtensionRowConverter {
     }
   }
 
-  private String getType(Schema.Type type, String fieldName, Object val) {
+  public String getType(Schema.Type type, String fieldName, Object val) {
     switch (type) {
       case BOOLEAN:
       case INT:

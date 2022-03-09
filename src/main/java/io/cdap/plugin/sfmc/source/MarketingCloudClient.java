@@ -87,7 +87,7 @@ public class MarketingCloudClient {
     }
   }
 
-  private ETExpression getExpressionfromString(String filter) throws ETSdkException {
+  ETExpression getExpressionfromString(String filter) throws ETSdkException {
     if (!Util.isNullOrEmpty(filter)) {
       return ETExpression.parse(filter);
     } else {
