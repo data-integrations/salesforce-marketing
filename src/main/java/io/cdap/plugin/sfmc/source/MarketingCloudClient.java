@@ -67,6 +67,8 @@ public class MarketingCloudClient {
     conf.set("authEndpoint", authEndpoint);
     conf.set("soapEndpoint", soapEndpoint);
     conf.set("useOAuth2Authentication", "true");
+    conf.set("cxfConnectTimeout", "300000");
+    conf.set("cxfReceiveTimeout", "300000");
     ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(MarketingCloudClient.class.getClassLoader());
