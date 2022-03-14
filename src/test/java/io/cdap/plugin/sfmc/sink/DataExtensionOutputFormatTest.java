@@ -15,85 +15,56 @@
  */
 package io.cdap.plugin.sfmc.sink;
 
-import com.exacttarget.fuelsdk.ETSdkException;
-import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.TaskAttemptContextImpl;
-import org.apache.hadoop.mapred.TaskAttemptID;
+import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(DataExtensionClient.class)
 public class DataExtensionOutputFormatTest {
 
 
-  protected static final String CLIENT_ID = "clientId";
-  protected static final String CLIENT_SECRET = "clientSecret";
-  protected static final String AUTH_ENDPOINT = "authEndPoint";
-  protected static final String SOAP_ENDPOINT = "soapEndPoint";
-  protected static final String OPERATION = "INSERT";
-  protected static final String DATA_EXTENSION_KEY = "DE";
-  protected static final String MAX_BATCH_SIZE = "500";
-  protected static final String FAIL_ON_ERROR = "true";
-  protected static final String TRUNCATE = "true";
-
+  public static final String CLIENT_ID = "cdap.sfmc.client.id";
+  public static final String CLIENT_SECRET = "cdap.sfmc.client.secret";
+  public static final String AUTH_ENDPOINT = "cdap.sfmc.auth.endpoint";
+  public static final String SOAP_ENDPOINT = "cdap.sfmc.soap.endpoint";
+  public static final String DATA_EXTENSION_KEY = "cdap.sfmc.data.extension.key";
+  public static final String MAX_BATCH_SIZE = "cdap.sfmc.max.batch.size";
+  public static final String FAIL_ON_ERROR = "cdap.sfmc.fail.on.error";
+  public static final String OPERATION = "cdap.sfmc.operation";
+  public static final String TRUNCATE = "cdap.sfmc.truncate";
 
   MarketingCloudConf config = new MarketingCloudConf("44", CLIENT_ID,
     CLIENT_SECRET, "dataExtension", AUTH_ENDPOINT, SOAP_ENDPOINT, 500,
     "INSERT", "<key=value", false, false, false);
 
-  @Test
-  public void testGetRecordWriter() throws IOException {
-    JobConf config = new JobConf();
-    TaskAttemptID taskId = new TaskAttemptID();
-    TaskAttemptContext context = new TaskAttemptContextImpl(config, taskId);
-    Configuration conf = context.getConfiguration();
-    context.getConfiguration().set(CLIENT_ID, "clientId");
-    context.getConfiguration().set(CLIENT_SECRET, "clientSecret");
-    context.getConfiguration().set(AUTH_ENDPOINT, "authEndPoint");
-    context.getConfiguration().set(SOAP_ENDPOINT, "soapEndPoint");
-    context.getConfiguration().set(OPERATION, "INSERT");
-    context.getConfiguration().set(DATA_EXTENSION_KEY, "DE");
-    context.getConfiguration().set(MAX_BATCH_SIZE, "500");
-    context.getConfiguration().set(FAIL_ON_ERROR, "true");
-    context.getConfiguration().set(TRUNCATE, "true");
-    String clientId = getOrError(conf, CLIENT_ID);
-    String clientSecret = getOrError(conf, CLIENT_SECRET);
-    String authEndpoint = getOrError(conf, AUTH_ENDPOINT);
-    String soapEndpoint = getOrError(conf, SOAP_ENDPOINT);
-    String dataExtensionKey = getOrError(conf, DATA_EXTENSION_KEY);
-    Operation operation = Operation.valueOf(getOrError(conf, OPERATION));
-    int maxBatchSize = Integer.parseInt(getOrError(conf, MAX_BATCH_SIZE));
-    boolean failOnError = Boolean.parseBoolean(getOrError(conf, FAIL_ON_ERROR));
-    boolean shouldTruncate = Boolean.parseBoolean(getOrError(conf, TRUNCATE));
-    DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
-    MockFailureCollector collector = new MockFailureCollector();
 
-    try {
-      DataExtensionClient client = Mockito.mock(DataExtensionClient.class);
-      RecordDataExtensionRowConverter converter = new RecordDataExtensionRowConverter(client.getDataExtensionInfo(),
-        shouldTruncate);
-      new DataExtensionRecordWriter(client, converter, operation, maxBatchSize, failOnError);
-    } catch (ETSdkException e) {
-      throw new IOException("Unable to create Salesforce Marketing Cloud client.", e);
-    }
+  @Test
+  public void testCheckOutSpecs() {
+    JobContext context1 = Mockito.mock(JobContext.class);
+    DataExtensionOutputFormat outputFormat = Mockito.mock(DataExtensionOutputFormat.class);
+    Mockito.verify(outputFormat, Mockito.times(0)).checkOutputSpecs(context1);
 
   }
 
-
-  private String getOrError(Configuration conf, String key) {
-    String val = conf.get(key);
-    if (val == null) {
-      throw new IllegalStateException("Missing required value for " + key);
-    }
-    return val;
+  @Test
+  public void testNeedsTaskCommit() throws IOException {
+    TaskAttemptContext taskAttemptContext = Mockito.mock(TaskAttemptContext.class);
+    DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
+    Assert.assertFalse(outputFormat.getOutputCommitter(taskAttemptContext).needsTaskCommit(taskAttemptContext));
   }
 
 
 }
+
+
+
 
 

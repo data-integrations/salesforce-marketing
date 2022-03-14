@@ -16,6 +16,7 @@
 
 package io.cdap.plugin.sfmc.source;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -116,7 +117,8 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
     emitter.emit(input.getValue());
   }
 
-  private Schema getSchema(SourceQueryMode mode) {
+  @VisibleForTesting
+  Schema getSchema(SourceQueryMode mode) {
     Schema schema = null;
     if (mode == SourceQueryMode.SINGLE_OBJECT) {
       Configuration hConf = new Configuration();

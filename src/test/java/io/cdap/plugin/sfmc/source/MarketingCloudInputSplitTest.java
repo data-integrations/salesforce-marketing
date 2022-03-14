@@ -18,6 +18,7 @@ package io.cdap.plugin.sfmc.source;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -61,8 +62,11 @@ public class MarketingCloudInputSplitTest {
 
   @Test
   public void testGetLocations() throws IOException, InterruptedException {
-    assertEquals(0, (new MarketingCloudInputSplit("Open Event", "Table Name")).getLocations().length);
+    Assert.assertEquals(String[].class, new MarketingCloudInputSplit("Table Name", "Object Name").getLocations().
+      getClass());
+    Assert.assertEquals(0, (new MarketingCloudInputSplit("Table Name", "Object Name")).getLocations().length);
   }
+
 
   @Test
   public void testGetTableName() {
@@ -93,7 +97,28 @@ public class MarketingCloudInputSplitTest {
 
   }
 
-  @Test
+  @Test(expected = NullPointerException.class)
+  public void testWriteWithNullData() throws IOException {
+    DataOutput dataOutput = null;
+    String tableName = "";
+    String objectName = "";
+
+    MarketingCloudInputSplit marketingCloudInputSplit = new MarketingCloudInputSplit(tableName, objectName);
+    marketingCloudInputSplit.write(dataOutput);
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void testRead() throws IOException {
+    DataInput dataInput = null;
+    String tableName = "";
+    String objectName = "";
+
+
+    MarketingCloudInputSplit marketingCloudInputSplit = new MarketingCloudInputSplit(objectName, tableName);
+    marketingCloudInputSplit.readFields(dataInput);
+  }
+
+  /*@Test
   public void testWriteWithNullData() {
     try {
 
@@ -106,5 +131,5 @@ public class MarketingCloudInputSplitTest {
     } catch (Exception exception) {
       exception.printStackTrace();
     }
-  }
+  }*/
 }

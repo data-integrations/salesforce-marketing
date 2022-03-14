@@ -15,19 +15,31 @@
  */
 package io.cdap.plugin.sfmc.sink;
 
+import com.exacttarget.fuelsdk.ETClient;
 import com.exacttarget.fuelsdk.ETDataExtensionColumn;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
+import com.exacttarget.fuelsdk.ETResponse;
+import com.exacttarget.fuelsdk.ETResult;
 import com.exacttarget.fuelsdk.ETSdkException;
+import com.exacttarget.fuelsdk.ETSoapConnection;
 import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.cdap.etl.api.validation.ValidationException;
+import io.cdap.plugin.sfmc.source.MarketingCloudClient;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class DataExtensionRecordWriterTest {
 
@@ -38,7 +50,7 @@ public class DataExtensionRecordWriterTest {
 
 
   @Test
-  public void testWriteWInsert() throws ETSdkException, IOException {
+  public void testWriteWInsertWNullResponse() throws ETSdkException, IOException {
     NullWritable key = null;
     StructuredRecord record = Mockito.mock(StructuredRecord.class);
     TaskAttemptContext context = Mockito.mock(TaskAttemptContext.class);
@@ -60,28 +72,16 @@ public class DataExtensionRecordWriterTest {
     DataExtensionInfo info = new DataExtensionInfo("externalKey", columnList);
     RecordDataExtensionRowConverter recordDataExtensionRowConverter = new RecordDataExtensionRowConverter(info, true);
     DataExtensionRecordWriter dataExtensionRecordWriter = new DataExtensionRecordWriter(dataExtensionClient,
-      recordDataExtensionRowConverter, Operation.INSERT, 0, false);
-    dataExtensionRecordWriter.write(key, record);
-    dataExtensionRecordWriter.close(context);
-
+      recordDataExtensionRowConverter, Operation.INSERT, 1, false);
+    try {
+      dataExtensionRecordWriter.write(key, record);
+    } catch (ValidationException e) {
+      Assert.assertEquals("Failed to get a response from {} call to Salesforce API.",
+        e.getFailures().get(0).getMessage());
+    }
   }
 
-  @Test
-  public void testWriteWUpdate() throws ETSdkException, IOException {
-    TaskAttemptContext context = Mockito.mock(TaskAttemptContext.class);
-    List<ETDataExtensionColumn> columnList = new ArrayList<>();
-    ETDataExtensionColumn column = new ETDataExtensionColumn();
-    column.setLength(123);
-    column.setName("Name");
-    columnList.add(column);
-    DataExtensionClient dataExtensionClient = Mockito.mock(DataExtensionClient.class);
-    DataExtensionInfo info = new DataExtensionInfo("externalKey", columnList);
-    RecordDataExtensionRowConverter recordDataExtensionRowConverter = new RecordDataExtensionRowConverter(info, true);
-    DataExtensionRecordWriter dataExtensionRecordWriter = new DataExtensionRecordWriter(dataExtensionClient,
-      recordDataExtensionRowConverter, Operation.UPDATE, 1, false);
-    dataExtensionRecordWriter.close(context);
 
-  }
 
   @Test
   public void testWriteWUpsert() throws ETSdkException, IOException {
@@ -99,5 +99,45 @@ public class DataExtensionRecordWriterTest {
     dataExtensionRecordWriter.close(context);
   }
 
+  @Test
+  public void testWriteWInsert() throws ETSdkException, IOException {
+    TaskAttemptContext context = Mockito.mock(TaskAttemptContext.class);
+    List<ETDataExtensionColumn> columnList = new ArrayList<>();
+    ETDataExtensionColumn column = new ETDataExtensionColumn();
+    column.setLength(123);
+    column.setName("Name");
+    DataExtensionClient client = Mockito.mock(DataExtensionClient.class);
+    DataExtensionInfo info = new DataExtensionInfo("externalKey", columnList);
+    List<ETDataExtensionRow> batch = new ArrayList<>();
+    ETResponse<ETDataExtensionRow> response = new ETResponse<>();
+    response.setRequestId("id");
+    response.setStatus(ETResult.Status.ERROR);
+   Mockito.when(client.insert(batch)).thenReturn(response);
+    RecordDataExtensionRowConverter recordDataExtensionRowConverter = new RecordDataExtensionRowConverter(info, false);
+    DataExtensionRecordWriter dataExtensionRecordWriter = new DataExtensionRecordWriter(client,
+      recordDataExtensionRowConverter, Operation.INSERT, 500, false);
+    dataExtensionRecordWriter.close(context);
+  }
+
+  @Test
+  public void testWriteWUpdate() throws ETSdkException, IOException {
+    StructuredRecord record = Mockito.mock(StructuredRecord.class);
+    TaskAttemptContext context = Mockito.mock(TaskAttemptContext.class);
+    List<ETDataExtensionColumn> columnList = new ArrayList<>();
+    ETDataExtensionColumn column = new ETDataExtensionColumn();
+    column.setLength(123);
+    column.setName("Name");
+    columnList.add(column);
+    DataExtensionClient client = Mockito.mock(DataExtensionClient.class);
+    DataExtensionInfo info = new DataExtensionInfo("externalKey", columnList);
+    ETResponse<ETDataExtensionRow> response = new ETResponse<>();
+    response.setRequestId("id");
+    List<ETDataExtensionRow> batch = new ArrayList<>();
+    Mockito.when(client.update(batch)).thenReturn(response);
+    RecordDataExtensionRowConverter recordDataExtensionRowConverter = new RecordDataExtensionRowConverter(info, false);
+    DataExtensionRecordWriter dataExtensionRecordWriter = new DataExtensionRecordWriter(client,
+      recordDataExtensionRowConverter, Operation.UPDATE, 500, false);
+    dataExtensionRecordWriter.close(context);
+  }
 
 }

@@ -15,8 +15,12 @@
  */
 package io.cdap.plugin.sfmc.sink;
 
+import com.exacttarget.fuelsdk.ETClient;
+import com.exacttarget.fuelsdk.ETConfiguration;
+import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.batch.OutputFormatProvider;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.etl.api.batch.BatchRuntimeContext;
 import io.cdap.cdap.etl.api.batch.BatchSinkContext;
 import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.cdap.etl.mock.common.MockArguments;
@@ -28,14 +32,18 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({DataExtensionClient.class, ETClient.class})
 public class MarketingCloudDataExtensionSinkTest {
   protected static final String CLIENT_ID = "clientId";
   protected static final String CLIENT_SECRET = "clientSecret";
@@ -44,6 +52,15 @@ public class MarketingCloudDataExtensionSinkTest {
   private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudDataExtensionSink.class);
   private MarketingCloudConf marketingCloudConf;
   private MarketingCloudDataExtensionSink marketingCloudDataExtensionSink;
+
+  public ETClient getClient() throws ETSdkException {
+    ETConfiguration conf = new ETConfiguration();
+    ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(DataExtensionClient.class.getClassLoader());
+    ETClient client = Mockito.mock(ETClient.class);
+    return client;
+
+  }
 
   @Before
   public void initialize() {
@@ -70,6 +87,21 @@ public class MarketingCloudDataExtensionSinkTest {
       throw e;
     }
   }
+
+  @Test
+  public void testInitialize() {
+    BatchRuntimeContext context = Mockito.mock(BatchRuntimeContext.class);
+    MockFailureCollector failureCollector = new MockFailureCollector();
+    Mockito.when(context.getFailureCollector()).thenReturn(failureCollector);
+    Schema fieldSchema = Schema.recordOf("record",
+      Schema.Field.of("store_id", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("price", Schema.of(Schema.Type.DOUBLE)),
+      Schema.Field.of("emailid", Schema.of(Schema.Type.STRING)));
+    Mockito.when(context.getInputSchema()).thenReturn(fieldSchema);
+    marketingCloudDataExtensionSink.initialize(context);
+
+  }
+
 
   @Test
   public void testConfigurePipeline() {
@@ -154,7 +186,6 @@ public class MarketingCloudDataExtensionSinkTest {
 
   }
 
-//Todo
 
   @Test
   public void testGetOutputFormatConfiguration() {
@@ -169,9 +200,8 @@ public class MarketingCloudDataExtensionSinkTest {
     outputConfig.put(DataExtensionOutputFormat.OPERATION, marketingCloudConf.getOperation().name());
     outputConfig.put(DataExtensionOutputFormat.DATA_EXTENSION_KEY, marketingCloudConf.getDataExtension());
     outputConfig.put(DataExtensionOutputFormat.TRUNCATE, String.valueOf(marketingCloudConf.shouldTruncateText()));
-    Assert.assertEquals(outputConfig.size(), 9);
     outputFormatProvider.getOutputFormatConfiguration();
-
+    Assert.assertEquals(outputConfig.size(), 9);
 
   }
 

@@ -15,10 +15,8 @@
  */
 package io.cdap.plugin.sfmc.source;
 
-import com.custom.fuelsdk.ETClickEvent;
 import com.custom.fuelsdk.PaginationETSoapObject;
 import com.custom.fuelsdk.internal.ClickEvent;
-import com.exacttarget.fuelsdk.ETApiObject;
 
 import org.junit.Assert;
 import org.junit.Test;

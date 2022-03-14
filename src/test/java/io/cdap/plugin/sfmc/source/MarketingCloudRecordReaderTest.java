@@ -17,10 +17,14 @@
 package io.cdap.plugin.sfmc.source;
 
 import com.custom.fuelsdk.ETClickEvent;
-import com.exacttarget.fuelsdk.ETApiObject;
-import com.exacttarget.fuelsdk.ETSdkException;
+import com.exacttarget.fuelsdk.ETClient;
+import com.exacttarget.fuelsdk.ETConfiguration;
+import com.exacttarget.fuelsdk.ETSoapConnection;
+import com.exacttarget.fuelsdk.ETSoapObject;
+import com.exacttarget.fuelsdk.internal.EventType;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginProperties;
+import io.cdap.plugin.sfmc.source.util.MarketingCloudColumn;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
@@ -34,7 +38,9 @@ import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +49,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ETClient.class, ClassLoader.class, MarketingCloudClient.class, ETSoapConnection.class})
 public class MarketingCloudRecordReaderTest {
 
-  protected static final String CLIENT_ID = System.getProperty("sfmc.test.clientId");
-  protected static final String CLIENT_SECRET = System.getProperty("sfmc.test.clientSecret");
-  protected static final String AUTH_ENDPOINT = System.getProperty("sfmc.test.authEndpoint");
-  protected static final String SOAP_ENDPOINT = System.getProperty("sfmc.test.soapEndpoint");
+  protected static final String CLIENT_ID = "clientId";
+  protected static final String CLIENT_SECRET = "clientSecret";
+  protected static final String AUTH_ENDPOINT = "authEndPoint";
+  protected static final String SOAP_ENDPOINT = "soapEndPoint";
   private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudInputFormat.class);
 
   @Rule
@@ -86,6 +93,20 @@ public class MarketingCloudRecordReaderTest {
 
   @Test
   public void testConstructor() throws IOException {
+    marketingCloudRecordReader.close();
+    Assert.assertEquals(0, marketingCloudRecordReader.pos);
+  }
+
+
+  @Test
+  public void testConstructor2() throws IOException {
+
+    MarketingCloudSourceConfig marketingCloudSourceConfig = new MarketingCloudSourceConfig("referenceName",
+      "Single Object",
+      "Data Extension",
+      "DE", "objectList",
+      null, "tableNameField",
+      "filter", CLIENT_ID, CLIENT_SECRET, "restEndPoint", AUTH_ENDPOINT, SOAP_ENDPOINT);
     Assert.assertEquals("restEndPoint", marketingCloudSourceConfig.getRestEndpoint());
     Assert.assertEquals("DE", marketingCloudSourceConfig.getDataExtensionKey());
     Assert.assertEquals(SourceQueryMode.SINGLE_OBJECT, marketingCloudSourceConfig.getQueryMode());
@@ -99,48 +120,46 @@ public class MarketingCloudRecordReaderTest {
     Assert.assertEquals(0, marketingCloudRecordReader.pos);
   }
 
-
   @Test
-  public void testFetchDataWithoutDataExtension() throws ETSdkException, IOException {
-    List<Schema.Field> tableFields = new ArrayList<>();
-    List<Schema.Field> schemaFields = new ArrayList<>();
-    List<? extends ETApiObject> results = new ArrayList<>();
-    MarketingCloudObjectInfo sfObjectMetaData;
+  public void testFetchData() throws Exception {
     MarketingCloudInputSplit split = new MarketingCloudInputSplit("TRACKING_UNSUB_EVENT", "unsub");
-    MarketingCloudRecordReader marketingCloudRecordReader = new MarketingCloudRecordReader(marketingCloudSourceConfig);
     SourceObject object = SourceObject.valueOf(split.getObjectName());
-    String tableName = split.getTableName();
-    MarketingCloudClient client = MarketingCloudClient.create(marketingCloudSourceConfig.getClientId(),
-      marketingCloudSourceConfig.getClientSecret(),
-      marketingCloudSourceConfig.getAuthEndpoint(), marketingCloudSourceConfig.getSoapEndpoint());
-    results = client.fetchObjectRecords(object);
-    sfObjectMetaData = client.fetchObjectSchema(object);
-    tableFields = sfObjectMetaData.getSchema().getFields();
-    schemaFields = new ArrayList<>(tableFields);
-    Schema schema = Schema.recordOf(tableName.replaceAll("-", "_"), schemaFields);
+    MarketingCloudRecordReader marketingCloudRecordReader = new MarketingCloudRecordReader(marketingCloudSourceConfig);
+    List<? extends ETSoapObject> results = new ArrayList<ETSoapObject>();
+    List<ETClickEvent> list = new ArrayList<>();
+    ETClickEvent etClickEvent = new ETClickEvent();
+    etClickEvent.setSendID(121);
+    etClickEvent.setEventType(EventType.CLICK);
+    list.add(etClickEvent);
+    results = list;
+    ETConfiguration conf = Mockito.spy(new ETConfiguration());
+    conf.set("clientId", CLIENT_ID);
+    conf.set("clientSecret", CLIENT_SECRET);
+    conf.set("authEndpoint", AUTH_ENDPOINT);
+    conf.set("soapEndpoint", SOAP_ENDPOINT);
+    conf.set("useOAuth2Authentication", "true");
+    Schema schema = Schema.recordOf("record",
+      Schema.Field.of("id", Schema.of(Schema.Type.LONG)),
+      Schema.Field.of("timestamp",
+        Schema.nullableOf(Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))));
+    List<MarketingCloudColumn> columns = new ArrayList<>();
+    MarketingCloudColumn column = new MarketingCloudColumn("price", "String");
+    columns.add(column);
+    MarketingCloudObjectInfo sObjectInfo = Mockito.spy(new MarketingCloudObjectInfo(object, columns));
+    ETClient etClient = PowerMockito.mock(ETClient.class);
+    PowerMockito.whenNew(ETClient.class).withArguments(Mockito.anyString()).thenReturn(etClient);
+    PowerMockito.spy(new MarketingCloudClient(new ETClient(conf)));
+    MarketingCloudClient client = PowerMockito.mock(MarketingCloudClient.class);
+    PowerMockito.whenNew(MarketingCloudClient.class).withArguments(Mockito.any()).thenReturn(client);
+    PowerMockito.mockStatic(ClassLoader.class);
+    Mockito.when(client.fetchObjectSchema(object)).thenReturn(sObjectInfo);
+    Mockito.when(sObjectInfo.getSchema()).thenReturn(schema);
+    Mockito.doReturn(results).when(client).fetchObjectRecords(object);
     marketingCloudRecordReader.initialize(split, null);
     Assert.assertTrue(marketingCloudRecordReader.nextKeyValue());
-    Assert.assertFalse(schema.isNullable());
-    Assert.assertEquals(schema.getFields().size(), 10);
 
 
   }
-
-  /*@Test
-  public void testFetchDataWithoutClient() throws ETSdkException, IOException {
-    List<Schema.Field> tableFields = new ArrayList<>();
-    List<Schema.Field> schemaFields = new ArrayList<>();
-    List<? extends ETApiObject> results = new ArrayList<>();
-    MarketingCloudInputSplit split = new MarketingCloudInputSplit("TRACKING_UNSUB_EVENT", "unsub");
-    MarketingCloudRecordReader marketingCloudRecordReader = new MarketingCloudRecordReader(marketingCloudSourceConfig);
-    SourceObject object = SourceObject.valueOf(split.getObjectName());
-    String tableName = split.getTableName();
-    MarketingCloudClient client = Mockito.mock(MarketingCloudClient.class);
-    ETClickEvent clickEvent = new ETClickEvent();
-    results.add(clickEvent);
-
-
-  }*/
 
 
   @Test

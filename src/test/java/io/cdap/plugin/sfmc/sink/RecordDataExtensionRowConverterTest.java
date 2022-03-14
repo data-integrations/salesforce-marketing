@@ -77,8 +77,6 @@ public class RecordDataExtensionRowConverterTest {
     Assert.assertEquals(recorddataextensionrowconverter.getType(type3, fieldName3, val3), ((Enum) val3).name());
   }
 
-  enum Days { Monday, Tuesday}
-
   @Test
   public void testTransform() throws ETSdkException {
     List<ETDataExtensionColumn> columnList = new ArrayList<>();
@@ -109,9 +107,12 @@ public class RecordDataExtensionRowConverterTest {
     Mockito.when(structuredRecord.getDate("date")).thenReturn(date);
     Mockito.when(structuredRecord.get("price")).thenReturn(2000);
     Mockito.when(structuredRecord.getDecimal("price")).thenReturn(BigDecimal.valueOf(2000));
-    recordDataExtensionRowConverter.transform(structuredRecord);
+    Assert.assertFalse(recordDataExtensionRowConverter.transform(structuredRecord).getColumn("price").isEmpty());
+    Assert.assertFalse(recordDataExtensionRowConverter.transform(structuredRecord).getAllModified().isEmpty());
 
   }
+
+  enum Days { Monday, Tuesday}
 }
 
 
