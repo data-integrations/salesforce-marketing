@@ -26,8 +26,7 @@ import org.junit.runner.RunWith;
 @RunWith(Cucumber.class)
 @CucumberOptions(
   features = {"src/e2e-test/features"},
-  glue = {"io.cdap.plugin.sfmcsource.stepsdesign", "io.cdap.plugin.sfmcsink.stepsdesign",
-    "io.cdap.plugin.studio.stepsdesign", "stepsdesign"},
+  glue = {"io.cdap.plugin.sfmcsource.stepsdesign", "io.cdap.plugin.bigquery.stepsdesign", "stepsdesign"},
   tags = {"@Regression"},
   monochrome = true,
   plugin = {"pretty", "html:target/cucumber-html-report", "json:target/cucumber-reports/cucumber.json",

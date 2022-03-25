@@ -116,7 +116,7 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
     emitter.emit(input.getValue());
   }
 
-  private Schema getSchema(SourceQueryMode mode) {
+  public Schema getSchema(SourceQueryMode mode) {
     Schema schema = null;
     if (mode == SourceQueryMode.SINGLE_OBJECT) {
       Configuration hConf = new Configuration();
