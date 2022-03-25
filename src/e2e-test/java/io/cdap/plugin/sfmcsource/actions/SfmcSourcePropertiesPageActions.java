@@ -16,11 +16,15 @@
 
 package io.cdap.plugin.sfmcsource.actions;
 
+import io.cdap.e2e.pages.locators.CdfPluginPropertiesLocators;
+import io.cdap.e2e.utils.ElementHelper;
 import io.cdap.e2e.utils.SeleniumHelper;
 import io.cdap.plugin.sfmcsource.locators.SfmcSourcePropertiesPage;
-import io.cdap.plugin.utils.enums.DataRetrievalMode;
+import io.cdap.plugin.utils.enums.Sobjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Represents - Salesforce Marketing Cloud - Source plugin - Properties page - Actions.
@@ -32,16 +36,28 @@ public class SfmcSourcePropertiesPageActions {
     SeleniumHelper.getPropertiesLocators(SfmcSourcePropertiesPage.class);
   }
 
-  public static void fillReferenceName(String referenceName) {
-    logger.info("Fill Reference name: " + referenceName);
-    SfmcSourcePropertiesPage.referenceNameInput.sendKeys(referenceName);
+  public static void configureSourcePluginForObjectNameInSingleObjectMode(Sobjects objectName) {
+    logger.info("Select dropdown option: " + objectName.value);
+    ElementHelper.selectDropdownOption(SfmcSourcePropertiesPage.objectDropdownForSIngleObjectMode,
+      CdfPluginPropertiesLocators.locateDropdownListItem(objectName.value));
   }
 
-  public static void selectDataRetrievalMode(DataRetrievalMode mode) {
-    logger.info("Select Data Retrieval Mode: " + mode.value);
-    SfmcSourcePropertiesPage.dataRetrievalModeDropdown.click();
-    SfmcSourcePropertiesPage.getDropdownOptionElement(mode.value).click();
+  public static void selectObjectNamesInMultiObjectMode(List<Sobjects> objectNames) {
+    int totalSObjects = objectNames.size();
+
+    SfmcSourcePropertiesPage.objectDropdownForMultiObjectMode.click();
+
+    for (int i = 0; i < totalSObjects; i++) {
+      logger.info("Select checkbox option: " + objectNames.get(i).value);
+      ElementHelper.selectCheckbox(SfmcSourcePropertiesPage.
+        locateObjectCheckBoxInMultiObjectsSelector(objectNames.get(i).value));
+    }
+
+    //We need to click on the Plugin Properties page header to dismiss the dialog
+    ElementHelper.clickUsingActions(CdfPluginPropertiesLocators.pluginPropertiesPageHeader);
   }
 
-  
+  public static void fillDataExtensionExternalKey(String key) {
+    ElementHelper.sendKeys(SfmcSourcePropertiesPage.dataExtensionExternalKeyInputForMultiObjectMode, key);
+  }
 }
