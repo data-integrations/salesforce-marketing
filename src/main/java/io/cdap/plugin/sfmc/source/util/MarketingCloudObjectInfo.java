@@ -17,7 +17,6 @@
 package io.cdap.plugin.sfmc.source.util;
 
 import io.cdap.cdap.api.data.schema.Schema;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

@@ -19,13 +19,14 @@ package io.cdap.plugin.sfmc.sink;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETResult;
+import com.exacttarget.fuelsdk.ETSdkException;
+import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,8 @@ public class DataExtensionRecordWriter extends RecordWriter<NullWritable, Struct
     writeBatch();
   }
 
-  private void writeBatch() throws IOException {
+  @VisibleForTesting
+  void writeBatch() throws IOException {
     List<ETResult<ETDataExtensionRow>> results = new ArrayList<>();
     boolean failed = false;
     try {

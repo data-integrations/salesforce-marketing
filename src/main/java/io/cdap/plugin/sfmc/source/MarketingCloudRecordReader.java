@@ -20,6 +20,7 @@ import com.exacttarget.fuelsdk.ETApiObject;
 import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETSoapObject;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
@@ -241,7 +242,8 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   /**
    * Converts raw field value according to the schema field type.
    */
-  private Object convertToValue(String fieldName, Schema fieldSchema, Object fieldValue) {
+  @VisibleForTesting
+  Object convertToValue(String fieldName, Schema fieldSchema, Object fieldValue) {
     Schema.Type fieldType = fieldSchema.getType();
     Schema.LogicalType logicalType = fieldSchema.getLogicalType();
     if (fieldSchema.getLogicalType() != null) {
@@ -270,11 +272,13 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     }
   }
 
-  private String convertToStringValue(Object fieldValue) {
+  @VisibleForTesting
+  String convertToStringValue(Object fieldValue) {
     return String.valueOf(fieldValue);
   }
 
-  private Double convertToDoubleValue(Object fieldValue) {
+  @VisibleForTesting
+  Double convertToDoubleValue(Object fieldValue) {
     if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
       return null;
     }
@@ -282,7 +286,8 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     return Double.parseDouble(String.valueOf(fieldValue));
   }
 
-  private Integer convertToIntegerValue(Object fieldValue) {
+  @VisibleForTesting
+  Integer convertToIntegerValue(Object fieldValue) {
     if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
       return null;
     }
@@ -290,7 +295,8 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     return Integer.parseInt(String.valueOf(fieldValue));
   }
 
-  private Boolean convertToBooleanValue(Object fieldValue) {
+  @VisibleForTesting
+  Boolean convertToBooleanValue(Object fieldValue) {
     if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
       return null;
     }
