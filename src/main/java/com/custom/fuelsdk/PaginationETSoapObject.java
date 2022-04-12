@@ -32,6 +32,8 @@ import com.exacttarget.fuelsdk.internal.RetrieveRequest;
 import com.exacttarget.fuelsdk.internal.RetrieveRequestMsg;
 import com.exacttarget.fuelsdk.internal.RetrieveResponseMsg;
 import com.exacttarget.fuelsdk.internal.Soap;
+import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
+import io.cdap.plugin.sfmc.source.util.SourceObject;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -251,6 +253,12 @@ public class PaginationETSoapObject extends ETSoapObject {
       }
     }
 
+    //
+    // remove subscribers field from List object as subscribers is not a retrieval field.
+    //
+    if (SourceObject.MAILING_LIST.getClassRef().equals(type)) {
+      internalProperties.remove(MarketingCloudConstants.SUBSCRIBER);
+    }
     //
     // Perform the SOAP retrieve:
     //

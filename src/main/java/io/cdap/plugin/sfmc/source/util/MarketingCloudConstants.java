@@ -96,4 +96,9 @@ public interface MarketingCloudConstants {
    */
   String PROPERTY_FILTER = "filter";
 
+  /**
+   *  Subscribers property name used in MailingList Object.
+   */
+  String SUBSCRIBER = "Subscribers";
+
 }
