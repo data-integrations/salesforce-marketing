@@ -162,7 +162,7 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
     emitter.emit(new KeyValue<>(NullWritable.get(), record));
   }
 
-  private Schema getMappedSchema(Map<String, String> columnMapping, Schema originalSchema) {
+  Schema getMappedSchema(Map<String, String> columnMapping, Schema originalSchema) {
     if (columnMapping.isEmpty()) {
       return originalSchema;
     }

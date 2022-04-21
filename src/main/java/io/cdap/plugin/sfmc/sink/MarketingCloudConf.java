@@ -17,6 +17,7 @@
 package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETSdkException;
+import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
@@ -153,6 +154,26 @@ public class MarketingCloudConf extends PluginConfig {
 
   Operation getOperation() {
     return operation == null ? Operation.INSERT : Operation.valueOf(operation.toUpperCase());
+  }
+
+  @VisibleForTesting
+  public MarketingCloudConf(String referenceName, String clientId, String clientSecret, String dataExtension,
+                            String authEndpoint,
+                            String soapEndpoint, @Nullable Integer maxBatchSize, @Nullable String operation,
+                            @Nullable String columnMapping, Boolean failOnError, Boolean replaceWithSpaces,
+                            Boolean truncateText) {
+    this.referenceName = referenceName;
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.authEndpoint = authEndpoint;
+    this.soapEndpoint = soapEndpoint;
+    this.maxBatchSize = maxBatchSize;
+    this.operation = operation;
+    this.columnMapping = columnMapping;
+    this.failOnError = failOnError;
+    this.replaceWithSpaces = replaceWithSpaces;
+    this.truncateText = truncateText;
+    this.dataExtension = dataExtension;
   }
 
   Map<String, String> getColumnMapping(@Nullable Schema originalSchema, FailureCollector collector) {
