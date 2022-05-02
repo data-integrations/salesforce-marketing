@@ -30,7 +30,6 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,7 +70,8 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
    * @param conf the plugin conf
    * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
-  private static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode, MarketingCloudSourceConfig conf) {
+  static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode,
+                                                       MarketingCloudSourceConfig conf) {
     try {
       MarketingCloudClient client = MarketingCloudClient.create(conf.getClientId(), conf.getClientSecret(),
                                                                 conf.getAuthEndpoint(), conf.getSoapEndpoint());
