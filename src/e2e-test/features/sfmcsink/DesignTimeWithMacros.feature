@@ -41,10 +41,10 @@ Feature: Salesforce Marketing Cloud Sink - Design time scenarios (macros)
     And Enter input plugin property: "referenceName" with value: "Referencename"
     And Click on the Macro button of Property: "dataExtension" and set the value to: "dataExtension"
     And Click on the Macro button of Property: "operation" and set the value to: "operation"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.cliensecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
     Then Validate "Salesforce Marketing" plugin properties
 
   @BATCH-TS-SFMC-DSGN-MACRO-03
@@ -56,10 +56,10 @@ Feature: Salesforce Marketing Cloud Sink - Design time scenarios (macros)
     And Enter input plugin property: "referenceName" with value: "Referencename"
     And Enter input plugin property: "dataExtension" with value: "Key121"
     And Select radio button plugin property: "operation" with value: "UPDATE"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.cliensecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "truncateText" and set the value to: "truncateText"
     And Click on the Macro button of Property: "failOnError" and set the value to: "failOnError"
     And Click on the Macro button of Property: "replaceWithSpaces" and set the value to: "replaceWithSpaces"

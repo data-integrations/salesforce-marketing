@@ -584,6 +584,23 @@
             <configuration>
               <includes>
                 <include>TestRunner.java</include>
+                <environmentVariables>
+                  <SALESFORCE_MARKETING_CLIENT_ID>
+                    ${SALESFORCE_MARKETING_CLIENT_ID}
+                  </SALESFORCE_MARKETING_CLIENT_ID>
+                  <SALESFORCE_MARKETING_CLIENT_SECRET>
+                    ${SALESFORCE_MARKETING_CLIENT_SECRET}
+                  </SALESFORCE_MARKETING_CLIENT_SECRET>
+                  <SALESFORCE_MARKETING_BASEURI>
+                    ${SALESFORCE_MARKETING_BASEURI}
+                  </SALESFORCE_MARKETING_BASEURI>
+                  <SALESFORCE_MARKETING_SOAP_API_ENDPOINT>
+                    ${SALESFORCE_MARKETING_SOAP_API_ENDPOINT}
+                  </SALESFORCE_MARKETING_SOAP_API_ENDPOINT>
+                  <SALESFORCE_MARKETING_REST_API_ENDPOINT>
+                    ${SALESFORCE_MARKETING_REST_API_ENDPOINT}
+                  </SALESFORCE_MARKETING_REST_API_ENDPOINT>
+                </environmentVariables>
               </includes>
             </configuration>
             <executions>

@@ -45,10 +45,10 @@ Feature: Salesforce Marketing Cloud Sink - Run time scenarios (macros)
     And Save the pipeline
     And Preview and run the pipeline
     And Enter runtime argument value "sink.dataextensionkey" for key "dataExtension"
-    And Enter runtime argument value "admin.clientid" for key "clientId"
-    And Enter runtime argument value "admin.clientsecret" for key "clientSecret"
-    And Enter runtime argument value "admin.authenticationbase.uri" for key "authEndpoint"
-    And Enter runtime argument value "admin.soapapi.endpoint" for key "soapEndpoint"
+    And Enter runtime argument value from environment variable "admin.clientid" for key "clientId"
+    And Enter runtime argument value from environment variable "admin.cliensecret" for key "clientSecret"
+    And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
+    And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
     And Run the preview of pipeline with runtime arguments
     And Verify the preview of pipeline is "successfully"
     Examples:
@@ -85,10 +85,10 @@ Feature: Salesforce Marketing Cloud Sink - Run time scenarios (macros)
     And Save and Deploy Pipeline
     And Run the Pipeline in Runtime
     And Enter runtime argument value "sink.dataextensionkey" for key "dataExtension"
-    And Enter runtime argument value "admin.clientid" for key "clientId"
-    And Enter runtime argument value "admin.clientsecret" for key "clientSecret"
-    And Enter runtime argument value "admin.authenticationbase.uri" for key "authEndpoint"
-    And Enter runtime argument value "admin.soapapi.endpoint" for key "soapEndpoint"
+    And Enter runtime argument value from environment variable "admin.clientid" for key "clientId"
+    And Enter runtime argument value from environment variable "admin.cliensecret" for key "clientSecret"
+    And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
+    And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Open and capture logs
@@ -113,10 +113,10 @@ Feature: Salesforce Marketing Cloud Sink - Run time scenarios (macros)
     And Enter input plugin property: "referenceName" with value: "Referencename"
     And Enter input plugin property: "dataExtension" with value: "Key121"
     And Select radio button plugin property: "operation" with value: "<OperationType>"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
+    And Enter input plugin property: "clientId" with value: "SALESFORCE_MARKETING_CLIENT_ID" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "SALESFORCE_MARKETING_CLIENT_SECRET" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "SALESFORCE_MARKETING_BASEURI" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "SALESFORCE_MARKETING_SOAP_API_ENDPOINT" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "truncateText" and set the value to: "truncateText"
     And Click on the Macro button of Property: "failOnError" and set the value to: "failOnError"
     And Click on the Macro button of Property: "replaceWithSpaces" and set the value to: "replaceWithSpaces"
@@ -153,10 +153,10 @@ Feature: Salesforce Marketing Cloud Sink - Run time scenarios (macros)
     And Enter input plugin property: "referenceName" with value: "Referencename"
     And Enter input plugin property: "dataExtension" with value: "Key121"
     And Select radio button plugin property: "operation" with value: "<OperationType>"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
+    And Enter input plugin property: "clientId" with value: "SALESFORCE_MARKETING_CLIENT_ID" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "SALESFORCE_MARKETING_CLIENT_SECRET" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "SALESFORCE_MARKETING_BASEURI" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "SALESFORCE_MARKETING_SOAP_API_ENDPOINT" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "truncateText" and set the value to: "truncateText"
     And Click on the Macro button of Property: "failOnError" and set the value to: "failOnError"
     And Click on the Macro button of Property: "replaceWithSpaces" and set the value to: "replaceWithSpaces"

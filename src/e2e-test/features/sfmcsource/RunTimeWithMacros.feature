@@ -48,11 +48,11 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Enter runtime argument value "singleobjectmode.objectname" for key "objectName"
     And Enter runtime argument value "singleobjectmode.dataextensionkey" for key "dataExtensionKey"
     And Enter runtime argument value "filter.value" for key "filter"
-    And Enter runtime argument value "admin.clientid" for key "clientId"
-    And Enter runtime argument value "admin.clientsecret" for key "clientSecret"
-    And Enter runtime argument value "admin.authenticationbase.uri" for key "authEndpoint"
-    And Enter runtime argument value "admin.soapapi.endpoint" for key "soapEndpoint"
-    And Enter runtime argument value "admin.restapibase.uri" for key "restEndpoint"
+    And Enter runtime argument value from environment variable "admin.clientid" for key "clientId"
+    And Enter runtime argument value from environment variable "admin.cliensecret" for key "clientSecret"
+    And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
+    And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
+    And Enter runtime argument value from environment variable "admin.rest.endpoint" for key "restEndpoint"
     And Run the preview of pipeline with runtime arguments
     And Verify the preview of pipeline is "successfully"
 
@@ -85,11 +85,11 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Enter runtime argument value "singleobjectmode.objectname" for key "objectName"
     And Enter runtime argument value "singleobjectmode.dataextensionkey" for key "dataExtensionKey"
     And Enter runtime argument value "filter.value" for key "filter"
-    And Enter runtime argument value "admin.clientid" for key "clientId"
-    And Enter runtime argument value "admin.clientsecret" for key "clientSecret"
-    And Enter runtime argument value "admin.authenticationbase.uri" for key "authEndpoint"
-    And Enter runtime argument value "admin.soapapi.endpoint" for key "soapEndpoint"
-    And Enter runtime argument value "admin.restapibase.uri" for key "restEndpoint"
+    And Enter runtime argument value from environment variable "admin.clientid" for key "clientId"
+    And Enter runtime argument value from environment variable "admin.cliensecret" for key "clientSecret"
+    And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
+    And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
+    And Enter runtime argument value from environment variable "admin.rest.endpoint" for key "restEndpoint"
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Open and capture logs
@@ -126,11 +126,11 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Enter runtime argument value "multiobjectmode.dataextensionkeylist" for key "dataExtensionKey"
     And Enter runtime argument value "multiobjectmode.tablename" for key "tablename"
     And Enter runtime argument value "filter.value" for key "filter"
-    And Enter runtime argument value "admin.clientid" for key "clientId"
-    And Enter runtime argument value "admin.clientsecret" for key "clientSecret"
-    And Enter runtime argument value "admin.authenticationbase.uri" for key "authEndpoint"
-    And Enter runtime argument value "admin.soapapi.endpoint" for key "soapEndpoint"
-    And Enter runtime argument value "admin.restapibase.uri" for key "restEndpoint"
+    And Enter runtime argument value from environment variable "admin.clientid" for key "clientId"
+    And Enter runtime argument value from environment variable "admin.cliensecret" for key "clientSecret"
+    And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
+    And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
+    And Enter runtime argument value from environment variable "admin.rest.endpoint" for key "restEndpoint"
     And Run the preview of pipeline with runtime arguments
     And Verify the preview of pipeline is "successfully"
 
@@ -165,11 +165,11 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Enter runtime argument value "multiobjectmode.dataextensionkeylist" for key "dataExtensionKey"
     And Enter runtime argument value "multiobjectmode.tablename" for key "tablename"
     And Enter runtime argument value "filter.value" for key "filter"
-    And Enter runtime argument value "admin.clientid" for key "clientId"
-    And Enter runtime argument value "admin.clientsecret" for key "clientSecret"
-    And Enter runtime argument value "admin.authenticationbase.uri" for key "authEndpoint"
-    And Enter runtime argument value "admin.soapapi.endpoint" for key "soapEndpoint"
-    And Enter runtime argument value "admin.restapibase.uri" for key "restEndpoint"
+    And Enter runtime argument value from environment variable "admin.clientid" for key "clientId"
+    And Enter runtime argument value from environment variable "admin.cliensecret" for key "clientSecret"
+    And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
+    And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
+    And Enter runtime argument value from environment variable "admin.rest.endpoint" for key "restEndpoint"
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Open and capture logs

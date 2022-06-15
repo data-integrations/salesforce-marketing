@@ -41,10 +41,10 @@ Feature: Salesforce Marketing Cloud Sink - Design time validation scenarios
     And Navigate to the properties page of plugin: "Salesforce Marketing"
     And Enter input plugin property: "referenceName" with value: "Referencename"
     And Enter input plugin property: "dataExtension" with value: "Key121"
-    And Enter input plugin property: "clientId" with value: "invalid.clientid"
-    And Enter input plugin property: "clientSecret" with value: "invalid.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "invalid.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "invalid.soapapi.endpoint"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.cliensecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
     And Click on the Validate button
     Then Verify invalid credentials validation message for below listed properties:
       | clientId     |
@@ -59,10 +59,10 @@ Feature: Salesforce Marketing Cloud Sink - Design time validation scenarios
     And Select Sink plugin: "SalesforceDataExtension" from the plugins list
     And Navigate to the properties page of plugin: "Salesforce Marketing"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.cliensecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
     And Click on the Validate button
     Then Verify mandatory property error for below listed properties:
       | dataExtension |
