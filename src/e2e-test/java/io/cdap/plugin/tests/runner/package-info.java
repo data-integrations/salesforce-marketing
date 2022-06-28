@@ -15,6 +15,6 @@
  */
 
 /**
- * Test Runner to execute ServiceNow plugin's test scenarios.
+ * Test Runner to execute SFMC plugin's test scenarios.
  */
 package io.cdap.plugin.tests.runner;

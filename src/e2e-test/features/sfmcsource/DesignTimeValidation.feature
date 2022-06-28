@@ -60,11 +60,11 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
     And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Salesforce Marketing"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
-    And Enter input plugin property: "restEndpoint" with value: "admin.restapibase.uri"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.cliensecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Single Object"
     And Select dropdown plugin property: "select-objectName" with option value: "Data Extension"
     And Click on the Validate button
@@ -77,11 +77,11 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
     And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Salesforce Marketing"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
-    And Enter input plugin property: "restEndpoint" with value: "admin.restapibase.uri"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.cliensecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Multi Object"
     And Enter input plugin property: "tableNameField" with value: "tablename"
     And Click on the Validate button
@@ -94,11 +94,11 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
     And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Salesforce Marketing"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
-    And Enter input plugin property: "restEndpoint" with value: "admin.restapibase.uri"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.cliensecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Multi Object"
     And fill Object List with below listed Objects in the Multi Object mode:
       | BOUNCE_EVENT | EMAIL |
@@ -112,11 +112,11 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
     And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Salesforce Marketing"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "authEndpoint" with value: "admin.authenticationbase.uri"
-    And Enter input plugin property: "soapEndpoint" with value: "admin.soapapi.endpoint"
-    And Enter input plugin property: "restEndpoint" with value: "admin.restapibase.uri"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.cliensecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Multi Object"
     And fill Object List with below listed Objects in the Multi Object mode:
       | DATA_EXTENSION | BOUNCE_EVENT |
