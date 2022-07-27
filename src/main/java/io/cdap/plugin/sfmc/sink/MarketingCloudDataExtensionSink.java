@@ -122,10 +122,10 @@ public class MarketingCloudDataExtensionSink extends BatchSink<StructuredRecord,
       @Override
       public Map<String, String> getOutputFormatConfiguration() {
         Map<String, String> outputConfig = new HashMap<>();
-        outputConfig.put(DataExtensionOutputFormat.CLIENT_ID, conf.getClientId());
-        outputConfig.put(DataExtensionOutputFormat.CLIENT_SECRET, conf.getClientSecret());
-        outputConfig.put(DataExtensionOutputFormat.AUTH_ENDPOINT, conf.getAuthEndpoint());
-        outputConfig.put(DataExtensionOutputFormat.SOAP_ENDPOINT, conf.getSoapEndpoint());
+        outputConfig.put(DataExtensionOutputFormat.CLIENT_ID, conf.getConnection().getClientId());
+        outputConfig.put(DataExtensionOutputFormat.CLIENT_SECRET, conf.getConnection().getClientSecret());
+        outputConfig.put(DataExtensionOutputFormat.AUTH_ENDPOINT, conf.getConnection().getAuthEndpoint());
+        outputConfig.put(DataExtensionOutputFormat.SOAP_ENDPOINT, conf.getConnection().getSoapEndpoint());
         outputConfig.put(DataExtensionOutputFormat.MAX_BATCH_SIZE, String.valueOf(conf.getMaxBatchSize()));
         outputConfig.put(DataExtensionOutputFormat.FAIL_ON_ERROR, String.valueOf(conf.shouldFailOnError()));
         outputConfig.put(DataExtensionOutputFormat.OPERATION, conf.getOperation().name());
