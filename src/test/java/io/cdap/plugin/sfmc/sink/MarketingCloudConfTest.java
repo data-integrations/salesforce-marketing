@@ -107,7 +107,9 @@ public class MarketingCloudConfTest {
       collector.getOrThrowException();
       Assert.fail("Batch Size is invalid");
     } catch (ValidationException e) {
-      // pass
+      Assert.assertEquals("The value should not be less than 0", "Errors were encountered during " +
+                            "validation. Error while validating Marketing Cloud client: authEndPoint/v2/token: bad URL",
+                          e.getMessage());
     }
   }
 
@@ -145,6 +147,8 @@ public class MarketingCloudConfTest {
       Assert.fail("Invalid ColumnMapping");
     } catch (ValidationException e) {
       Assert.assertEquals(1, e.getFailures().size());
+      Assert.assertEquals("Errors were encountered during validation. Invalid column mapping: columnMapping",
+                          e.getMessage());
     }
   }
 

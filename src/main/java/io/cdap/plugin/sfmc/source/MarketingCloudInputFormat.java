@@ -17,6 +17,7 @@
 package io.cdap.plugin.sfmc.source;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.plugin.sfmc.connector.MarketingConnectorConfig;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
@@ -41,12 +42,16 @@ import java.util.List;
 public class MarketingCloudInputFormat extends InputFormat<NullWritable, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudInputFormat.class);
 
+  private static MarketingCloudSourceConfig conf;
+
+
+
   /**
    * Configure the input format to read tables from Salesforce. Should be called from the mapreduce client.
    *
    * @param jobConfig the job configuration
    * @param mode      the query mode
-   * @param conf      the plugin conf
+   * @param conf     the plugin conf
    * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
   public static List<MarketingCloudObjectInfo> setInput(Configuration jobConfig, SourceQueryMode mode,
@@ -63,6 +68,7 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
     return tableInfos;
   }
 
+
   /**
    * Depending on conf value fetch the list of fields for each object and create schema object.
    *
@@ -70,11 +76,12 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
    * @param conf the plugin conf
    * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
-  static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode,
-                                                       MarketingCloudSourceConfig conf) {
+  static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode, MarketingCloudSourceConfig conf) {
     try {
-      MarketingCloudClient client = MarketingCloudClient.create(conf.getClientId(), conf.getClientSecret(),
-                                                                conf.getAuthEndpoint(), conf.getSoapEndpoint());
+      MarketingCloudClient client = MarketingCloudClient.create(conf.getConnection().getClientId(),
+                                                                conf.getConnection().getClientSecret(),
+                                                                conf.getConnection().getAuthEndpoint(),
+                                                                conf.getConnection().getSoapEndpoint());
 
       //When mode = SingleObject, fetch fields for the object selected in plugin config
       if (mode == SourceQueryMode.SINGLE_OBJECT) {
@@ -119,7 +126,7 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
   /**
    * Fetch the fields for passed object.
    */
-  private static MarketingCloudObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
+  public static MarketingCloudObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
                                                            MarketingCloudClient client) {
     try {
       if (object == SourceObject.DATA_EXTENSION) {
@@ -153,11 +160,10 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
   }
 
   @Override
-  public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
-                                                                         TaskAttemptContext taskAttemptContext)
-    throws IOException, InterruptedException {
-    MarketingCloudJobConfiguration jobConfig = new MarketingCloudJobConfiguration(
-      taskAttemptContext.getConfiguration());
+  public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit, TaskAttemptContext
+    taskAttemptContext) throws IOException, InterruptedException {
+    MarketingCloudJobConfiguration jobConfig = new MarketingCloudJobConfiguration(taskAttemptContext.
+                                                                                    getConfiguration());
     MarketingCloudSourceConfig pluginConf = jobConfig.getPluginConf();
 
     return new MarketingCloudRecordReader(pluginConf);

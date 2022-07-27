@@ -92,9 +92,6 @@ For example, `https://instance.auth.marketingcloudapis.com/`
 **SOAP API Endpoint**: The SOAP Endpoint URL associated for the Server-to-Server API integration. For example, 
 `https://instance.soap.marketingcloudapis.com/Service.asmx`
 
-**REST API Base URI**: The REST API Base URL associated for the Server-to-Server API integration. For example, 
-`https://instance.rest.marketingcloudapis.com/`
-
 Data Type Mappings from Salesforce Marketing Cloud to CDAP
 ----------
 The following table lists out different SFMC data types, as well as the
