@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "spec-version": "1.0"
+  },
+  "display-name": "MarketingCloud",
+  "configuration-groups": [
+    {
+      "label": "Authentication",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Client ID",
+          "name": "clientId",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Marketing Cloud Client ID"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Client Secret",
+          "name": "clientSecret",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Marketing Cloud Client Secret"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Authentication Base URI",
+          "name": "authEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Auth API Endpoint e.g. https://instance.auth.marketingcloudapis.com"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "SOAP API Endpoint",
+          "name": "soapEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": []
+}

@@ -149,9 +149,33 @@
       ]
     },
     {
-      "label": "Authentication",
+      "label": "Connection",
       "properties": [
-        {
+           {
+              "widget-type": "toggle",
+              "label": "Use connection",
+              "name": "useConnection",
+              "widget-attributes": {
+                "on": {
+                  "value": "true",
+                  "label": "YES"
+                },
+                "off": {
+                  "value": "false",
+                  "label": "NO"
+                },
+                "default": "false"
+              }
+            },
+            {
+              "widget-type": "connection-select",
+              "label": "Connection",
+              "name": "connection",
+              "widget-attributes": {
+                "connectionType": "MarketingCloud"
+              }
+            },
+            {
           "widget-type": "textbox",
           "label": "Client ID",
           "name": "clientId",
@@ -181,14 +205,6 @@
           "name": "soapEndpoint",
           "widget-attributes" : {
             "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
-          }
-        },
-        {
-          "widget-type": "textbox",
-          "label": "REST API Base URI",
-          "name": "restEndpoint",
-          "widget-attributes" : {
-            "placeholder": "Salesforce REST API Endpoint e.g. https://instance.rest.marketingcloudapis.com"
           }
         }
       ]
@@ -253,6 +269,42 @@
         {
           "type": "property",
           "name": "dataExtensionKey"
+        }
+      ]
+    },
+    {
+      "name": "showConnectionProperties ",
+      "condition": {
+        "expression": "useConnection == false"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "clientId"
+        },
+        {
+          "type": "property",
+          "name": "clientSecret"
+        },
+        {
+          "type": "property",
+          "name": "authEndpoint"
+        },
+        {
+          "type": "property",
+          "name": "soapEndpoint"
+        }
+      ]
+    },
+    {
+      "name": "showConnectionId",
+      "condition": {
+        "expression": "useConnection == true"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "connection"
         }
       ]
     }

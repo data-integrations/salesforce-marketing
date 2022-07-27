@@ -24,7 +24,6 @@ public class SalesforceSourceConfigHelper {
   public static final String TEST_REF_NAME = "TestRefName";
   public static final String TEST_CLIENT_ID = "test-client-id";
   public static final String TEST_CLIENT_SECRET = "test-client-secret";
-  public static final String TEST_REST_ENDPOINT = "TestRestEndpoint";
   public static final String TEST_AUTH_ENDPOINT = "TestAuthEndpoint";
   public static final String TEST_SOAP_ENDPOINT = "TestSoapEndpoint";
   public static final String TEST_OBJECT_NAME = "Data Extension";
@@ -39,7 +38,6 @@ public class SalesforceSourceConfigHelper {
     private String referenceName = TEST_REF_NAME;
     private String clientId = TEST_CLIENT_ID;
     private String clientSecret = TEST_CLIENT_SECRET;
-    private String restEndpoint = TEST_REST_ENDPOINT;
     private String authEndpoint = TEST_AUTH_ENDPOINT;
     private String soapEndpoint = TEST_SOAP_ENDPOINT;
     private String queryMode;
@@ -100,10 +98,6 @@ public class SalesforceSourceConfigHelper {
       return this;
     }
 
-    public ConfigBuilder setRestEndpoint(String restEndpoint) {
-      this.restEndpoint = restEndpoint;
-      return this;
-    }
 
     public ConfigBuilder setAuthEndpoint(String authEndpoint) {
       this.authEndpoint = authEndpoint;
@@ -118,7 +112,7 @@ public class SalesforceSourceConfigHelper {
     public MarketingCloudSourceConfig build() {
       return new MarketingCloudSourceConfig(referenceName, queryMode, objectName, dataExtensionKey, objectList,
                                             dataExtensionKeys, tableNameField, filter, clientId, clientSecret,
-                                            restEndpoint, authEndpoint, soapEndpoint);
+                                             authEndpoint, soapEndpoint);
     }
   }
 }
