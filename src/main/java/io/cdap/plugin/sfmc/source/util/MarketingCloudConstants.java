@@ -66,10 +66,6 @@ public interface MarketingCloudConstants {
    */
   String PROPERTY_CLIENT_SECRET = "clientSecret";
 
-  /**
-   * Configuration property name used to specify REST API endpoint.
-   */
-  String PROPERTY_API_ENDPOINT = "restEndpoint";
 
   /**
    * Configuration property name used to specify Auth API endpoint.
