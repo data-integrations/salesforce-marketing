@@ -73,7 +73,6 @@ public class MarketingCloudRecordReaderTest {
       .setClientId(CLIENT_ID)
       .setClientSecret(CLIENT_SECRET)
       .setSoapEndpoint(SOAP_ENDPOINT)
-      .setRestEndpoint("restEndPoint")
       .setDataExtensionKey("DE")
       .setQueryMode("Single Object")
       .setDataExtensionKeys(null)
@@ -89,7 +88,6 @@ public class MarketingCloudRecordReaderTest {
       .setClientId(CLIENT_ID)
       .setClientSecret(CLIENT_SECRET)
       .setSoapEndpoint(SOAP_ENDPOINT)
-      .setRestEndpoint("restEndPoint")
       .setDataExtensionKey("DE")
       .setQueryMode("Single Object")
       .setDataExtensionKeys(null)
@@ -105,7 +103,6 @@ public class MarketingCloudRecordReaderTest {
         .setClientId(CLIENT_ID)
         .setClientSecret(CLIENT_SECRET)
         .setSoapEndpoint(SOAP_ENDPOINT)
-        .setRestEndpoint("restEndPoint")
         .setDataExtensionKey("DE")
         .setQueryMode("Single Object")
         .setDataExtensionKeys(null)
@@ -129,10 +126,8 @@ public class MarketingCloudRecordReaderTest {
                                                                                            "tableNameField",
                                                                                            "filter", CLIENT_ID,
                                                                                            CLIENT_SECRET,
-                                                                                           "restEndPoint",
                                                                                            AUTH_ENDPOINT,
                                                                                            SOAP_ENDPOINT);
-    Assert.assertEquals("restEndPoint", marketingCloudSourceConfig.getRestEndpoint());
     Assert.assertEquals("DE", marketingCloudSourceConfig.getDataExtensionKey());
     Assert.assertEquals(SourceQueryMode.SINGLE_OBJECT, marketingCloudSourceConfig.getQueryMode());
     Assert.assertEquals(null, marketingCloudSourceConfig.getDataExtensionKeys());

@@ -30,6 +30,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,11 +71,12 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
    * @param conf the plugin conf
    * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
-  static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode,
-                                                       MarketingCloudSourceConfig conf) {
+  static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode, MarketingCloudSourceConfig conf) {
     try {
-      MarketingCloudClient client = MarketingCloudClient.create(conf.getClientId(), conf.getClientSecret(),
-                                                                conf.getAuthEndpoint(), conf.getSoapEndpoint());
+      MarketingCloudClient client = MarketingCloudClient.create(conf.getConnection().getClientId(),
+                                                                conf.getConnection().getClientSecret(),
+                                                                conf.getConnection().getAuthEndpoint(),
+                                                                conf.getConnection().getSoapEndpoint());
 
       //When mode = SingleObject, fetch fields for the object selected in plugin config
       if (mode == SourceQueryMode.SINGLE_OBJECT) {
@@ -153,11 +155,10 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
   }
 
   @Override
-  public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
-                                                                         TaskAttemptContext taskAttemptContext)
-    throws IOException, InterruptedException {
-    MarketingCloudJobConfiguration jobConfig = new MarketingCloudJobConfiguration(
-      taskAttemptContext.getConfiguration());
+  public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit, TaskAttemptContext
+    taskAttemptContext) throws IOException, InterruptedException {
+    MarketingCloudJobConfiguration jobConfig = new MarketingCloudJobConfiguration(taskAttemptContext.
+                                                                                    getConfiguration());
     MarketingCloudSourceConfig pluginConf = jobConfig.getPluginConf();
 
     return new MarketingCloudRecordReader(pluginConf);

@@ -56,8 +56,8 @@
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- version properties -->
-    <cdap.version>6.1.1</cdap.version>
-    <cdap.plugin.version>2.3.4</cdap.plugin.version>
+    <cdap.version>6.6.0</cdap.version>
+    <cdap.plugin.version>2.7.0</cdap.plugin.version>
     <junit.version>4.12</junit.version>
     <hadoop.version>2.3.0</hadoop.version>
     <hydrator.version>2.2.0</hydrator.version>
