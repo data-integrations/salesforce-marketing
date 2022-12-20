@@ -56,13 +56,15 @@
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- version properties -->
-    <cdap.version>6.1.1</cdap.version>
-    <cdap.plugin.version>2.3.4</cdap.plugin.version>
+    <cdap.version>6.8.0</cdap.version>
     <junit.version>4.12</junit.version>
-    <hadoop.version>2.3.0</hadoop.version>
-    <hydrator.version>2.2.0</hydrator.version>
+    <hadoop.version>2.10.2</hadoop.version>
+    <hydrator.version>2.10.0</hydrator.version>
     <guava.version>27.0.1-jre</guava.version>
-    <salesforce.marketing.cloud.version>1.5.0</salesforce.marketing.cloud.version>
+    <salesforce.marketing.cloud.version>1.6.0</salesforce.marketing.cloud.version>
+    <slf4j.version>1.7.36</slf4j.version>
+    <stax2.version>4.2.1</stax2.version>
+    <beanutils.version>1.9.4</beanutils.version>
     <testSourceLocation>${project.basedir}/src/test/java/</testSourceLocation>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -112,7 +114,7 @@
     <dependency>
       <groupId>io.cdap.plugin</groupId>
       <artifactId>hydrator-common</artifactId>
-      <version>${cdap.plugin.version}</version>
+      <version>${hydrator.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -124,6 +126,12 @@
       <artifactId>hydrator-test</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -198,6 +206,12 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-mapreduce-client-core</artifactId>
       <version>${hadoop.version}</version>
@@ -235,6 +249,10 @@
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -242,6 +260,17 @@
       <groupId>com.github.salesforce-marketingcloud</groupId>
       <artifactId>fuelsdk</artifactId>
       <version>${salesforce.marketing.cloud.version}</version>
+    </dependency>
+    <!-- We need to explicitly include stax2-api and beanutils, otherwise hadoop-common in provided scope overrides the module provided by salesforce. -->
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2-api</artifactId>
+      <version>${stax2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>${beanutils.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-lang</groupId>
@@ -251,7 +280,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
-      <version>1.7.16</version>
+      <version>${slf4j.version}</version>
     </dependency>
     <!-- tests -->
     <dependency>
@@ -291,8 +320,8 @@
           <version>1.1.0</version>
           <configuration>
             <cdapArtifacts>
-              <parent>system:cdap-data-pipeline[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
-              <parent>system:cdap-data-streams[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
+              <parent>system:cdap-data-pipeline[6.8.0,7.0.0-SNAPSHOT)</parent>
+              <parent>system:cdap-data-streams[6.8.0,7.0.0-SNAPSHOT)</parent>
             </cdapArtifacts>
           </configuration>
           <executions>
