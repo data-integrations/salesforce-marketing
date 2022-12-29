@@ -149,6 +149,19 @@
       ]
     },
     {
+      "label": "browse",
+      "properties": [
+        {
+          "widget-type": "connection-browser",
+          "widget-category": "plugin",
+          "widget-attributes": {
+            "connectionType": "MARKETINGCLOUD",
+            "label": "Browse"
+          }
+        }
+      ]
+    },
+    {
       "label": "Connection",
       "properties": [
            {

@@ -17,6 +17,7 @@
 package io.cdap.plugin.sfmc.source;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.plugin.sfmc.connector.MarketingConnectorConfig;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
@@ -30,7 +31,6 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,12 +42,16 @@ import java.util.List;
 public class MarketingCloudInputFormat extends InputFormat<NullWritable, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudInputFormat.class);
 
+  private static MarketingCloudSourceConfig conf;
+
+
+
   /**
    * Configure the input format to read tables from Salesforce. Should be called from the mapreduce client.
    *
    * @param jobConfig the job configuration
    * @param mode      the query mode
-   * @param conf      the plugin conf
+   * @param conf     the plugin conf
    * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
   public static List<MarketingCloudObjectInfo> setInput(Configuration jobConfig, SourceQueryMode mode,
@@ -63,6 +67,7 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
     LOG.debug("setInput::tableInfos = {}", tableInfos.size());
     return tableInfos;
   }
+
 
   /**
    * Depending on conf value fetch the list of fields for each object and create schema object.
@@ -121,7 +126,7 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
   /**
    * Fetch the fields for passed object.
    */
-  private static MarketingCloudObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
+  public static MarketingCloudObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
                                                            MarketingCloudClient client) {
     try {
       if (object == SourceObject.DATA_EXTENSION) {

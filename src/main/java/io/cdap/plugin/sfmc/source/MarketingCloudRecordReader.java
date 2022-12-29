@@ -68,7 +68,7 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   private boolean hasMoreRecords;
   private String requestId;
 
-  MarketingCloudRecordReader(MarketingCloudSourceConfig pluginConf) {
+    MarketingCloudRecordReader(MarketingCloudSourceConfig pluginConf) {
     this.pluginConf = pluginConf;
   }
 
@@ -110,6 +110,7 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
 
   @Override
   public StructuredRecord getCurrentValue() throws IOException {
+
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
 
     if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {

@@ -42,10 +42,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import javax.xml.soap.SOAPFactory;
+//import javax.xml.soap.SOAPFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ETDataExtension.class, ClientProxy.class, SOAPFactory.class, DataExtensionClient.class,
+@PrepareForTest({ETDataExtension.class, ClientProxy.class, DataExtensionClient.class,
   ClassLoader.class, ETSoapConnection.class})
 public class DataExtensionClientTest {
 

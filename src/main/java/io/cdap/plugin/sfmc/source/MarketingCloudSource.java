@@ -33,6 +33,7 @@ import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
 import io.cdap.plugin.common.LineageRecorder;
 import io.cdap.plugin.common.SourceInputFormatProvider;
+import io.cdap.plugin.sfmc.connector.MarketingConnectorConfig;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
@@ -59,6 +60,8 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
   private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudSource.class);
 
   private final MarketingCloudSourceConfig conf;
+
+  private  MarketingConnectorConfig config;
 
   public MarketingCloudSource(MarketingCloudSourceConfig conf) {
     this.conf = conf;

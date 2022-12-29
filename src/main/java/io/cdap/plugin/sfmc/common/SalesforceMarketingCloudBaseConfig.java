@@ -33,7 +33,7 @@ public class SalesforceMarketingCloudBaseConfig extends ReferencePluginConfig {
   @Macro
   @Nullable
   @Description("The existing connection to use.")
-  private MarketingConnectorConfig connection;
+  private MarketingConnectorConfig conn;
 
   @Name(ConfigUtil.NAME_USE_CONNECTION)
   @Nullable
@@ -43,12 +43,12 @@ public class SalesforceMarketingCloudBaseConfig extends ReferencePluginConfig {
   public SalesforceMarketingCloudBaseConfig(String referenceName, String clientId, String clientSecret,
                                             String authEndpoint, String soapEndpoint) {
     super(referenceName);
-    this.connection = new MarketingConnectorConfig(clientId, clientSecret, authEndpoint, soapEndpoint);
+    this.conn = new MarketingConnectorConfig(clientId, clientSecret, authEndpoint, soapEndpoint);
   }
 
   @Nullable
   public MarketingConnectorConfig getConnection() {
-    return connection;
+    return conn;
   }
 
   public String getReferenceName() {
