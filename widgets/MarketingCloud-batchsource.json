@@ -16,6 +16,14 @@
           }
         },
         {
+        "widget-type": "textbox",
+        "label": "Filter",
+        "name": "filter",
+        "widget-attributes": {
+          "placeholder": "Data Filter Criteria"
+        }
+        },
+        {
           "widget-type": "select",
           "label": "Data Retrieval Mode",
           "name": "queryMode",
@@ -25,6 +33,19 @@
               "Single Object"
             ],
             "default": "Single Object"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Filter",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Filter",
+          "name": "Filter",
+          "widget-attributes": {
+            "placeholder": "data filter criteria"
           }
         }
       ]
@@ -46,8 +67,7 @@
               "Open Event",
               "Sent Event",
               "Unsub Event"
-            ],
-            "default": "Data Extension"
+            ]
           },
           "plugin-function": {
             "label": "Get Schema",
@@ -136,22 +156,33 @@
       ]
     },
     {
-      "label": "Filter",
+      "label": "Connection",
       "properties": [
-        {
-          "widget-type": "textbox",
-          "label": "filter",
-          "name": "filter",
-          "widget-attributes": {
-            "placeholder": "data filter criteria"
-          }
-        }
-      ]
-    },
-    {
-      "label": "Authentication",
-      "properties": [
-        {
+           {
+              "widget-type": "toggle",
+              "label": "Use connection",
+              "name": "useConnection",
+              "widget-attributes": {
+                "on": {
+                  "value": "true",
+                  "label": "YES"
+                },
+                "off": {
+                  "value": "false",
+                  "label": "NO"
+                },
+                "default": "false"
+              }
+            },
+            {
+              "widget-type": "connection-select",
+              "label": "Connection",
+              "name": "connection",
+              "widget-attributes": {
+                "connectionType": "MarketingCloud"
+              }
+            },
+            {
           "widget-type": "textbox",
           "label": "Client ID",
           "name": "clientId",
@@ -181,14 +212,6 @@
           "name": "soapEndpoint",
           "widget-attributes" : {
             "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
-          }
-        },
-        {
-          "widget-type": "textbox",
-          "label": "REST API Base URI",
-          "name": "restEndpoint",
-          "widget-attributes" : {
-            "placeholder": "Salesforce REST API Endpoint e.g. https://instance.rest.marketingcloudapis.com"
           }
         }
       ]
@@ -253,6 +276,42 @@
         {
           "type": "property",
           "name": "dataExtensionKey"
+        }
+      ]
+    },
+    {
+      "name": "showConnectionProperties ",
+      "condition": {
+        "expression": "useConnection == false"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "clientId"
+        },
+        {
+          "type": "property",
+          "name": "clientSecret"
+        },
+        {
+          "type": "property",
+          "name": "authEndpoint"
+        },
+        {
+          "type": "property",
+          "name": "soapEndpoint"
+        }
+      ]
+    },
+    {
+      "name": "showConnectionId",
+      "condition": {
+        "expression": "useConnection == true"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "connection"
         }
       ]
     }

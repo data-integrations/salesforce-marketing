@@ -31,7 +31,6 @@ Feature: Salesforce Marketing Cloud Source - Design time Scenarios (macros)
     And Click on the Macro button of Property: "clientSecret" and set the value to: "clientSecret"
     And Click on the Macro button of Property: "authEndpoint" and set the value to: "authEndpoint"
     And Click on the Macro button of Property: "soapEndpoint" and set the value to: "soapEndpoint"
-    And Click on the Macro button of Property: "restEndpoint" and set the value to: "restEndpoint"
     Then Validate "Salesforce Marketing" plugin properties
 
   @BATCH-TS-SFMC-DSGN-MACRO-02
@@ -44,7 +43,6 @@ Feature: Salesforce Marketing Cloud Source - Design time Scenarios (macros)
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "queryMode" and set the value to: "queryMode"
     And Click on the Macro button of Property: "objectName" and set the value to: "objectName"
     And Click on the Macro button of Property: "dataExtensionKey" and set the value to: "dataExtensionKey"
@@ -60,7 +58,6 @@ Feature: Salesforce Marketing Cloud Source - Design time Scenarios (macros)
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "queryMode" and set the value to: "queryMode"
     And Click on the Macro button of Property: "objectList" and set the value to: "objectList"
     And Click on the Macro button of Property: "dataExtensionKeyList" and set the value to: "dataExtensionKeyList"
@@ -77,7 +74,6 @@ Feature: Salesforce Marketing Cloud Source - Design time Scenarios (macros)
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "objectName" and set the value to: "objectName"
     And Click on the Macro button of Property: "filter" and set the value to: "filter"
     Then Validate "Salesforce Marketing" plugin properties

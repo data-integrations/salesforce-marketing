@@ -40,7 +40,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,7 +56,6 @@ import java.util.stream.Collectors;
 @Description("Read marketing data from Salesforce Marketing cloud.")
 public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRecord, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudSource.class);
-
   private final MarketingCloudSourceConfig conf;
 
   public MarketingCloudSource(MarketingCloudSourceConfig conf) {
@@ -67,19 +65,15 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
   @Override
   public void configurePipeline(PipelineConfigurer pipelineConfigurer) {
     super.configurePipeline(pipelineConfigurer);
-
     StageConfigurer stageConfigurer = pipelineConfigurer.getStageConfigurer();
     FailureCollector collector = stageConfigurer.getFailureCollector();
-
     conf.validate(collector);
     // Since we have validated all the properties, throw an exception if there are any
     // errors in the collector. This is to avoid adding same validation errors again in
     // getSchema method call
     collector.getOrThrowException();
-
     //Get Schema
     stageConfigurer.setOutputSchema(getSchema(conf.getQueryMode()));
-
     if (pipelineConfigurer.getEngine() == Engine.SPARK) {
       pipelineConfigurer.setPipelineProperties(Collections.singletonMap("spark.task.maxFailures", "1"));
     } else if (pipelineConfigurer.getEngine() == Engine.MAPREDUCE) {
@@ -95,9 +89,7 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
     FailureCollector collector = context.getFailureCollector();
     conf.validate(collector);
     collector.getOrThrowException();
-
     SourceQueryMode mode = conf.getQueryMode(collector);
-
     Configuration hConf = new Configuration();
     Collection<MarketingCloudObjectInfo> tables = MarketingCloudInputFormat.setInput(hConf, mode, conf);
     SettableArguments arguments = context.getArguments();
@@ -106,7 +98,6 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
                     tableInfo.getSchema().toString());
       recordLineage(context, tableInfo);
     }
-
     context.setInput(Input.of(conf.getReferenceName(),
                               new SourceInputFormatProvider(MarketingCloudInputFormat.class, hConf)));
   }

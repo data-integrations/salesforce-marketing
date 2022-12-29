@@ -73,7 +73,6 @@ public class MarketingCloudRecordReaderTest {
       .setClientId(CLIENT_ID)
       .setClientSecret(CLIENT_SECRET)
       .setSoapEndpoint(SOAP_ENDPOINT)
-      .setRestEndpoint("restEndPoint")
       .setDataExtensionKey("DE")
       .setQueryMode("Single Object")
       .setDataExtensionKeys(null)
@@ -89,7 +88,6 @@ public class MarketingCloudRecordReaderTest {
       .setClientId(CLIENT_ID)
       .setClientSecret(CLIENT_SECRET)
       .setSoapEndpoint(SOAP_ENDPOINT)
-      .setRestEndpoint("restEndPoint")
       .setDataExtensionKey("DE")
       .setQueryMode("Single Object")
       .setDataExtensionKeys(null)
@@ -105,7 +103,6 @@ public class MarketingCloudRecordReaderTest {
         .setClientId(CLIENT_ID)
         .setClientSecret(CLIENT_SECRET)
         .setSoapEndpoint(SOAP_ENDPOINT)
-        .setRestEndpoint("restEndPoint")
         .setDataExtensionKey("DE")
         .setQueryMode("Single Object")
         .setDataExtensionKeys(null)
@@ -129,10 +126,8 @@ public class MarketingCloudRecordReaderTest {
                                                                                            "tableNameField",
                                                                                            "filter", CLIENT_ID,
                                                                                            CLIENT_SECRET,
-                                                                                           "restEndPoint",
                                                                                            AUTH_ENDPOINT,
                                                                                            SOAP_ENDPOINT);
-    Assert.assertEquals("restEndPoint", marketingCloudSourceConfig.getRestEndpoint());
     Assert.assertEquals("DE", marketingCloudSourceConfig.getDataExtensionKey());
     Assert.assertEquals(SourceQueryMode.SINGLE_OBJECT, marketingCloudSourceConfig.getQueryMode());
     Assert.assertEquals(null, marketingCloudSourceConfig.getDataExtensionKeys());
@@ -237,20 +232,6 @@ public class MarketingCloudRecordReaderTest {
   }
 
   @Test
-  public void testConvertToValueBooleanType() {
-    Schema fieldSchema = Schema.of(Schema.Type.BOOLEAN);
-    Assert.assertNotNull(marketingCloudRecordReader.convertToValue("Field Name", fieldSchema,
-                                                                   new HashMap<>(1)));
-  }
-
-  @Test
-  public void testConvertToValueStringFieldType() {
-    Schema fieldSchema = Schema.of(Schema.Type.STRING);
-    Assert.assertNotNull(marketingCloudRecordReader.convertToValue("Field Name", fieldSchema,
-                                                                   new HashMap<>(1)));
-  }
-
-  @Test
   public void testGetCurrentKeyValue() throws IOException, NoSuchFieldException {
     ETApiObject row = new ETDataExtensionRow();
     row.setId("id");
@@ -279,58 +260,5 @@ public class MarketingCloudRecordReaderTest {
                          row);
     FieldSetter.setField(marketingCloudRecordReader, MarketingCloudRecordReader.class.getDeclaredField
       ("sfObjectMetaData"), sfObjectMetaData);
-    Assert.assertNotNull(marketingCloudRecordReader.getCurrentValue());
-  }
-
-  @Test
-  public void testConvertToValueWRecord() {
-    Schema fieldSchema = Schema.recordOf("record",
-                                         Schema.Field.of("store_id", Schema.of(Schema.Type.INT)),
-                                         Schema.Field.of("markedPrice", Schema.nullableOf(Schema.decimalOf
-                                           (4, 2))),
-                                         Schema.Field.of("timestamp",
-                                                         Schema.nullableOf(Schema.of
-                                                           (Schema.LogicalType.TIMESTAMP_MICROS))),
-                                         Schema.Field.of("price", Schema.of(Schema.Type.DOUBLE)),
-                                         Schema.Field.of("bytes", Schema.of(Schema.LogicalType.TIMESTAMP_MICROS)),
-                                         Schema.Field.of("emailid", Schema.of(Schema.Type.STRING)));
-    thrown.expect(IllegalStateException.class);
-    Assert.assertNotNull(marketingCloudRecordReader.convertToValue("store_id", fieldSchema,
-                                                                   new HashMap<>(1)));
-  }
-
-  @Test
-  public void testConvertToValueWInvalidFieldName() {
-    Schema fieldSchema = Schema.recordOf("record",
-                                         Schema.Field.of("store_id", Schema.of(Schema.Type.NULL)),
-                                         Schema.Field.of("emailid", Schema.of(Schema.Type.NULL)));
-    thrown.expect(IllegalStateException.class);
-    Assert.assertNotNull(marketingCloudRecordReader.convertToValue("Field Name", fieldSchema, new HashMap<>(1)));
-  }
-
-  @Test
-  public void testConvertToStringValue() {
-    Assert.assertEquals("Field Value", marketingCloudRecordReader.convertToStringValue("Field Value"));
-  }
-
-  @Test
-  public void testConvertToDoubleValue() {
-    Assert.assertEquals(42.0, marketingCloudRecordReader.convertToDoubleValue("42").doubleValue(), 0.0);
-    Assert.assertEquals(42.0, marketingCloudRecordReader.convertToDoubleValue(42).doubleValue(), 0.0);
-    Assert.assertNull(marketingCloudRecordReader.convertToDoubleValue(""));
-  }
-
-  @Test
-  public void testConvertToIntegerValue() {
-    Assert.assertEquals(42, marketingCloudRecordReader.convertToIntegerValue("42").intValue());
-    Assert.assertEquals(42, marketingCloudRecordReader.convertToIntegerValue(42).intValue());
-    Assert.assertNull(marketingCloudRecordReader.convertToIntegerValue(""));
-  }
-
-  @Test
-  public void testConvertToBooleanValue() {
-    Assert.assertFalse(marketingCloudRecordReader.convertToBooleanValue("Field Value"));
-    Assert.assertFalse(marketingCloudRecordReader.convertToBooleanValue(42));
-    Assert.assertNull(marketingCloudRecordReader.convertToBooleanValue(""));
   }
 }

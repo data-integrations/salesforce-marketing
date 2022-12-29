@@ -46,7 +46,7 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
    *
    * @param jobConfig the job configuration
    * @param mode      the query mode
-   * @param conf      the plugin conf
+   * @param conf     the plugin conf
    * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
   public static List<MarketingCloudObjectInfo> setInput(Configuration jobConfig, SourceQueryMode mode,
@@ -62,7 +62,6 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
     LOG.debug("setInput::tableInfos = {}", tableInfos.size());
     return tableInfos;
   }
-
   /**
    * Depending on conf value fetch the list of fields for each object and create schema object.
    *
@@ -70,26 +69,23 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
    * @param conf the plugin conf
    * @return Collection of MarketingCloudObjectInfo containing table and schema.
    */
-  static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode,
-                                                       MarketingCloudSourceConfig conf) {
+  static List<MarketingCloudObjectInfo> fetchTableInfo(SourceQueryMode mode, MarketingCloudSourceConfig conf) {
     try {
-      MarketingCloudClient client = MarketingCloudClient.create(conf.getClientId(), conf.getClientSecret(),
-                                                                conf.getAuthEndpoint(), conf.getSoapEndpoint());
-
+      MarketingCloudClient client = MarketingCloudClient.create(conf.getConnection().getClientId(),
+                                                                conf.getConnection().getClientSecret(),
+                                                                conf.getConnection().getAuthEndpoint(),
+                                                                conf.getConnection().getSoapEndpoint());
       //When mode = SingleObject, fetch fields for the object selected in plugin config
       if (mode == SourceQueryMode.SINGLE_OBJECT) {
         MarketingCloudObjectInfo tableInfo = getTableMetaData(conf.getObject(), conf.getDataExtensionKey(), client);
         return (tableInfo == null) ? Collections.emptyList() : Collections.singletonList(tableInfo);
       }
-
       //When mode = MultiObject, get the list of objects provided in plugin config and the fetch fields for each of
       //then objects.
       List<MarketingCloudObjectInfo> tableInfos = new ArrayList<>();
       List<SourceObject> objectList = conf.getObjectList();
-
       for (SourceObject object : objectList) {
         MarketingCloudObjectInfo tableInfo = null;
-
         if (object == SourceObject.DATA_EXTENSION) {
           //if the object = Data Extension then get the list of data extension keys and then fetch fields for each of
           //the data extension objects.
@@ -108,18 +104,16 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
           }
         }
       }
-
       return tableInfos;
     } catch (Exception e) {
       LOG.error("Error retrieving object schema. Check object exists.", e);
       return Collections.emptyList();
     }
   }
-
   /**
    * Fetch the fields for passed object.
    */
-  private static MarketingCloudObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
+  public static MarketingCloudObjectInfo getTableMetaData(SourceObject object, String dataExtensionKey,
                                                            MarketingCloudClient client) {
     try {
       if (object == SourceObject.DATA_EXTENSION) {
@@ -146,18 +140,15 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
       String tableName = tableInfo.getTableName();
       resultSplits.add(new MarketingCloudInputSplit(tableKey, tableName));
     }
-
     LOG.debug("# of split = {}", resultSplits.size());
-
     return resultSplits;
   }
 
   @Override
-  public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit,
-                                                                         TaskAttemptContext taskAttemptContext)
-    throws IOException, InterruptedException {
-    MarketingCloudJobConfiguration jobConfig = new MarketingCloudJobConfiguration(
-      taskAttemptContext.getConfiguration());
+  public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit, TaskAttemptContext
+    taskAttemptContext) throws IOException, InterruptedException {
+    MarketingCloudJobConfiguration jobConfig = new MarketingCloudJobConfiguration(taskAttemptContext.
+                                                                                    getConfiguration());
     MarketingCloudSourceConfig pluginConf = jobConfig.getPluginConf();
 
     return new MarketingCloudRecordReader(pluginConf);

@@ -47,8 +47,7 @@ public class MarketingCloudObjectInfo {
    * @param dataExtensionKey The data extension key
    * @param columns The list of columns
    */
-  public MarketingCloudObjectInfo(SourceObject object, String dataExtensionKey, List<MarketingCloudColumn> columns
-                                  ) {
+  public MarketingCloudObjectInfo(SourceObject object, String dataExtensionKey, List<MarketingCloudColumn> columns) {
     this.object = object;
     this.dataExtensionKey = dataExtensionKey;
     SchemaBuilder schemaBuilder = new SchemaBuilder();
