@@ -16,21 +16,28 @@
 
 package io.cdap.plugin.sfmc.source;
 
+import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.validation.CauseAttributes;
 import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
+import io.cdap.plugin.sfmc.connector.MarketingConnectorConfig;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
+
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_AUTH_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_CLIENT_ID;
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_CLIENT_SECRET;
-import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_REST_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.SalesforceSourceConfigHelper.TEST_SOAP_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.MarketingCloudConstants.PROPERTY_AUTH_API_ENDPOINT;
 import static io.cdap.plugin.sfmc.source.util.MarketingCloudConstants.PROPERTY_CLIENT_ID;
@@ -46,13 +53,15 @@ import static io.cdap.plugin.sfmc.source.util.MarketingCloudConstants.PROPERTY_T
 /**
  * Tests for {@link MarketingCloudSourceConfig}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({MarketingConnectorConfig.class, MarketingCloudClient.class})
 public class SalesforceSourceConfigTest {
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
   @Test
-  public void testQueryModeSingleObject() {
+  public void testQueryModeSingleObject() throws ETSdkException {
     SourceQueryMode queryMode = SourceQueryMode.SINGLE_OBJECT;
     MarketingCloudSourceConfig config = SalesforceSourceConfigHelper.newConfigBuilder()
       .setQueryMode("Single Object")
@@ -63,7 +72,7 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testQueryModeMultiObject() {
+  public void testQueryModeMultiObject() throws ETSdkException {
     SourceQueryMode queryMode = SourceQueryMode.MULTI_OBJECT;
     MarketingCloudSourceConfig config = SalesforceSourceConfigHelper.newConfigBuilder()
       .setQueryMode("Multi Object")
@@ -74,7 +83,7 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testQueryModeInvalid() {
+  public void testQueryModeInvalid() throws ETSdkException {
     MarketingCloudSourceConfig config = SalesforceSourceConfigHelper.newConfigBuilder()
       .setQueryMode(null)
       .build();
@@ -90,13 +99,12 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testValidateClientIdNull() {
+  public void testValidateClientIdNull() throws ETSdkException {
     MockFailureCollector collector = new MockFailureCollector();
     MarketingCloudSourceConfig config = withSalesforceValidationMock(SalesforceSourceConfigHelper.newConfigBuilder()
                                                                        .setQueryMode("Single Object")
                                                                        .setClientId(null)
                                                                        .setClientSecret(TEST_CLIENT_SECRET)
-                                                                       .setRestEndpoint(TEST_REST_ENDPOINT)
                                                                        .setAuthEndpoint(TEST_AUTH_ENDPOINT)
                                                                        .setSoapEndpoint(TEST_SOAP_ENDPOINT)
                                                                        .build(), collector);
@@ -112,13 +120,12 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testValidateClientSecretNull() {
+  public void testValidateClientSecretNull() throws ETSdkException {
     MockFailureCollector collector = new MockFailureCollector();
     MarketingCloudSourceConfig config = withSalesforceValidationMock(SalesforceSourceConfigHelper.newConfigBuilder()
                                                                        .setQueryMode("Single Object")
                                                                        .setClientId(TEST_CLIENT_ID)
                                                                        .setClientSecret(null)
-                                                                       .setRestEndpoint(TEST_REST_ENDPOINT)
                                                                        .setAuthEndpoint(TEST_AUTH_ENDPOINT)
                                                                        .setSoapEndpoint(TEST_SOAP_ENDPOINT)
                                                                        .build(), collector);
@@ -134,13 +141,12 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testValidateAuthEndpointNull() {
+  public void testValidateAuthEndpointNull() throws ETSdkException {
     MockFailureCollector collector = new MockFailureCollector();
     MarketingCloudSourceConfig config = withSalesforceValidationMock(SalesforceSourceConfigHelper.newConfigBuilder()
                                                                        .setQueryMode("Single Object")
                                                                        .setClientId(TEST_CLIENT_ID)
                                                                        .setClientSecret(TEST_CLIENT_SECRET)
-                                                                       .setRestEndpoint(TEST_REST_ENDPOINT)
                                                                        .setAuthEndpoint(null)
                                                                        .setSoapEndpoint(TEST_SOAP_ENDPOINT)
                                                                        .build(), collector);
@@ -156,13 +162,12 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testValidateSoapEndpointNull() {
+  public void testValidateSoapEndpointNull() throws ETSdkException {
     MockFailureCollector collector = new MockFailureCollector();
     MarketingCloudSourceConfig config = withSalesforceValidationMock(SalesforceSourceConfigHelper.newConfigBuilder()
                                                                        .setQueryMode("Single Object")
                                                                        .setClientId(TEST_CLIENT_ID)
                                                                        .setClientSecret(TEST_CLIENT_SECRET)
-                                                                       .setRestEndpoint(TEST_REST_ENDPOINT)
                                                                        .setAuthEndpoint(TEST_AUTH_ENDPOINT)
                                                                        .setSoapEndpoint(null)
                                                                        .build(), collector);
@@ -179,32 +184,34 @@ public class SalesforceSourceConfigTest {
 
   @Test
   @Ignore
-  public void testValidCredentials() {
+  public void testValidCredentials() throws ETSdkException {
     MockFailureCollector collector = new MockFailureCollector();
     MarketingCloudSourceConfig config = withSalesforceValidationMock(SalesforceSourceConfigHelper.newConfigBuilder()
                                                                        .setQueryMode("Single Object")
                                                                        .setClientId(TEST_CLIENT_ID)
                                                                        .setClientSecret(TEST_CLIENT_SECRET)
-                                                                       .setRestEndpoint(TEST_REST_ENDPOINT)
                                                                        .setAuthEndpoint(TEST_AUTH_ENDPOINT)
                                                                        .setSoapEndpoint(TEST_SOAP_ENDPOINT)
                                                                        .setDataExtensionKey("test-dataextension-key")
                                                                        .build(), collector);
-
     config.validate(collector);
     Assert.assertEquals(0, collector.getValidationFailures().size());
   }
 
   @Test
-  public void testSingleObjectModeMissingDataExtensionKey() {
+  public void testSingleObjectModeMissingDataExtensionKey() throws Exception {
     MockFailureCollector collector = new MockFailureCollector();
     MarketingCloudSourceConfig config = withSalesforceValidationMock(SalesforceSourceConfigHelper.newConfigBuilder()
                                                                        .setQueryMode("Single Object")
-                                                                       .setRestEndpoint(TEST_REST_ENDPOINT)
                                                                        .setAuthEndpoint(TEST_AUTH_ENDPOINT)
                                                                        .setSoapEndpoint(TEST_SOAP_ENDPOINT)
                                                                        .setDataExtensionKey(null)
                                                                        .build(), collector);
+    MarketingConnectorConfig connectorConfig = Mockito.mock(MarketingConnectorConfig.class);
+    PowerMockito.whenNew(MarketingConnectorConfig.class).withArguments(Mockito.anyString(), Mockito.anyString(),
+                                                                       Mockito.anyString(), Mockito.anyString())
+                                                                       .thenReturn(connectorConfig);
+    Mockito.when(config.getConnection()).thenReturn(connectorConfig);
     try {
       config.validate(collector);
       collector.getOrThrowException();
@@ -217,17 +224,22 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testMultiObjectModeMissingDataExtensionKeys() {
+  public void testMultiObjectModeMissingDataExtensionKeys() throws Exception {
     MockFailureCollector collector = new MockFailureCollector();
     MarketingCloudSourceConfig config = withSalesforceValidationMock(SalesforceSourceConfigHelper.newConfigBuilder()
                                                                        .setQueryMode("Multi Object")
                                                                        .setClientId(TEST_CLIENT_ID)
                                                                        .setClientSecret(TEST_CLIENT_SECRET)
-                                                                       .setRestEndpoint(TEST_REST_ENDPOINT)
                                                                        .setAuthEndpoint(TEST_AUTH_ENDPOINT)
                                                                        .setSoapEndpoint(TEST_SOAP_ENDPOINT)
                                                                        .setDataExtensionKeys(null)
                                                                        .build(), collector);
+    MarketingConnectorConfig connectorConfig = Mockito.mock(MarketingConnectorConfig.class);
+    PowerMockito.whenNew(MarketingConnectorConfig.class).withArguments(Mockito.anyString(), Mockito.anyString(),
+                                                                       Mockito.anyString(), Mockito.anyString())
+                                                                        .thenReturn(connectorConfig);
+    Mockito.when(config.getConnection()).thenReturn(connectorConfig);
+
     try {
       config.validate(collector);
       collector.getOrThrowException();
@@ -240,18 +252,23 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testMultiObjectModeMissingTableNameField() {
+  public void testMultiObjectModeMissingTableNameField() throws Exception {
     MockFailureCollector collector = new MockFailureCollector();
     MarketingCloudSourceConfig config = withSalesforceValidationMock(SalesforceSourceConfigHelper.newConfigBuilder()
                                                                        .setQueryMode("Multi Object")
                                                                        .setClientId(TEST_CLIENT_ID)
                                                                        .setClientSecret(TEST_CLIENT_SECRET)
-                                                                       .setRestEndpoint(TEST_REST_ENDPOINT)
                                                                        .setAuthEndpoint(TEST_AUTH_ENDPOINT)
                                                                        .setSoapEndpoint(TEST_SOAP_ENDPOINT)
                                                                        .setDataExtensionKeys("Test-DataExtension-Key1")
                                                                        .setTableNameField(null)
                                                                        .build(), collector);
+    MarketingConnectorConfig connectorConfig = Mockito.mock(MarketingConnectorConfig.class);
+    PowerMockito.whenNew(MarketingConnectorConfig.class).withArguments(Mockito.anyString(), Mockito.anyString(),
+                                                                       Mockito.anyString(), Mockito.anyString())
+                                                                        .thenReturn(connectorConfig);
+    Mockito.when(config.getConnection()).thenReturn(connectorConfig);
+
     try {
       config.validate(collector);
       collector.getOrThrowException();
@@ -264,7 +281,7 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testFilter() {
+  public void testFilter() throws ETSdkException {
     MarketingCloudSourceConfig config = SalesforceSourceConfigHelper.newConfigBuilder().setFilter(
         "filter")
       .build();
@@ -272,7 +289,7 @@ public class SalesforceSourceConfigTest {
   }
 
   @Test
-  public void testInvalidObjectName() {
+  public void testInvalidObjectName() throws ETSdkException {
     MarketingCloudSourceConfig config = SalesforceSourceConfigHelper.newConfigBuilder()
       .setObjectName("").build();
     try {
@@ -290,7 +307,8 @@ public class SalesforceSourceConfigTest {
   private MarketingCloudSourceConfig withSalesforceValidationMock(MarketingCloudSourceConfig config,
                                                                   FailureCollector collector) {
     MarketingCloudSourceConfig spy = Mockito.spy(config);
-    Mockito.doNothing().when(spy).validateSalesforceConnection(collector);
+    MarketingConnectorConfig connectorConfig = Mockito.mock(MarketingConnectorConfig.class);
+    Mockito.doNothing().when(connectorConfig).validateSalesforceConnection(collector);
     return spy;
   }
 }

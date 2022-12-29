@@ -30,7 +30,6 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
       | clientSecret |
       | authEndpoint |
       | soapEndpoint |
-      | restEndpoint |
 
   @BATCH-TS-SFMC-DSGN-ERROR-02
   Scenario: Verify validation message when user provides invalid Authentication Properties
@@ -42,14 +41,12 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
     And Enter input plugin property: "clientSecret" with value: "invalid.clientsecret"
     And Enter input plugin property: "authEndpoint" with value: "invalid.authenticationbase.uri"
     And Enter input plugin property: "soapEndpoint" with value: "invalid.soapapi.endpoint"
-    And Enter input plugin property: "restEndpoint" with value: "invalid.restapibase.uri"
     And Click on the Validate button
     Then Verify invalid credentials validation message for below listed properties:
       | clientId     |
       | clientSecret |
       | authEndpoint |
       | soapEndpoint |
-      | restEndpoint |
 
   @BATCH-TS-SFMC-DSGN-ERROR-03
   Scenario:Verify required fields missing validation for Data Extension External key property when object is selected as Data Extension in Single Object mode
@@ -61,7 +58,6 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Single Object"
     And Select dropdown plugin property: "select-objectName" with option value: "Data Extension"
     And Click on the Validate button
@@ -77,7 +73,6 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Multi Object"
     And fill Object List with below listed Objects in the Multi Object mode:
       | DATA_EXTENSION | BOUNCE_EVENT |

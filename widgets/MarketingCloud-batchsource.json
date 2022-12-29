@@ -5,6 +5,67 @@
   "display-name": "Salesforce Marketing",
   "configuration-groups": [
     {
+      "label": "Connection",
+      "properties": [
+        {
+          "widget-type": "toggle",
+          "label": "Use connection",
+          "name": "useConnection",
+          "widget-attributes": {
+            "on": {
+              "value": "true",
+              "label": "YES"
+            },
+            "off": {
+              "value": "false",
+              "label": "NO"
+            },
+            "default": "false"
+          }
+        },
+        {
+          "widget-type": "connection-select",
+          "label": "Connection",
+          "name": "connection",
+          "widget-attributes": {
+            "connectionType": "MarketingCloud"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Client ID",
+          "name": "clientId",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Marketing Cloud Client ID"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Client Secret",
+          "name": "clientSecret",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Marketing Cloud Client Secret"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Authentication Base URI",
+          "name": "authEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Auth API Endpoint e.g. https://instance.auth.marketingcloudapis.com"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "SOAP API Endpoint",
+          "name": "soapEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
+          }
+        }
+      ]
+    },
+    {
       "label": "Basic",
       "properties": [
         {
@@ -12,8 +73,16 @@
           "label": "Reference Name",
           "name": "referenceName",
           "widget-attributes": {
-            "placeholder": "Name used to identify this source for lineage"
+            "placeholder": "Name used to uniquely identify this source for lineage, annotating metadata."
           }
+        },
+        {
+        "widget-type": "textbox",
+        "label": "Filter",
+        "name": "filter",
+        "widget-attributes": {
+          "placeholder": "The filter selection criteria. For example, eventDate > '2010-01-01' and subscriberKey = 1001"
+        }
         },
         {
           "widget-type": "select",
@@ -134,64 +203,6 @@
           }
         }
       ]
-    },
-    {
-      "label": "Filter",
-      "properties": [
-        {
-          "widget-type": "textbox",
-          "label": "filter",
-          "name": "filter",
-          "widget-attributes": {
-            "placeholder": "data filter criteria"
-          }
-        }
-      ]
-    },
-    {
-      "label": "Authentication",
-      "properties": [
-        {
-          "widget-type": "textbox",
-          "label": "Client ID",
-          "name": "clientId",
-          "widget-attributes" : {
-            "placeholder": "Salesforce Marketing Cloud Client ID"
-          }
-        },
-        {
-          "widget-type": "password",
-          "label": "Client Secret",
-          "name": "clientSecret",
-          "widget-attributes" : {
-            "placeholder": "Salesforce Marketing Cloud Client Secret"
-          }
-        },
-        {
-          "widget-type": "textbox",
-          "label": "Authentication Base URI",
-          "name": "authEndpoint",
-          "widget-attributes" : {
-            "placeholder": "Salesforce Auth API Endpoint e.g. https://instance.auth.marketingcloudapis.com"
-          }
-        },
-        {
-          "widget-type": "textbox",
-          "label": "SOAP API Endpoint",
-          "name": "soapEndpoint",
-          "widget-attributes" : {
-            "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
-          }
-        },
-        {
-          "widget-type": "textbox",
-          "label": "REST API Base URI",
-          "name": "restEndpoint",
-          "widget-attributes" : {
-            "placeholder": "Salesforce REST API Endpoint e.g. https://instance.rest.marketingcloudapis.com"
-          }
-        }
-      ]
     }
   ],
   "outputs": [
@@ -253,6 +264,42 @@
         {
           "type": "property",
           "name": "dataExtensionKey"
+        }
+      ]
+    },
+    {
+      "name": "showConnectionProperties ",
+      "condition": {
+        "expression": "useConnection == false"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "clientId"
+        },
+        {
+          "type": "property",
+          "name": "clientSecret"
+        },
+        {
+          "type": "property",
+          "name": "authEndpoint"
+        },
+        {
+          "type": "property",
+          "name": "soapEndpoint"
+        }
+      ]
+    },
+    {
+      "name": "showConnectionId",
+      "condition": {
+        "expression": "useConnection == true"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "connection"
         }
       ]
     }

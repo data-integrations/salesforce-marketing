@@ -13,7 +13,24 @@ the object.
 Properties
 ----------
 
+**Use Connection:** Whether to use a connection. If a connection is used, you do not need to provide the credentials.
+
+**Connection:** Name of the connection to use. Object Names information will be provided by the connection.
+You also can use the macro function ${conn(connection-name)}.
+
+**Client ID**: OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.
+
+**Client Secret**: TOAuth2 client secret associated with an installed package in the Salesforce Marketing Cloud.
+
+**Authentication Base URI**: Authentication Base URL associated for the Server-to-Server API integration.
+For example, `https://instance.auth.marketingcloudapis.com/`
+
+**SOAP API Endpoint**: The SOAP Endpoint URL associated for the Server-to-Server API integration. For example,
+`https://instance.soap.marketingcloudapis.com/Service.asmx`
+
 **Reference Name**: Name used to uniquely identify this source for lineage, annotating metadata, etc.
+
+**Filter**: The filter selection criteria. eg: eventDate > '2010-01-01' and subscriberKey = 1001
 
 **Data Retrieval Mode**: Mode of data retrieval. The mode can be one of two values: 
 
@@ -79,21 +96,6 @@ Note, this value will be ignored if the Mode is set to `Single Object`.
 name of any column for any of the objects that will be read. Defaults to `tablename`. In case of `Data Extension` 
 object, this field will have value in `dataextension_[Data Extension Key]` format. Note, the Table name field value 
 will be ignored if the Mode is set to `Single Object`.
-
-**Filter**: The filter selection criteria. eg: eventDate > '2010-01-01' and subscriberKey = 1001
-
-**Client ID**: OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.
-
-**Client Secret**: TOAuth2 client secret associated with an installed package in the Salesforce Marketing Cloud.
-
-**Authentication Base URI**: Authentication Base URL associated for the Server-to-Server API integration. 
-For example, `https://instance.auth.marketingcloudapis.com/`
-
-**SOAP API Endpoint**: The SOAP Endpoint URL associated for the Server-to-Server API integration. For example, 
-`https://instance.soap.marketingcloudapis.com/Service.asmx`
-
-**REST API Base URI**: The REST API Base URL associated for the Server-to-Server API integration. For example, 
-`https://instance.rest.marketingcloudapis.com/`
 
 Data Type Mappings from Salesforce Marketing Cloud to CDAP
 ----------

@@ -16,12 +16,13 @@
 package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETDataExtensionColumn;
-import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -73,7 +74,7 @@ public class RecordDataExtensionRowConverterTest {
   }
 
   @Test
-  public void testTransform() throws ETSdkException {
+  public void testTransform() {
     List<ETDataExtensionColumn> columnList = new ArrayList<>();
     ETDataExtensionColumn column1 = new ETDataExtensionColumn();
     column1.setName("storeid");
@@ -110,5 +111,85 @@ public class RecordDataExtensionRowConverterTest {
     Assert.assertEquals(list, recordDataExtensionRowConverter.transform(structuredRecord).getAllModified());
   }
 
+  /**
+   * comparing get type to unsupported type
+   */
+  @Test
+  public void testGetTypeDefault() {
+    MockFailureCollector collector = new MockFailureCollector();
+    Schema.Type type = Schema.Type.BYTES;
+    String fieldName = "fieldName";
+    Object val1 = "val1";
+    String strVal = (String) val1;
+    List<ETDataExtensionColumn> columnList = new ArrayList<>();
+    ETDataExtensionColumn column = new ETDataExtensionColumn();
+    column.setId("121");
+    column.setDescription("newCustomer");
+    column.setLength(22);
+    Date d = new Date(2022, 02, 9);
+    column.setCreatedDate(d);
+    column.setDefaultValue("default");
+    column.setIsPrimaryKey(true);
+    column.setIsRequired(true);
+    column.setKey("key");
+    column.setModifiedDate(d);
+    column.setName("name");
+    column.setModified("date", false);
+    column.setPrecision(0);
+    column.setScale(100);
+    columnList.add(column);
+    Map<String, ETDataExtensionColumn> columns = new HashMap<>();
+    columns.put("tableName", column);
+    String externalKey = "externalKey";
+    DataExtensionInfo dataExtensionInfo = new DataExtensionInfo(externalKey, columnList);
+    RecordDataExtensionRowConverter recorddataextensionrowconverter =
+      new RecordDataExtensionRowConverter(dataExtensionInfo, true);
+    try {
+      recorddataextensionrowconverter.getType(type, fieldName, val1);
+      collector.getOrThrowException();
+    } catch (IllegalStateException e) {
+      Assert.assertNotEquals(e.getMessage(), "Field 'fieldName' is of unsupported type 'BYTES");
+    }
+  }
+
+  /**
+   * comparing Logical Type to unsupported type
+   */
+  @Test
+  public void testTransformLogicalTypeDefault() {
+    List<ETDataExtensionColumn> columnList = new ArrayList<>();
+    ETDataExtensionColumn column1 = new ETDataExtensionColumn();
+    column1.setName("storeid");
+    column1.setName("emailid");
+    column1.setName("timestamp");
+    ETDataExtensionColumn column2 = new ETDataExtensionColumn();
+    column2.setName("list");
+    columnList.add(column1);
+    columnList.add(column2);
+    Schema inputSchema = Schema.recordOf("record",
+                                         Schema.Field.of("storeid", Schema.of(Schema.Type.STRING)),
+                                         Schema.Field.of("emailid", Schema.of(Schema.Type.STRING)),
+                                         Schema.Field.of("timestamp",
+                                                         Schema.nullableOf(Schema.of
+                                                           (Schema.LogicalType.TIMESTAMP_MICROS))),
+                                         Schema.Field.of("list", Schema.of(Schema.LogicalType.TIMESTAMP_MICROS)));
+    DataExtensionInfo dataExtensionInfo = new DataExtensionInfo("DE", columnList);
+    RecordDataExtensionRowConverter recordDataExtensionRowConverter =
+      new RecordDataExtensionRowConverter(dataExtensionInfo, false);
+    StructuredRecord structuredRecord = Mockito.mock(StructuredRecord.class);
+    Mockito.when(structuredRecord.getSchema()).thenReturn(inputSchema);
+    Mockito.when(structuredRecord.get("emailid")).thenReturn("true");
+    LocalDate date = LocalDate.of(2011, 01, 01);
+    Mockito.when(structuredRecord.get("list")).thenReturn(date);
+    Mockito.when(structuredRecord.getDate("list")).thenReturn(date);
+    Mockito.when(structuredRecord.getDecimal("price")).thenReturn(BigDecimal.valueOf(2000));
+    List<String> list = new ArrayList<>();
+    list.add("list");
+    try {
+      Assert.assertNull(recordDataExtensionRowConverter.transform(structuredRecord).getColumn(""));
+    } catch (IllegalStateException e) {
+      Assert.assertNotEquals(e.getMessage(), "Field is of unsupported type TIMESTAMP_MICROS");
+    }
+  }
   enum Days { Monday}
 }

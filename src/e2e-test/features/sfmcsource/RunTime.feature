@@ -28,7 +28,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Single Object"
     And configure source plugin for Object: "<ObjectName>" in the Single Object mode
     Then Validate "Salesforce Marketing" plugin properties
@@ -71,7 +70,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Multi Object"
     And Enter input plugin property: "filter" with value: "filter.value"
     And fill Object List with below listed Objects in the Multi Object mode:
@@ -111,7 +109,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Single Object"
     And configure source plugin for Object: "<ObjectName>" in the Single Object mode
     And Enter input plugin property: "filter" with value: "<Filter>"

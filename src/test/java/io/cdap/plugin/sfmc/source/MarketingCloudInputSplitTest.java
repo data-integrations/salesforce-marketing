@@ -26,7 +26,7 @@ import java.io.ObjectInputStream;
 public class MarketingCloudInputSplitTest {
 
   @Test
-  public void testInputSplitWithNonEmptyTableName() throws IOException, InterruptedException {
+  public void testInputSplitWithNonEmptyTableName() {
     MarketingCloudInputSplit actualMarketingCloudInputSplit = new MarketingCloudInputSplit("open Event", "Table Name");
     Assert.assertEquals(0L, actualMarketingCloudInputSplit.getLength());
     Assert.assertEquals("open Event", actualMarketingCloudInputSplit.getObjectName());
@@ -34,7 +34,7 @@ public class MarketingCloudInputSplitTest {
   }
 
   @Test
-  public void testInputSplitWithEmptyTableName() throws IOException, InterruptedException {
+  public void testInputSplitWithEmptyTableName() {
     MarketingCloudInputSplit actualMarketingCloudInputSplit = new MarketingCloudInputSplit();
     Assert.assertEquals(0L, actualMarketingCloudInputSplit.getLength());
     Assert.assertNull(actualMarketingCloudInputSplit.getObjectName());
@@ -61,7 +61,7 @@ public class MarketingCloudInputSplitTest {
   }
 
   @Test
-  public void testGetLocations() throws IOException, InterruptedException {
+  public void testGetLocations() {
     Assert.assertEquals(String[].class, new MarketingCloudInputSplit("Table Name", "Object Name").getLocations().
       getClass());
     Assert.assertEquals(0, (new MarketingCloudInputSplit("Table Name", "Object Name")).getLocations().length);

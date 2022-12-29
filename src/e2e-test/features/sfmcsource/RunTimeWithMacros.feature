@@ -31,7 +31,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Click on the Macro button of Property: "clientSecret" and set the value to: "clientSecret"
     And Click on the Macro button of Property: "authEndpoint" and set the value to: "authEndpoint"
     And Click on the Macro button of Property: "soapEndpoint" and set the value to: "soapEndpoint"
-    And Click on the Macro button of Property: "restEndpoint" and set the value to: "restEndpoint"
     And Validate "Salesforce Marketing" plugin properties
     And Close the Plugin Properties page
     And Select Sink plugin: "BigQueryTable" from the plugins list
@@ -52,7 +51,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Enter runtime argument value from environment variable "admin.clientsecret" for key "clientSecret"
     And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
     And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
-    And Enter runtime argument value from environment variable "admin.rest.endpoint" for key "restEndpoint"
     And Run the preview of pipeline with runtime arguments
     And Open and capture pipeline preview logs
     And Verify the preview run status of pipeline in the logs is "succeeded"
@@ -66,7 +64,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Enter runtime argument value from environment variable "admin.clientsecret" for key "clientSecret"
     And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
     And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
-    And Enter runtime argument value from environment variable "admin.rest.endpoint" for key "restEndpoint"
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Open and capture logs
@@ -88,7 +85,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Click on the Macro button of Property: "clientSecret" and set the value to: "clientSecret"
     And Click on the Macro button of Property: "authEndpoint" and set the value to: "authEndpoint"
     And Click on the Macro button of Property: "soapEndpoint" and set the value to: "soapEndpoint"
-    And Click on the Macro button of Property: "restEndpoint" and set the value to: "restEndpoint"
     And Validate "Salesforce Marketing" plugin properties
     And Close the Plugin Properties page
     And Select Sink plugin: "BigQueryMultiTable" from the plugins list
@@ -109,7 +105,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Enter runtime argument value from environment variable "admin.clientsecret" for key "clientSecret"
     And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
     And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
-    And Enter runtime argument value from environment variable "admin.rest.endpoint" for key "restEndpoint"
     And Run the preview of pipeline with runtime arguments
     And Open and capture pipeline preview logs
     And Verify the preview run status of pipeline in the logs is "succeeded"
@@ -124,7 +119,6 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Enter runtime argument value from environment variable "admin.clientsecret" for key "clientSecret"
     And Enter runtime argument value from environment variable "admin.base.uri" for key "authEndpoint"
     And Enter runtime argument value from environment variable "admin.soap.endpoint" for key "soapEndpoint"
-    And Enter runtime argument value from environment variable "admin.rest.endpoint" for key "restEndpoint"
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Open and capture logs

@@ -28,12 +28,10 @@ an attempted insert followed by an update for any record that failed due to a pr
 
 Configuration
 -------------
+**Use Connection:** Whether to use a connection. If a connection is used, you do not need to provide the credentials.
 
-**Reference Name:** Name used to uniquely identify this sink for lineage, annotating metadata, etc.
-
-**Data Extension External Key:** External key of the Data Extension to write to.
-
-**Operation:** Whether to insert, update, or upsert records in the Data Extension.
+**Connection:** Name of the connection to use. Object Names information will be provided by the connection.
+You also can use the macro function ${conn(connection-name)}.
 
 **Client ID:** OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.
 
@@ -42,6 +40,12 @@ Configuration
 **Authentication Base URI:** Authentication Base URL associated for the Server-to-Server API integration.
 
 **SOAP Base URI:** Authentication Base URL associated for the Server-to-Server API integration.
+
+**Reference Name:** Name used to uniquely identify this sink for lineage, annotating metadata, etc.
+
+**Data Extension External Key:** External key of the Data Extension to write to.
+
+**Operation:** Whether to insert, update, or upsert records in the Data Extension.
 
 **Truncate Text:** Whether to truncate text that is longer than the max length specified in the data extension column.
 

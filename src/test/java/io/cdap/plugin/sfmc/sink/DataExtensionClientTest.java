@@ -37,19 +37,18 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import javax.xml.soap.SOAPFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ETDataExtension.class, ClientProxy.class, SOAPFactory.class, DataExtensionClient.class,
+@PrepareForTest({ETDataExtension.class, ClientProxy.class, DataExtensionClient.class,
   ClassLoader.class, ETSoapConnection.class})
 public class DataExtensionClientTest {
-
   @Test
-  public void testDataExtensionKey() throws ETSdkException {
+  public void testDataExtensionKey() {
     DataExtensionClient dataExtensionClient = Mockito.mock(DataExtensionClient.class);
     Mockito.when(dataExtensionClient.getDataExtensionKey()).thenReturn("DE");
     Assert.assertFalse(dataExtensionClient.getDataExtensionKey().isEmpty());
@@ -123,7 +122,9 @@ public class DataExtensionClientTest {
       collector.getOrThrowException();
       Assert.fail("The compatibility of the schema is invalid");
     } catch (ValidationException e) {
-      // pass
+      Assert.assertEquals("Errors were encountered during validation. Column 'dt' " +
+                            "is a decimal in data extension 'DE', but is a 'date' in the input schema.",
+                          e.getMessage());
     }
   }
 
@@ -146,7 +147,8 @@ public class DataExtensionClientTest {
       collector.getOrThrowException();
       Assert.fail("The columns are null");
     } catch (ValidationException e) {
-      // pass
+      Assert.assertEquals("Errors were encountered during validation. Data extension 'DE' must exist.",
+                          e.getMessage());
     }
   }
 
@@ -177,7 +179,9 @@ public class DataExtensionClientTest {
       collector.getOrThrowException();
       Assert.fail("Schema field is null");
     } catch (ValidationException e) {
-      // pass
+      Assert.assertEquals("Errors were encountered during validation. Data extension 'DE' contains a " +
+                            "required column 'dt' of type 'null' that is not present in the input schema.",
+                          e.getMessage());
     }
   }
 
@@ -196,6 +200,7 @@ public class DataExtensionClientTest {
     DataExtensionClient dataExtensionClient = Mockito.spy(new DataExtensionClient(client, dataExtensionKey));
     Assert.assertNotNull(dataExtensionClient.scan());
   }
+
 
   @Test
   public void testInsert() throws Exception {
@@ -273,3 +278,4 @@ public class DataExtensionClientTest {
     Assert.assertNotNull(dataExtensionClient.upsert(row));
   }
 }
+

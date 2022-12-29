@@ -17,51 +17,47 @@
 package io.cdap.plugin.sfmc.source;
 
 import com.exacttarget.fuelsdk.ETSdkException;
-import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
-import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
-import io.cdap.plugin.common.Constants;
-import io.cdap.plugin.common.IdUtils;
+import io.cdap.plugin.sfmc.common.SalesforceMarketingCloudBaseConfig;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
 import io.cdap.plugin.sfmc.source.util.Util;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import javax.annotation.Nullable;
+
 
 /**
  * Configuration for the {@link MarketingCloudSource}.
  */
-public class MarketingCloudSourceConfig extends PluginConfig {
-  private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudSourceConfig.class);
-
-  @Name(Constants.Reference.REFERENCE_NAME)
-  @Description("This will be used to uniquely identify this source for lineage, annotating metadata, etc.")
-  private String referenceName;
+public class MarketingCloudSourceConfig extends SalesforceMarketingCloudBaseConfig {
 
   @Name(MarketingCloudConstants.PROPERTY_QUERY_MODE)
   @Macro
   @Description("Mode of data retrieval. The mode can be one of two values: "
-    + "`Multi Object` - will allow user to fetch data for multiple data extensions, "
-    + "`Single Object` - will allow user to fetch data for single data extension.")
+    + "`Multi Object` - Fetches data for multiple data extensions, "
+    + "`Single Object` - Fetches data for single data extension.")
   private String queryMode;
 
   @Name(MarketingCloudConstants.PROPERTY_OBJECT_NAME)
   @Macro
   @Nullable
-  @Description("Specify the object for which data to be fetched. This can be one of following values: " +
-    "`Data Extension` - will allow user to fetch data for a single Data Extension object, " +
-    "`Campaign` - will allow user to fetch data for Campaign object, " +
-    "`Email` - will allow user to fetch data for Email object, " +
-    "`Mailing List` - will allow user to fetch data for Mailing List object. " +
+  @Description("Specify the object for which data to be fetched. This can be one of following values:" +
+    "Bounce Event- Fetches Tracking Bounce Events." +
+    "Data Extension- Fetches data for a single Data Extension object." +
+    "Email- Fetches data for Email object." +
+    "Mailing List- Fetches data for Mailing List object." +
+    "NotSent Event- Fetches Tracking Not Sent Events." +
+    "Open Event- Fetches Tracking Open Events." +
+    "Sent Event- Fetches Tracking Sent Events." +
+    "Unsub Event- Fetches Tracking UnSubscribe Events. " +
     "Note, this value will be ignored if the Mode is set to `Multi Object`.")
   private String objectName;
 
@@ -76,65 +72,42 @@ public class MarketingCloudSourceConfig extends PluginConfig {
   @Name(MarketingCloudConstants.PROPERTY_OBJECT_LIST)
   @Macro
   @Nullable
-  @Description("Specify the comma-separated list of objects for which data to be fetched; for example: " +
-    "'Object1,Object2'. This can be one or more values from following possible values: " +
-    "`Data Extension` - will allow user to fetch data for a single Data Extension object, " +
-    "`Campaign` - will allow user to fetch data for Campaign object, " +
-    "`Email` - will allow user to fetch data for Email object, " +
-    "`Mailing List` - will allow user to fetch data for Mailing List object. " +
-    "Note, this value will be ignored if the Mode is set to `Single Object`.")
+  @Description("Specify the list of objects from which to fetch data. T" +
+    "his can be one or more values from following possible values:\n" +
+    "Bounce Event- Fetches Tracking Bounce Events.\n" +
+    "Data Extension- Fetches data for a single Data Extension object.\n" +
+    "Email- Fetches data for Email object.\n" +
+    "Mailing List- Fetches data for Mailing List object.\n" +
+    "NotSent Event- Fetches Tracking Not Sent Events.\n" +
+    "Open Event- Fetches Tracking Open Events.\n" +
+    "Sent Event- Fetches Tracking Sent Events.\n" +
+    "Unsub Event- Fetches Tracking UnSubscribe Events.\n" +
+    "Note, this value will be ignored if the Mode is set to `Single Object`.\n")
   private String objectList;
 
   @Name(MarketingCloudConstants.PROPERTY_DATA_EXTENSION_KEY_LIST)
   @Macro
   @Nullable
-  @Description("Specify the data extension keys from which data to be fetched; for example: 'Key1,Key2'. " +
-    "Note, this value will be ignored in following two cases: 1. If the Mode is set to `Single Object`, " +
-    "2. If the selected object list does not contain `Data Extension` as one of the objects.")
+  @Description("Specify the data extension key from which to fetch data. Note, this value is ignored in " +
+    "following cases:\n" +
+    "1. If Data Retrieval Mode is set to Multi Object.\n" +
+    "2. If the selected Object name is other than Data Extension.")
   private String dataExtensionKeys;
 
   @Name(MarketingCloudConstants.PROPERTY_TABLE_NAME_FIELD)
   @Macro
   @Nullable
-  @Description("The name of the field that holds the object name to which the data belongs to. Must not be the name " +
-    "of any column for any of the objects that will be read. Defaults to `tablename`. In case of `Data Extension` " +
-    "object, this field will have value in `dataextension_[Data Extension Key]` format. Note, the Table name field " +
-    "value will be ignored if the Mode is set to `Single Object`.")
+  @Description("The name of the field that holds the object name to which the data belongs to. Must not be the name" +
+    "of any column for any of the objects that will be read. For the Data Extension object, this field will have a " +
+    "value in dataextension_[Data Extension Key] format. Note, the Table Name property value is ignored if the mode" +
+    "is set to Single Object.")
   private String tableNameField;
 
   @Name(MarketingCloudConstants.PROPERTY_FILTER)
   @Macro
   @Nullable
-  @Description("The WHERE clause used to filter data from Marketing cloud objects.")
+  @Description("The filter selection criteria. For example, eventDate > '2010-01-01' and subscriberKey = 1001.")
   private String filter;
-
-  @Name(MarketingCloudConstants.PROPERTY_CLIENT_ID)
-  @Macro
-  @Description("OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.")
-  private String clientId;
-
-  @Name(MarketingCloudConstants.PROPERTY_CLIENT_SECRET)
-  @Macro
-  @Description("OAuth2 client secret associated with an installed package in the Salesforce Marketing Cloud.")
-  private String clientSecret;
-
-  @Name(MarketingCloudConstants.PROPERTY_API_ENDPOINT)
-  @Macro
-  @Description("The REST API Base URL associated for the Server-to-Server API integration. " +
-    "For example, https://instance.rest.marketingcloudapis.com/")
-  private String restEndpoint;
-
-  @Name(MarketingCloudConstants.PROPERTY_AUTH_API_ENDPOINT)
-  @Macro
-  @Description("Authentication Base URL associated for the Server-to-Server API integration. " +
-    "For example, https://instance.auth.marketingcloudapis.com/")
-  private String authEndpoint;
-
-  @Name(MarketingCloudConstants.PROPERTY_SOAP_API_ENDPOINT)
-  @Macro
-  @Description("The SOAP Endpoint URL associated for the Server-to-Server API integration. " +
-    "For example, https://instance.soap.marketingcloudapis.com/Service.asmx")
-  private String soapEndpoint;
 
   /**
    * Constructor for MarketingCloudSourceConfig object.
@@ -148,7 +121,6 @@ public class MarketingCloudSourceConfig extends PluginConfig {
    * @param tableNameField    The field name to hold the table name value
    * @param clientId          The Salesforce Marketing Cloud Client Id
    * @param clientSecret      The Salesforce Marketing Cloud Client Secret
-   * @param restEndpoint      The REST API endpoint for Salesforce Marketing Cloud
    * @param authEndpoint      The AUTH API endpoint for Salesforce Marketing Cloud
    * @param soapEndpoint      The SOAP API endpoint for Salesforce Marketing Cloud
    */
@@ -156,8 +128,8 @@ public class MarketingCloudSourceConfig extends PluginConfig {
                                     @Nullable String dataExtensionKey, @Nullable String objectList,
                                     @Nullable String dataExtensionKeys, @Nullable String tableNameField,
                                     @Nullable String filter, String clientId, String clientSecret,
-                                    String restEndpoint, String authEndpoint, String soapEndpoint) {
-    this.referenceName = referenceName;
+                                    String authEndpoint, String soapEndpoint) {
+    super(referenceName, clientId, clientSecret, authEndpoint, soapEndpoint);
     this.queryMode = queryMode;
     this.objectName = objectName;
     this.dataExtensionKey = dataExtensionKey;
@@ -165,16 +137,7 @@ public class MarketingCloudSourceConfig extends PluginConfig {
     this.dataExtensionKeys = dataExtensionKeys;
     this.tableNameField = tableNameField;
     this.filter = filter;
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-    this.restEndpoint = restEndpoint;
-    this.authEndpoint = authEndpoint;
-    this.soapEndpoint = soapEndpoint;
 
-  }
-
-  public String getReferenceName() {
-    return referenceName;
   }
 
   /**
@@ -256,7 +219,6 @@ public class MarketingCloudSourceConfig extends PluginConfig {
       }
       sourceObjects.add(sourceObject);
     }
-
     return sourceObjects;
   }
 
@@ -277,7 +239,6 @@ public class MarketingCloudSourceConfig extends PluginConfig {
       }
       sourceObjects.add(sourceObject);
     }
-
     return sourceObjects;
   }
 
@@ -296,34 +257,10 @@ public class MarketingCloudSourceConfig extends PluginConfig {
     return filter;
   }
 
-  public String getClientId() {
-    return clientId;
-  }
-
-  public String getClientSecret() {
-    return clientSecret;
-  }
-
-  public String getRestEndpoint() {
-    return restEndpoint;
-  }
-
-  public String getAuthEndpoint() {
-    return authEndpoint;
-  }
-
-  public String getSoapEndpoint() {
-    return soapEndpoint;
-  }
-
-
   /**
    * Validates {@link MarketingCloudSourceConfig} instance.
    */
   public void validate(FailureCollector collector) {
-    //Validates the given referenceName to consists of characters allowed to represent a dataset.
-    IdUtils.validateReferenceName(referenceName, collector);
-
     validateCredentials(collector);
     validateQueryMode(collector);
     validateFilter(collector);
@@ -341,53 +278,9 @@ public class MarketingCloudSourceConfig extends PluginConfig {
   }
 
   private void validateCredentials(FailureCollector collector) {
-    if (!shouldConnect()) {
-      return;
-    }
 
-    if (Util.isNullOrEmpty(clientId)) {
-      collector.addFailure("Client ID must be specified.", null)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_CLIENT_ID);
-    }
-
-    if (Util.isNullOrEmpty(clientSecret)) {
-      collector.addFailure("Client Secret must be specified.", null)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_CLIENT_SECRET);
-    }
-
-    if (Util.isNullOrEmpty(restEndpoint)) {
-      collector.addFailure(" REST Endpoint must be specified.", null)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_API_ENDPOINT);
-    }
-
-    if (Util.isNullOrEmpty(authEndpoint)) {
-      collector.addFailure("Auth Endpoint  must be specified.", null)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_AUTH_API_ENDPOINT);
-    }
-
-    if (Util.isNullOrEmpty(soapEndpoint)) {
-      collector.addFailure("Soap Endpoint must be specified.", null)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_SOAP_API_ENDPOINT);
-    }
-
-    collector.getOrThrowException();
-    validateSalesforceConnection(collector);
-  }
-
-  @VisibleForTesting
-  void validateSalesforceConnection(FailureCollector collector) {
-    try {
-      MarketingCloudClient.create(clientId, clientSecret, authEndpoint, soapEndpoint);
-    } catch (ETSdkException e) {
-      collector.addFailure("Unable to connect to Salesforce Instance.",
-                           "Ensure properties like Client ID, Client Secret, API Endpoint " +
-                             ", Soap Endpoint, Auth Endpoint are correct.")
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_CLIENT_ID)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_CLIENT_SECRET)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_API_ENDPOINT)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_AUTH_API_ENDPOINT)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_SOAP_API_ENDPOINT)
-        .withStacktrace(e.getStackTrace());
+    if (getConnection() != null) {
+      this.getConnection().validateCredentials(collector);
     }
   }
 
@@ -449,7 +342,7 @@ public class MarketingCloudSourceConfig extends PluginConfig {
     }
   }
 
-  private void validateFilter(FailureCollector collector) {
+  private void  validateFilter(FailureCollector collector) {
     if (containsMacro(MarketingCloudConstants.PROPERTY_FILTER) || Util.isNullOrEmpty(filter)) {
       return;
     }
@@ -461,16 +354,5 @@ public class MarketingCloudSourceConfig extends PluginConfig {
         .withConfigProperty(MarketingCloudConstants.PROPERTY_FILTER)
         .withStacktrace(e.getStackTrace());
     }
-  }
-
-  /**
-   * Returns true if Salesforce can be connected to.
-   */
-  public boolean shouldConnect() {
-    return !containsMacro(MarketingCloudConstants.PROPERTY_CLIENT_ID) &&
-      !containsMacro(MarketingCloudConstants.PROPERTY_CLIENT_SECRET) &&
-      !containsMacro(MarketingCloudConstants.PROPERTY_API_ENDPOINT) &&
-      !containsMacro(MarketingCloudConstants.PROPERTY_AUTH_API_ENDPOINT) &&
-      !containsMacro(MarketingCloudConstants.PROPERTY_SOAP_API_ENDPOINT);
   }
 }

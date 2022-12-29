@@ -5,6 +5,67 @@
   "display-name": "Salesforce Marketing",
   "configuration-groups": [
     {
+      "label": "Connection",
+      "properties": [
+        {
+          "widget-type": "toggle",
+          "label": "Use connection",
+          "name": "useConnection",
+          "widget-attributes": {
+            "on": {
+              "value": "true",
+              "label": "YES"
+            },
+            "off": {
+              "value": "false",
+              "label": "NO"
+            },
+            "default": "false"
+          }
+        },
+        {
+          "widget-type": "connection-select",
+          "label": "Connection",
+          "name": "connection",
+          "widget-attributes": {
+            "connectionType": "MarketingCloud"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Client ID",
+          "name": "clientId",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Marketing Cloud Client ID"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Client Secret",
+          "name": "clientSecret",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Marketing Cloud Client Secret"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Authentication Base URI",
+          "name": "authEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce Auth API Endpoint e.g. https://instance.auth.marketingcloudapis.com"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "SOAP API Endpoint",
+          "name": "soapEndpoint",
+          "widget-attributes" : {
+            "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
+          }
+        }
+      ]
+    },
+    {
       "label": "Basic",
       "properties": [
         {
@@ -39,31 +100,6 @@
               }
             ]
           }
-        }
-      ]
-    },
-    {
-      "label": "Authentication",
-      "properties": [
-        {
-          "widget-type": "textbox",
-          "label": "Client ID",
-          "name": "clientId"
-        },
-        {
-          "widget-type": "password",
-          "label": "Client Secret",
-          "name": "clientSecret"
-        },
-        {
-          "widget-type": "textbox",
-          "label": "Authentication Base URI",
-          "name": "authEndpoint"
-        },
-        {
-          "widget-type": "textbox",
-          "label": "SOAP Base URI",
-          "name": "soapEndpoint"
         }
       ]
     },
@@ -156,5 +192,43 @@
         "ref-property-name": "referenceName"
       }
     ]
-  }
+  },
+  "filters": [
+    {
+      "name": "showConnectionProperties ",
+      "condition": {
+        "expression": "useConnection == false"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "clientId"
+        },
+        {
+          "type": "property",
+          "name": "clientSecret"
+        },
+        {
+          "type": "property",
+          "name": "authEndpoint"
+        },
+        {
+          "type": "property",
+          "name": "soapEndpoint"
+        }
+      ]
+    },
+    {
+      "name": "showConnectionId",
+      "condition": {
+        "expression": "useConnection == true"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "connection"
+        }
+      ]
+    }
+  ]
 }

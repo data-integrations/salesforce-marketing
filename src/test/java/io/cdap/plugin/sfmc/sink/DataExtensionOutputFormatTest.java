@@ -17,6 +17,7 @@ package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETClient;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,6 +26,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
 import java.io.IOException;
 
 @RunWith(PowerMockRunner.class)
@@ -45,6 +47,42 @@ public class DataExtensionOutputFormatTest {
     TaskAttemptContext taskAttemptContext = Mockito.mock(TaskAttemptContext.class);
     DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
     Assert.assertFalse(outputFormat.getOutputCommitter(taskAttemptContext).needsTaskCommit(taskAttemptContext));
+  }
+
+  @Test
+  public void testSetUpTask() throws IOException {
+    TaskAttemptContext taskAttemptContext = Mockito.mock(TaskAttemptContext.class);
+    DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
+    outputFormat.getOutputCommitter(taskAttemptContext).setupTask(taskAttemptContext);
+  }
+
+  @Test
+  public void testSetUpJob() throws IOException {
+    TaskAttemptContext taskAttemptContext = Mockito.mock(TaskAttemptContext.class);
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
+    outputFormat.getOutputCommitter(taskAttemptContext).setupJob(jobContext);
+  }
+
+  @Test
+  public void testCommitTask() throws IOException {
+    TaskAttemptContext taskAttemptContext = Mockito.mock(TaskAttemptContext.class);
+    DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
+    outputFormat.getOutputCommitter(taskAttemptContext).commitTask(taskAttemptContext);
+  }
+
+  @Test
+  public void testAbortTask() throws IOException {
+    TaskAttemptContext taskAttemptContext = Mockito.mock(TaskAttemptContext.class);
+    DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
+    outputFormat.getOutputCommitter(taskAttemptContext).abortTask(taskAttemptContext);
+  }
+
+  @Test
+  public void testCheckOutputSpecs() {
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
+    outputFormat.checkOutputSpecs(jobContext);
   }
 
   @Test
@@ -69,8 +107,31 @@ public class DataExtensionOutputFormatTest {
     PowerMockito.whenNew(DataExtensionClient.class).withArguments(Mockito.any(), Mockito.anyString()).
       thenReturn(client);
     PowerMockito.when(DataExtensionClient.create(dataExtensionKey, "clientid", "clientSecret", "authEndPoint",
-                                                 "soapEndPoint")).thenReturn(client);
+      "soapEndPoint")).thenReturn(client);
     DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
     Assert.assertNotNull(outputFormat.getRecordWriter(context));
+  }
+
+  @Test
+  public void testGetRecordWriterException() {
+    TaskAttemptContext context = Mockito.mock(TaskAttemptContext.class);
+    Configuration conf = new Configuration();
+    conf.set(CLIENT_ID, "clientid");
+    conf.set(CLIENT_SECRET, "clientSecret");
+    conf.set(AUTH_ENDPOINT, "authEndPoint");
+    conf.set(SOAP_ENDPOINT, "soapEndPoint");
+    conf.set(OPERATION, "INSERT");
+    conf.set(DATA_EXTENSION_KEY, "DE");
+    conf.set(MAX_BATCH_SIZE, "500");
+    conf.set(FAIL_ON_ERROR, "true");
+    conf.set(TRUNCATE, "true");
+    String dataExtensionKey = "DE";
+    Mockito.when(context.getConfiguration()).thenReturn(conf);
+    DataExtensionOutputFormat outputFormat = new DataExtensionOutputFormat();
+    try {
+      Assert.assertNull(outputFormat.getRecordWriter(context));
+    } catch (IOException e) {
+      Assert.assertEquals(51, e.getMessage().length());
+    }
   }
 }

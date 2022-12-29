@@ -16,71 +16,109 @@
 package io.cdap.plugin.sfmc.sink;
 
 import com.exacttarget.fuelsdk.ETClient;
+import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.batch.OutputFormatProvider;
+import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.dataset.lib.KeyValue;
+import io.cdap.cdap.etl.api.Emitter;
+import io.cdap.cdap.etl.api.Engine;
+import io.cdap.cdap.etl.api.FailureCollector;
+import io.cdap.cdap.etl.api.PipelineConfigurer;
+import io.cdap.cdap.etl.api.StageConfigurer;
 import io.cdap.cdap.etl.api.batch.BatchRuntimeContext;
 import io.cdap.cdap.etl.api.batch.BatchSinkContext;
 import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.cdap.etl.mock.common.MockArguments;
 import io.cdap.cdap.etl.mock.common.MockPipelineConfigurer;
 import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
+import io.cdap.plugin.common.LineageRecorder;
+import org.apache.hadoop.io.NullWritable;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({DataExtensionClient.class, ETClient.class})
+@PrepareForTest({DataExtensionClient.class, ETClient.class, StructuredRecord.class, LineageRecorder.class})
 public class MarketingCloudDataExtensionSinkTest {
   private static final String CLIENT_ID = "clientId";
   private static final String CLIENT_SECRET = "clientSecret";
   private static final String AUTH_ENDPOINT = "authEndPoint";
   private static final String SOAP_ENDPOINT = "soapEndPoint";
-  private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudDataExtensionSink.class);
   private MarketingCloudConf marketingCloudConf;
   private MarketingCloudDataExtensionSink marketingCloudDataExtensionSink;
 
   @Before
-  public void initialize() {
-    marketingCloudConf = MarketingCloudConfHelper.newConfigBuilder().
-      setReferenceName("referenceName")
-      .setAuthEndpoint(AUTH_ENDPOINT)
-      .setClientId(CLIENT_ID)
-      .setClientSecret(CLIENT_SECRET)
-      .setSoapEndpoint(SOAP_ENDPOINT)
-      .setDataExtension("DE")
-      .setMaxBatchSize(500)
-      .setOperation("INSERT")
-      .setColumnMapping("<key=value>").
-      setFailOnError(false)
-      .setTruncateText(false)
-      .setReplaceWithSpaces(false)
-      .build();
+  public void initialize() throws ETSdkException {
+    marketingCloudConf = Mockito.spy(MarketingCloudConfHelper.newConfigBuilder().
+                                       setReferenceName("referenceName")
+                                       .setAuthEndpoint(AUTH_ENDPOINT)
+                                       .setClientId(CLIENT_ID)
+                                       .setClientSecret(CLIENT_SECRET)
+                                       .setSoapEndpoint(SOAP_ENDPOINT)
+                                       .setDataExtension("DE")
+                                       .setMaxBatchSize(500)
+                                       .setOperation("INSERT")
+                                       .setColumnMapping("<key=value>").
+                                       setFailOnError(false)
+                                       .setTruncateText(false)
+                                       .setReplaceWithSpaces(true)
+                                       .build());
     marketingCloudDataExtensionSink = new MarketingCloudDataExtensionSink(marketingCloudConf);
     Assume.assumeNotNull(CLIENT_ID, CLIENT_SECRET, AUTH_ENDPOINT, SOAP_ENDPOINT);
-    marketingCloudConf = MarketingCloudConfHelper.newConfigBuilder().
-      setReferenceName("referenceName")
-      .setAuthEndpoint(AUTH_ENDPOINT)
-      .setClientId(CLIENT_ID)
-      .setClientSecret(CLIENT_SECRET)
-      .setSoapEndpoint(SOAP_ENDPOINT)
-      .setDataExtension("DE")
-      .setMaxBatchSize(500)
-      .setOperation("INSERT")
-      .setColumnMapping("<key=value>").
-      setFailOnError(false)
-      .setTruncateText(false)
-      .setReplaceWithSpaces(false)
-      .build();
-    marketingCloudDataExtensionSink = new MarketingCloudDataExtensionSink(marketingCloudConf);
+  }
+
+  @Test
+  public void testConfigurePipelineWithMapReduce() {
+    MarketingCloudConf cloudConf = Mockito.mock(MarketingCloudConf.class);
+    MarketingCloudDataExtensionSink dataExtensionSink =
+      new MarketingCloudDataExtensionSink(cloudConf);
+    BatchRuntimeContext context = Mockito.mock(BatchRuntimeContext.class);
+    MockFailureCollector mockFailureCollector = new MockFailureCollector();
+    Mockito.when(context.getFailureCollector()).thenReturn(mockFailureCollector);
+    StageConfigurer stageConfigurer = PowerMockito.mock(StageConfigurer.class);
+    FailureCollector failureCollector = PowerMockito.mock(FailureCollector.class);
+    PipelineConfigurer pipelineConfigurer = PowerMockito.mock(PipelineConfigurer.class);
+    PowerMockito.when(pipelineConfigurer.getStageConfigurer()).thenReturn(stageConfigurer);
+    PowerMockito.when(stageConfigurer.getFailureCollector()).thenReturn(failureCollector);
+    PowerMockito.when(cloudConf.shouldFailOnError()).thenReturn(Boolean.TRUE);
+    Mockito.when(pipelineConfigurer.getEngine()).thenReturn(Engine.MAPREDUCE);
+    dataExtensionSink.initialize(context);
+    dataExtensionSink.configurePipeline(pipelineConfigurer);
+    Assert.assertEquals(0, mockFailureCollector.getValidationFailures().size());
+  }
+
+  @Test
+  public void testConfigurePipelineWithSpark() {
+    MarketingCloudConf cloudConf = Mockito.mock(MarketingCloudConf.class);
+    MarketingCloudDataExtensionSink dataExtensionSink =
+      new MarketingCloudDataExtensionSink(cloudConf);
+    BatchRuntimeContext context = Mockito.mock(BatchRuntimeContext.class);
+    Map<String, Object> plugins = new HashMap<>();
+    MockFailureCollector mockFailureCollector = new MockFailureCollector();
+    Mockito.when(context.getFailureCollector()).thenReturn(mockFailureCollector);
+    MockPipelineConfigurer mockPipelineConfigurer = new MockPipelineConfigurer(null, plugins);
+    StageConfigurer stageConfigurer = PowerMockito.mock(StageConfigurer.class);
+    FailureCollector failureCollector = PowerMockito.mock(FailureCollector.class);
+    PipelineConfigurer pipelineConfigurer = PowerMockito.mock(PipelineConfigurer.class);
+    PowerMockito.when(pipelineConfigurer.getStageConfigurer()).thenReturn(stageConfigurer);
+    PowerMockito.when(stageConfigurer.getFailureCollector()).thenReturn(failureCollector);
+    PowerMockito.when(cloudConf.shouldFailOnError()).thenReturn(Boolean.TRUE);
+    Mockito.when(pipelineConfigurer.getEngine()).thenReturn(Engine.SPARK);
+    dataExtensionSink.initialize(context);
+    dataExtensionSink.configurePipeline(mockPipelineConfigurer);
+    Assert.assertEquals(0, mockFailureCollector.getValidationFailures().size());
   }
 
   @Test
@@ -96,7 +134,7 @@ public class MarketingCloudDataExtensionSinkTest {
   }
 
   @Test
-  public void testPrepareRun() throws Exception {
+  public void testPrepareRun() {
     MockFailureCollector mockFailureCollector = new MockFailureCollector();
     MockArguments mockArguments = new MockArguments();
     BatchSinkContext context = Mockito.mock(BatchSinkContext.class);
@@ -123,6 +161,8 @@ public class MarketingCloudDataExtensionSinkTest {
       Assert.fail("Exception is thrown for empty client_id");
     } catch (ValidationException e) {
       Assert.assertEquals(1, e.getFailures().size());
+      Assert.assertEquals("Errors were encountered during validation. Error while validating Marketing " +
+                            "Cloud client: authEndPoint/v2/token: bad URL", e.getMessage());
     }
   }
 
@@ -142,10 +182,10 @@ public class MarketingCloudDataExtensionSinkTest {
   public void testGetOutputFormatConfiguration() {
     OutputFormatProvider outputFormatProvider = Mockito.mock(OutputFormatProvider.class);
     Map<String, String> outputConfig = new HashMap<>();
-    outputConfig.put(DataExtensionOutputFormat.CLIENT_ID, marketingCloudConf.getClientId());
-    outputConfig.put(DataExtensionOutputFormat.CLIENT_SECRET, marketingCloudConf.getClientSecret());
-    outputConfig.put(DataExtensionOutputFormat.AUTH_ENDPOINT, marketingCloudConf.getAuthEndpoint());
-    outputConfig.put(DataExtensionOutputFormat.SOAP_ENDPOINT, marketingCloudConf.getSoapEndpoint());
+    outputConfig.put(DataExtensionOutputFormat.CLIENT_ID, marketingCloudConf.getConnection().getClientId());
+    outputConfig.put(DataExtensionOutputFormat.CLIENT_SECRET, marketingCloudConf.getConnection().getClientSecret());
+    outputConfig.put(DataExtensionOutputFormat.AUTH_ENDPOINT, marketingCloudConf.getConnection().getAuthEndpoint());
+    outputConfig.put(DataExtensionOutputFormat.SOAP_ENDPOINT, marketingCloudConf.getConnection().getSoapEndpoint());
     outputConfig.put(DataExtensionOutputFormat.MAX_BATCH_SIZE, String.valueOf(marketingCloudConf.getMaxBatchSize()));
     outputConfig.put(DataExtensionOutputFormat.FAIL_ON_ERROR, String.valueOf(marketingCloudConf.shouldFailOnError()));
     outputConfig.put(DataExtensionOutputFormat.OPERATION, marketingCloudConf.getOperation().name());
@@ -154,4 +194,50 @@ public class MarketingCloudDataExtensionSinkTest {
     outputFormatProvider.getOutputFormatConfiguration();
     Assert.assertEquals(outputConfig.size(), 9);
   }
+
+  @Test
+  public void testTransform() {
+    MarketingCloudConf conf = new MarketingCloudConf("referenceName", "clientId",
+      "clientSecret", "dataExtension", "authEndPoint", "soapEndPoint",
+      3, "operation", null, true,
+      true, true);
+    MarketingCloudDataExtensionSink marketingCloudDataExtensionSink1 = new MarketingCloudDataExtensionSink(conf);
+    StructuredRecord input = Mockito.mock(StructuredRecord.class);
+    Emitter<KeyValue<NullWritable, StructuredRecord>> emitter = Mockito.mock(Emitter.class);
+    Schema inputSchema = Schema.recordOf("record",
+                                         Schema.Field.of("storeid", Schema.of(Schema.Type.STRING)),
+                                         Schema.Field.of("emailid", Schema.of(Schema.Type.STRING)));
+    MockFailureCollector collector = new MockFailureCollector("SFMCSink");
+    Assert.assertTrue(conf.getColumnMapping(inputSchema, collector).isEmpty());
+    try {
+      marketingCloudDataExtensionSink1.transform(input, emitter);
+    } catch (Exception e) {
+    }
+  }
+
+  @Test
+  public void testTransformColumnMappingNotEmpty() {
+    List<Schema.Field> getFields = new ArrayList<>();
+    BatchRuntimeContext context = Mockito.mock(BatchRuntimeContext.class);
+    MockFailureCollector mockFailureCollector = new MockFailureCollector();
+    MarketingCloudDataExtensionSink marketingCloudDataExtensionSink1 =
+      new MarketingCloudDataExtensionSink(marketingCloudConf);
+    StructuredRecord input = Mockito.mock(StructuredRecord.class);
+    Emitter<KeyValue<NullWritable, StructuredRecord>> emitter = Mockito.mock(Emitter.class);
+    Schema inputSchema = Schema.recordOf("record",
+                                         Schema.Field.of("store_id", Schema.of(Schema.Type.STRING)),
+                                         Schema.Field.of("email_id", Schema.of(Schema.Type.STRING)));
+    getFields.add(inputSchema.getField("store_id"));
+    getFields.add(inputSchema.getField("email_id"));
+    MockFailureCollector collector = new MockFailureCollector("SFMCSink");
+    Mockito.when(context.getInputSchema()).thenReturn(inputSchema);
+    Mockito.when(context.getFailureCollector()).thenReturn(mockFailureCollector);
+    try {
+      marketingCloudDataExtensionSink1.initialize(context);
+      Mockito.when(input.getSchema()).thenReturn(inputSchema);
+      marketingCloudDataExtensionSink1.transform(input, emitter);
+    } catch (Exception e) {
+    }
+  }
 }
+

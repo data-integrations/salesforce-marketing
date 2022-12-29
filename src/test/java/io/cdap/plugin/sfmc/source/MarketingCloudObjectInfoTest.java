@@ -18,8 +18,10 @@ package io.cdap.plugin.sfmc.source;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudColumn;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
+
 import org.junit.Assert;
 import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,4 +96,17 @@ public class MarketingCloudObjectInfoTest {
     Assert.assertEquals(tableName, info.getFormattedTableName());
 
   }
+
+  @Test
+  public void testLookUpsFieldMaps() {
+    String schemaFieldName = "schema";
+    List<MarketingCloudColumn> columns = new ArrayList<>();
+    MarketingCloudColumn column1 = new MarketingCloudColumn("sys_created_by", "string");
+    MarketingCloudColumn column2 = new MarketingCloudColumn("sys_updated_by", "string");
+    columns.add(column1);
+    columns.add(column2);
+    MarketingCloudObjectInfo info = new MarketingCloudObjectInfo(TEST_OBJECT, TEST_DATAEXTENSIONKEY, columns);
+    info.lookupFieldsMap(schemaFieldName);
+  }
 }
+
