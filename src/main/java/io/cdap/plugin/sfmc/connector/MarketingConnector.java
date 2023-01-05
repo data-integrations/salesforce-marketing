@@ -40,8 +40,13 @@ import io.cdap.cdap.etl.api.connector.PluginSpec;
 import io.cdap.cdap.etl.api.connector.SampleRequest;
 import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.plugin.common.ConfigUtil;
+import io.cdap.plugin.common.Constants;
+import io.cdap.plugin.common.ReferenceNames;
 import io.cdap.plugin.sfmc.sink.MarketingCloudDataExtensionSink;
 import io.cdap.plugin.sfmc.source.MarketingCloudClient;
+import io.cdap.plugin.sfmc.source.MarketingCloudInputSplit;
+import io.cdap.plugin.sfmc.source.MarketingCloudSource;
+import io.cdap.plugin.sfmc.source.MarketingCloudSourceConfig;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import java.io.IOException;
@@ -112,7 +117,8 @@ public class MarketingConnector implements DirectConnector {
         properties.put(ConfigUtil.NAME_CONNECTION, connectorSpecRequest.getConnectionWithMacro());
         String tableName = connectorSpecRequest.getPath();
         if (tableName != null) {
-            properties.put(MarketingCloudConstants.PROPERTY_OBJECT_NAME, tableName);
+            properties.put(Constants.Reference.REFERENCE_NAME, ReferenceNames.cleanseReferenceName(tableName));
+            properties.put(MarketingCloudConstants.PROPERTY_OBJECT_NAME, SourceObject.valueOf(tableName).getValue());
             schema = config.getSchema(SourceObject.valueOf(tableName));
             specBuilder.setSchema(schema);
         }
@@ -155,6 +161,6 @@ public class MarketingConnector implements DirectConnector {
                 sample.add(structuredRecord);
             }
         }
-            return sample;
-        }
+        return sample;
+    }
 }
