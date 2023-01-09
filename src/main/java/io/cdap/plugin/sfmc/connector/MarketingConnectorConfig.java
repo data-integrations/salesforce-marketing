@@ -28,7 +28,6 @@ import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
-
 import io.cdap.plugin.sfmc.source.MarketingCloudClient;
 import io.cdap.plugin.sfmc.source.MarketingCloudInputFormat;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
@@ -37,7 +36,6 @@ import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.List;
