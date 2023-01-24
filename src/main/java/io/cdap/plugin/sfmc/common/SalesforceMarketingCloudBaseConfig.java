@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Cask Data, Inc.
+ * Copyright © 2023 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -33,7 +33,7 @@ public class SalesforceMarketingCloudBaseConfig extends ReferencePluginConfig {
   @Macro
   @Nullable
   @Description("The existing connection to use.")
-  private MarketingConnectorConfig conn;
+  private MarketingConnectorConfig connection;
 
   @Name(ConfigUtil.NAME_USE_CONNECTION)
   @Nullable
@@ -43,12 +43,12 @@ public class SalesforceMarketingCloudBaseConfig extends ReferencePluginConfig {
   public SalesforceMarketingCloudBaseConfig(String referenceName, String clientId, String clientSecret,
                                             String authEndpoint, String soapEndpoint) {
     super(referenceName);
-    this.conn = new MarketingConnectorConfig(clientId, clientSecret, authEndpoint, soapEndpoint);
+    this.connection = new MarketingConnectorConfig(clientId, clientSecret, authEndpoint, soapEndpoint);
   }
 
   @Nullable
   public MarketingConnectorConfig getConnection() {
-    return conn;
+    return connection;
   }
 
   public String getReferenceName() {

@@ -17,11 +17,8 @@
 package io.cdap.plugin.sfmc.source;
 
 import com.exacttarget.fuelsdk.ETApiObject;
-import com.exacttarget.fuelsdk.ETDataExtensionRow;
 import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETSoapObject;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
@@ -34,15 +31,11 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Record reader that reads the entire contents of a Salesforce table.
@@ -56,6 +49,7 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   private MarketingCloudObjectInfo sfObjectMetaData;
   private Schema schema;
 
+  private  MarketingCloudClient marketingCloudClient;
   private SourceObject object;
   private String dataExtensionKey = "";
   private String tableName;
@@ -68,9 +62,10 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   private boolean hasMoreRecords;
   private String requestId;
 
-    MarketingCloudRecordReader(MarketingCloudSourceConfig pluginConf) {
+  MarketingCloudRecordReader(MarketingCloudSourceConfig pluginConf) {
     this.pluginConf = pluginConf;
   }
+  SourceObject sourceObject;
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) {
@@ -84,7 +79,6 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
       if (results == null) {
         fetchData();
       }
-
       if (!iterator.hasNext()) {
         if (hasMoreRecords) {
           fetchData();
@@ -92,9 +86,7 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
           return false;
         }
       }
-
       row = iterator.next();
-
       pos++;
     } catch (Exception e) {
       LOG.error("Error communicating with Salesforce Marketing cloud. Check for transport errors", e);
@@ -110,17 +102,12 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
 
   @Override
   public StructuredRecord getCurrentValue() throws IOException {
-
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
-
     if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {
       recordBuilder.set(tableNameField, formattedTableName);
     }
-
     try {
-
-      convertRecord(recordBuilder, row);
-
+      pluginConf.getConnection().convertRecord(sourceObject, recordBuilder, row, marketingCloudClient);
     } catch (Exception e) {
       LOG.error(String.format("Error decoding row from table %s", tableName), e);
       throw new IOException(String.format("Error decoding row from table %s", tableName), e);
@@ -148,9 +135,9 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     tableNameField = pluginConf.getTableNameField();
 
     MarketingCloudClient client = MarketingCloudClient.create(pluginConf.getConnection().getClientId(),
-                                                              pluginConf.getConnection().getClientSecret(),
-                                                              pluginConf.getConnection().getAuthEndpoint(),
-                                                              pluginConf.getConnection().getSoapEndpoint());
+            pluginConf.getConnection().getClientSecret(),
+            pluginConf.getConnection().getAuthEndpoint(),
+            pluginConf.getConnection().getSoapEndpoint());
     //Fetch data
     if (object == SourceObject.DATA_EXTENSION) {
       response = client.fetchDataExtensionRecords(dataExtensionKey, object.getFilter(), requestId);
@@ -176,146 +163,22 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   private void fetchSchema(MarketingCloudClient client) {
     //Fetch the column definition
     List<Schema.Field> schemaFields;
-
     try {
       if (object == SourceObject.DATA_EXTENSION) {
         sfObjectMetaData = client.fetchDataExtensionSchema(dataExtensionKey);
       } else {
         sfObjectMetaData = client.fetchObjectSchema(object);
       }
-
       //Build schema
       tableFields = sfObjectMetaData.getSchema().getFields();
       schemaFields = new ArrayList<>(tableFields);
-
       if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {
         schemaFields.add(Schema.Field.of(tableNameField, Schema.of(Schema.Type.STRING)));
       }
     } catch (Exception e) {
       schemaFields = Collections.emptyList();
     }
-
     schema = Schema.recordOf(tableName.replaceAll("-", "_"), schemaFields);
   }
-
-  /**
-   * Read data from ETApiObject and convert it to StructureRecord.
-   */
-  private void convertRecord(StructuredRecord.Builder recordBuilder, ETApiObject row) {
-    for (Schema.Field field : tableFields) {
-      String fieldName = field.getName();
-      Object rawFieldValue = null;
-      if (row instanceof ETDataExtensionRow) {
-        String apiFieldName = sfObjectMetaData.lookupFieldsMap(fieldName);
-        rawFieldValue = ((ETDataExtensionRow) row).getColumn(apiFieldName);
-      } else {
-        rawFieldValue = getFieldValue(row, fieldName);
-      }
-
-      Object fieldValue = convertToValue(fieldName, field.getSchema(), rawFieldValue);
-
-      recordBuilder.set(fieldName, fieldValue);
-    }
-  }
-
-  /**
-   * Read data from ETApiObject using reflection for a given field name.
-   */
-  private Object getFieldValue(ETApiObject row, String fieldName) {
-    try {
-      Method method = row.getClass().getMethod(createGetterName(fieldName));
-      return method.invoke(row);
-    } catch (Exception e) {
-      LOG.error(String.format("Error while fetching %s.%s value", row.getClass().getSimpleName(), fieldName), e);
-      return null;
-    }
-  }
-
-  /**
-   * Constructs the get method name to be used in reflection call.
-   */
-  private String createGetterName(String name) {
-    StringBuilder sb = new StringBuilder("get");
-    sb.append(name.substring(0, 1).toUpperCase());
-    sb.append(name.substring(1));
-    return sb.toString();
-  }
-
-  /**
-   * Converts raw field value according to the schema field type.
-   */
-  @VisibleForTesting
-  Object convertToValue(String fieldName, Schema fieldSchema, Object fieldValue) {
-    Schema.Type fieldType = fieldSchema.getType();
-    Schema.LogicalType logicalType = fieldSchema.getLogicalType();
-    if (fieldSchema.getLogicalType() != null) {
-      return transformLogicalType(fieldName, logicalType, fieldValue);
-    }
-
-    switch (fieldType) {
-      case STRING:
-        return convertToStringValue(fieldValue);
-      case DOUBLE:
-        return convertToDoubleValue(fieldValue);
-      case INT:
-        return convertToIntegerValue(fieldValue);
-      case BOOLEAN:
-        return convertToBooleanValue(fieldValue);
-      case UNION:
-        if (fieldSchema.isNullable()) {
-          return convertToValue(fieldName, fieldSchema.getNonNullable(), fieldValue);
-        }
-        throw new IllegalStateException(
-          String.format("Field '%s' is of unexpected type '%s'. Declared 'complex UNION' types: %s",
-                        fieldName, fieldValue.getClass().getSimpleName(), fieldSchema.getUnionSchemas()));
-      default:
-        throw new IllegalStateException(
-          String.format("Record type '%s' is not supported for field '%s'", fieldType.name(), fieldName));
-    }
-  }
-
-  @VisibleForTesting
-  String convertToStringValue(Object fieldValue) {
-    return String.valueOf(fieldValue);
-  }
-
-  @VisibleForTesting
-  Double convertToDoubleValue(Object fieldValue) {
-    if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
-      return null;
-    }
-
-    return Double.parseDouble(String.valueOf(fieldValue));
-  }
-
-  @VisibleForTesting
-  Integer convertToIntegerValue(Object fieldValue) {
-    if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
-      return null;
-    }
-
-    return Integer.parseInt(String.valueOf(fieldValue));
-  }
-
-  @VisibleForTesting
-  Boolean convertToBooleanValue(Object fieldValue) {
-    if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
-      return null;
-    }
-
-    return Boolean.parseBoolean(String.valueOf(fieldValue));
-  }
-
-  private Object transformLogicalType(String fieldName, Schema.LogicalType logicalType, Object value) {
-    switch (logicalType) {
-      case TIMESTAMP_MICROS:
-        if (value instanceof Date) {
-          return TimeUnit.MILLISECONDS.toMicros((((Date) value).getTime()));
-        }
-        return null;
-      default:
-        throw new IllegalArgumentException(
-          String.format("Field '%s' is of unsupported type '%s'", fieldName, logicalType.getToken()));
-    }
-  }
 }
+

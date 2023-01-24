@@ -18,10 +18,8 @@ package io.cdap.plugin.sfmc.source;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.cdap.plugin.sfmc.connector.MarketingConnectorConfig;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import org.apache.hadoop.conf.Configuration;
-
 import java.lang.reflect.Type;
 import java.util.List;
 

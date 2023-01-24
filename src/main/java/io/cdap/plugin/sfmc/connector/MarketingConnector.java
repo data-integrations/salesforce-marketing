@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Cask Data, Inc.
+ * Copyright © 2023 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -62,102 +62,89 @@ import java.util.Map;
 @Description("Connection to access data from Salesforce Marketing Objects.")
 
 public class MarketingConnector implements DirectConnector {
+  private MarketingConnectorConfig config;
+  private static final String ENTITY_TYPE_OBJECTS = "object";
+  private ETResponse<? extends ETSoapObject> response;
+  private Schema schema;
 
-    private MarketingConnectorConfig config;
+  public ETApiObject row;
+  private Iterator<? extends ETApiObject> iterator;
 
-    private static final String ENTITY_TYPE_OBJECTS = "object";
-    private ETResponse<? extends ETSoapObject> response;
-    private Schema schema;
-    public ETApiObject row;
+  MarketingConnector (MarketingConnectorConfig config){
+  this.config = config;
+  }
 
-    private StructuredRecord record;
-    private Iterator<? extends ETApiObject> iterator;
+  @Override
+  public void test (ConnectorContext connectorContext) throws ValidationException {
+  FailureCollector collector = connectorContext.getFailureCollector();
+  config.validateCredentials(collector);
+  }
 
-    private List<? extends ETApiObject> results;
+  @Override
+  public BrowseDetail browse (ConnectorContext connectorContext, BrowseRequest browseRequest) throws IOException {
+  BrowseDetail.Builder browseDetailBuilder = BrowseDetail.builder();
+  int count = 0;
+      for (SourceObject object : SourceObject.values()) {
+        BrowseEntity.Builder entity = (BrowseEntity.builder(String.valueOf(object), String.valueOf(object),
+        ENTITY_TYPE_OBJECTS).canBrowse(false).canSample(true));
+        browseDetailBuilder.addEntity(entity.build());
+        count++;
+      }
+  return browseDetailBuilder.setTotalCount(count).build();
+  }
 
-    private String requestId;
-
-    private String dataExtensionKey = "";
-
-
-    @Override
-    public void test(ConnectorContext connectorContext) throws ValidationException {
-        FailureCollector collector = connectorContext.getFailureCollector();
-        config.validateCredentials(collector);
+  @Override
+  public ConnectorSpec generateSpec (ConnectorContext connectorContext, ConnectorSpecRequest connectorSpecRequest)
+  throws IOException {
+  ConnectorSpec.Builder specBuilder = ConnectorSpec.builder();
+  Map<String, String> properties = new HashMap<>();
+  properties.put(ConfigUtil.NAME_USE_CONNECTION, "true");
+  properties.put(ConfigUtil.NAME_CONNECTION, connectorSpecRequest.getConnectionWithMacro());
+  String objectName = connectorSpecRequest.getPath();
+  if (objectName != null) {
+      properties.put(Constants.Reference.REFERENCE_NAME, ReferenceNames.cleanseReferenceName(objectName));
+      properties.put(MarketingCloudConstants.PROPERTY_OBJECT_NAME, SourceObject.valueOf(objectName).getValue());
+      schema = config.getSchema(SourceObject.valueOf(objectName));
+      specBuilder.setSchema(schema);
     }
+  return specBuilder.addRelatedPlugin(new PluginSpec(MarketingCloudConstants.PLUGIN_NAME, BatchSource.PLUGIN_TYPE,
+          properties)).addRelatedPlugin(new PluginSpec(MarketingCloudDataExtensionSink.PLUGIN_TYPE,
+          BatchSink.PLUGIN_TYPE, properties)).build();
+  }
 
-    @Override
-    public BrowseDetail browse(ConnectorContext connectorContext, BrowseRequest browseRequest) throws IOException {
-        BrowseDetail.Builder browseDetailBuilder = BrowseDetail.builder();
-        int count = 0;
-        try {
-            for (SourceObject object : SourceObject.values()) {
-                String name = object.getValue();
-                BrowseEntity.Builder entity = (BrowseEntity.builder(String.valueOf(object), String.valueOf(object),
-                                ENTITY_TYPE_OBJECTS).
-                        canBrowse(false).canSample(true));
-                browseDetailBuilder.addEntity(entity.build());
-                count++;
-            }
-        } catch (Exception e) {
-            throw new IOException("Unable to create a Connection", e);
-        }
-        return browseDetailBuilder.setTotalCount(count).build();
-    }
+  @Override
+  public List<StructuredRecord> sample (ConnectorContext connectorContext, SampleRequest sampleRequest)
+          throws IOException {
+  String objectName = sampleRequest.getPath();
+  if (objectName == null) {
+      throw new IllegalArgumentException("Path should contain object name");
+  }
+  try {
+      return listObjectDetails(SourceObject.valueOf(objectName));
+  } catch (ETSdkException e) {
+      throw new IOException("unable to fetch records", e);
+  }
+  }
 
-    @Override
-    public ConnectorSpec generateSpec(ConnectorContext connectorContext, ConnectorSpecRequest connectorSpecRequest)
-            throws IOException {
-        ConnectorSpec.Builder specBuilder = ConnectorSpec.builder();
-        Map<String, String> properties = new HashMap<>();
-        properties.put(ConfigUtil.NAME_USE_CONNECTION, "true");
-        properties.put(ConfigUtil.NAME_CONNECTION, connectorSpecRequest.getConnectionWithMacro());
-        String tableName = connectorSpecRequest.getPath();
-        if (tableName != null) {
-            properties.put(Constants.Reference.REFERENCE_NAME, ReferenceNames.cleanseReferenceName(tableName));
-            properties.put(MarketingCloudConstants.PROPERTY_OBJECT_NAME, SourceObject.valueOf(tableName).getValue());
-            schema = config.getSchema(SourceObject.valueOf(tableName));
-            specBuilder.setSchema(schema);
-        }
-        return specBuilder.addRelatedPlugin(new PluginSpec(MarketingCloudConstants.PLUGIN_NAME, BatchSource.PLUGIN_TYPE,
-                properties)).addRelatedPlugin(new PluginSpec(MarketingCloudDataExtensionSink.PLUGIN_TYPE,
-                BatchSink.PLUGIN_TYPE, properties)).build();
-    }
-
-    @Override
-    public List<StructuredRecord> sample(ConnectorContext connectorContext, SampleRequest sampleRequest)
-            throws IOException {
-        String object = sampleRequest.getPath();
-        if (object == null) {
-            throw new IllegalArgumentException("Path should contain object");
-        }
-        try {
-            return listObjectDetails(SourceObject.valueOf(object));
-        } catch (Exception e) {
-            throw new IOException("unable to fetch records", e);
-        }
-    }
-
-    private List<StructuredRecord> listObjectDetails(SourceObject sourceObject) throws ETSdkException
-            , IOException {
-        List<StructuredRecord> sample = new ArrayList<>();
-        MarketingCloudClient marketingCloudClient = MarketingCloudClient.create
-                (config.getClientId(), config.getClientSecret(),
-                        config.getAuthEndpoint(), config.getSoapEndpoint());
-        if (sourceObject == SourceObject.DATA_EXTENSION) {
-            return Collections.emptyList();
-        } else {
-            response = marketingCloudClient.fetchObjectRecords(sourceObject, null);
-            results = response.getObjects();
-            iterator = results.iterator();
-            while (iterator.hasNext()) {
-                StructuredRecord.Builder builder = StructuredRecord.builder(schema);
-                row = iterator.next();
-                config.convertRecord(sourceObject, builder, row);
-                StructuredRecord structuredRecord = builder.build();
-                sample.add(structuredRecord);
-            }
-        }
-        return sample;
-    }
-}
+  private List<StructuredRecord> listObjectDetails (SourceObject sourceObject) throws ETSdkException
+          , IOException {
+  List<StructuredRecord> sampleList = new ArrayList<>();
+  MarketingCloudClient marketingCloudClient = MarketingCloudClient.create
+          (config.getClientId(), config.getClientSecret(), config.getAuthEndpoint(), config.getSoapEndpoint());
+  //  returning Collections.emptyList for DATA_EXTENSION Source Object because it has no record. So, user will see
+  //  no record after selecting this object instead of buffering
+  if (SourceObject.DATA_EXTENSION == sourceObject) {
+      return Collections.emptyList();
+  } else {
+      response = marketingCloudClient.fetchObjectRecords(sourceObject, null);
+      iterator = response.getObjects().iterator();
+      while (iterator.hasNext()) {
+          StructuredRecord.Builder builder = StructuredRecord.builder(schema);
+          row = iterator.next();
+          config.convertRecord(sourceObject, builder, row, marketingCloudClient);
+          sampleList.add(builder.build());
+      }
+  }
+  return sampleList;
+  }
+ }

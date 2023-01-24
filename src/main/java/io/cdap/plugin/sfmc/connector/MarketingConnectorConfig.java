@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Cask Data, Inc.
+ * Copyright © 2023 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
  * Salesforce Marketing Cloud Connector Config
  */
 public class MarketingConnectorConfig extends PluginConfig {
+
   @Name(MarketingCloudConstants.PROPERTY_CLIENT_ID)
   @Macro
   @Description("OAuth2 client ID associated with an installed package in the Salesforce Marketing Cloud.")
@@ -66,6 +67,7 @@ public class MarketingConnectorConfig extends PluginConfig {
   @Description("The SOAP Endpoint URL associated for the Server-to-Server API integration. " +
           "For example, https://instance.soap.marketingcloudapis.com/Service.asmx")
   private final String soapEndpoint;
+
 
   public MarketingConnectorConfig(String clientId, String clientSecret, String authEndpoint, String soapEndpoint) {
     this.clientId = clientId;
@@ -89,7 +91,6 @@ public class MarketingConnectorConfig extends PluginConfig {
   public String getSoapEndpoint() {
     return soapEndpoint;
   }
-
   /**
    * validates all the fields which are mandatory for the connection.
    */
@@ -97,27 +98,22 @@ public class MarketingConnectorConfig extends PluginConfig {
     if (!shouldConnect()) {
       return;
     }
-
     if (Util.isNullOrEmpty(clientId)) {
       collector.addFailure("Client ID must be specified.", null)
               .withConfigProperty(MarketingCloudConstants.PROPERTY_CLIENT_ID);
     }
-
     if (Util.isNullOrEmpty(clientSecret)) {
       collector.addFailure("Client Secret must be specified.", null)
               .withConfigProperty(MarketingCloudConstants.PROPERTY_CLIENT_SECRET);
     }
-
     if (Util.isNullOrEmpty(authEndpoint)) {
       collector.addFailure("Auth Endpoint  must be specified.", null)
               .withConfigProperty(MarketingCloudConstants.PROPERTY_AUTH_API_ENDPOINT);
     }
-
     if (Util.isNullOrEmpty(soapEndpoint)) {
       collector.addFailure("Soap Endpoint must be specified.", null)
               .withConfigProperty(MarketingCloudConstants.PROPERTY_SOAP_API_ENDPOINT);
     }
-
     collector.getOrThrowException();
     validateSalesforceConnection(collector);
   }
@@ -157,12 +153,13 @@ public class MarketingConnectorConfig extends PluginConfig {
               this.getAuthEndpoint(),
               this.getSoapEndpoint());
       return MarketingCloudInputFormat.getTableMetaData(sourceObject,
-              "Stores",  client).getSchema();
+              null,  client).getSchema();
     } catch (ETSdkException e) {
       throw new RuntimeException(e);
     }
   }
   private static final Logger LOG = LoggerFactory.getLogger(MarketingConnectorConfig.class);
+
   private Object getFieldValue(ETApiObject row, String fieldName) {
     try {
       Method method = row.getClass().getMethod(createGetterName(fieldName));
@@ -172,12 +169,14 @@ public class MarketingConnectorConfig extends PluginConfig {
       return null;
     }
   }
-  private String createGetterName(String name) {
+
+  public String createGetterName(String name) {
     StringBuilder sb = new StringBuilder("get");
     sb.append(name.substring(0, 1).toUpperCase());
     sb.append(name.substring(1));
     return sb.toString();
   }
+
   @VisibleForTesting
   String convertToStringValue(Object fieldValue) {
     return String.valueOf(fieldValue);
@@ -216,7 +215,6 @@ public class MarketingConnectorConfig extends PluginConfig {
     if (fieldSchema.getLogicalType() != null) {
       return transformLogicalType(fieldName, logicalType, fieldValue);
     }
-
     switch (fieldType) {
       case STRING:
         return convertToStringValue(fieldValue);
@@ -238,11 +236,10 @@ public class MarketingConnectorConfig extends PluginConfig {
                 String.format("Record type '%s' is not supported for field '%s'", fieldType.name(), fieldName));
     }
   }
-  public void convertRecord(SourceObject sourceObject, StructuredRecord.Builder recordBuilder, ETApiObject row)
+  public void convertRecord(SourceObject sourceObject, StructuredRecord.Builder recordBuilder, ETApiObject row,
+                            MarketingCloudClient marketingCloudClient)
           throws ETSdkException {
-    MarketingCloudClient client =  MarketingCloudClient.create(getClientId(), getClientSecret(), getAuthEndpoint(),
-            getSoapEndpoint());
-    MarketingCloudObjectInfo sfObjectMetaData = client.fetchObjectSchema(sourceObject);
+    MarketingCloudObjectInfo sfObjectMetaData = marketingCloudClient.fetchObjectSchema(sourceObject);
     List<Schema.Field> tableFields = sfObjectMetaData.getSchema().getFields();
     for (Schema.Field field : tableFields) {
       String fieldName = field.getName();

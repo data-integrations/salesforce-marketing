@@ -37,18 +37,15 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-//import javax.xml.soap.SOAPFactory;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ETDataExtension.class, ClientProxy.class, DataExtensionClient.class,
   ClassLoader.class, ETSoapConnection.class})
 public class DataExtensionClientTest {
-
   @Test
   public void testDataExtensionKey() throws ETSdkException {
     DataExtensionClient dataExtensionClient = Mockito.mock(DataExtensionClient.class);
@@ -202,6 +199,7 @@ public class DataExtensionClientTest {
     DataExtensionClient dataExtensionClient = Mockito.spy(new DataExtensionClient(client, dataExtensionKey));
     Assert.assertNotNull(dataExtensionClient.scan());
   }
+
 
   @Test
   public void testInsert() throws Exception {
