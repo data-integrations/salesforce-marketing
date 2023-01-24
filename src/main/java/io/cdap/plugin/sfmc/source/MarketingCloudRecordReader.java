@@ -102,6 +102,7 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
 
   @Override
   public StructuredRecord getCurrentValue() throws IOException {
+
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
     if (pluginConf.getQueryMode() == SourceQueryMode.MULTI_OBJECT) {
       recordBuilder.set(tableNameField, formattedTableName);
@@ -135,9 +136,9 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     tableNameField = pluginConf.getTableNameField();
 
     MarketingCloudClient client = MarketingCloudClient.create(pluginConf.getConnection().getClientId(),
-            pluginConf.getConnection().getClientSecret(),
-            pluginConf.getConnection().getAuthEndpoint(),
-            pluginConf.getConnection().getSoapEndpoint());
+                                                              pluginConf.getConnection().getClientSecret(),
+                                                              pluginConf.getConnection().getAuthEndpoint(),
+                                                              pluginConf.getConnection().getSoapEndpoint());
     //Fetch data
     if (object == SourceObject.DATA_EXTENSION) {
       response = client.fetchDataExtensionRecords(dataExtensionKey, object.getFilter(), requestId);
@@ -181,4 +182,3 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     schema = Schema.recordOf(tableName.replaceAll("-", "_"), schemaFields);
   }
 }
-

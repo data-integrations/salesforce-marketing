@@ -23,6 +23,7 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.plugin.sfmc.common.SalesforceMarketingCloudBaseConfig;
 import io.cdap.plugin.sfmc.connector.MarketingConnectorConfig;
+import io.cdap.plugin.sfmc.common.SalesforceMarketingCloudBaseConfig;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;

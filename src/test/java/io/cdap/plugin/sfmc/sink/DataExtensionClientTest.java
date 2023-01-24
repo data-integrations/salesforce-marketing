@@ -200,7 +200,6 @@ public class DataExtensionClientTest {
     Assert.assertNotNull(dataExtensionClient.scan());
   }
 
-
   @Test
   public void testInsert() throws Exception {
     String requestId = "requestId";

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Cask Data, Inc.
+ * Copyright © 2022 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,6 +15,6 @@
  */
 
 /**
- * Test Runner to execute SFMC plugin's test scenarios.
+ * Represents SFMC - sink plugin - Properties page - Actions.
  */
-package io.cdap.plugin.tests.runner;
+package io.cdap.plugin.sfmcsink.actions;

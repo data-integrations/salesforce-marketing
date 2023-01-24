@@ -21,7 +21,7 @@
   <name>Salesforce Marketing plugins</name>
   <groupId>io.cdap.plugin</groupId>
   <artifactId>salesforce-marketing-plugins</artifactId>
-  <version>1.2.3-SNAPSHOT</version>
+  <version>1.2.2-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Salesforce Marketing Plugins</description>
   <url>https://github.com/data-integrations/salesforce-marketing</url>
@@ -56,13 +56,18 @@
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- version properties -->
-    <cdap.version>6.6.0</cdap.version>
-    <cdap.plugin.version>2.7.0</cdap.plugin.version>
+    <cdap.version>6.8.0</cdap.version>
     <junit.version>4.12</junit.version>
-    <hadoop.version>2.3.0</hadoop.version>
-    <hydrator.version>2.2.0</hydrator.version>
+    <hadoop.version>2.10.2</hadoop.version>
+    <hydrator.version>2.10.0</hydrator.version>
     <guava.version>27.0.1-jre</guava.version>
-    <salesforce.marketing.cloud.version>1.5.0</salesforce.marketing.cloud.version>
+    <salesforce.marketing.cloud.version>1.6.0</salesforce.marketing.cloud.version>
+    <slf4j.version>1.7.36</slf4j.version>
+    <stax2.version>4.2.1</stax2.version>
+    <beanutils.version>1.9.4</beanutils.version>
+    <testSourceLocation>${project.basedir}/src/test/java/</testSourceLocation>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
   <repositories>
@@ -109,7 +114,7 @@
     <dependency>
       <groupId>io.cdap.plugin</groupId>
       <artifactId>hydrator-common</artifactId>
-      <version>${cdap.plugin.version}</version>
+      <version>${hydrator.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -121,6 +126,12 @@
       <artifactId>hydrator-test</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -195,6 +206,12 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-mapreduce-client-core</artifactId>
       <version>${hadoop.version}</version>
@@ -232,6 +249,10 @@
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -239,6 +260,17 @@
       <groupId>com.github.salesforce-marketingcloud</groupId>
       <artifactId>fuelsdk</artifactId>
       <version>${salesforce.marketing.cloud.version}</version>
+    </dependency>
+    <!-- We need to explicitly include stax2-api and beanutils, otherwise hadoop-common in provided scope overrides the module provided by salesforce. -->
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2-api</artifactId>
+      <version>${stax2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>${beanutils.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-lang</groupId>
@@ -248,7 +280,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
-      <version>1.7.16</version>
+      <version>${slf4j.version}</version>
     </dependency>
     <!-- tests -->
 
@@ -280,6 +312,7 @@
 
 
   <build>
+    <testSourceDirectory>${testSourceLocation}</testSourceDirectory>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -288,8 +321,8 @@
           <version>1.1.0</version>
           <configuration>
             <cdapArtifacts>
-              <parent>system:cdap-data-pipeline[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
-              <parent>system:cdap-data-streams[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
+              <parent>system:cdap-data-pipeline[6.8.0,7.0.0-SNAPSHOT)</parent>
+              <parent>system:cdap-data-streams[6.8.0,7.0.0-SNAPSHOT)</parent>
             </cdapArtifacts>
           </configuration>
           <executions>
@@ -415,6 +448,10 @@
               <consoleOutput>true</consoleOutput>
               <failsOnError>true</failsOnError>
               <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              <testSourceDirectories>
+                <testSourceDirectory>src/test/java</testSourceDirectory>
+                <testSourceDirectory>src/e2e-test/java</testSourceDirectory>
+              </testSourceDirectories>
               <excludes>**/org/apache/cassandra/**,**/org/apache/hadoop/**</excludes>
             </configuration>
             <goals>
@@ -542,6 +579,115 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>e2e-tests</id>
+      <properties>
+        <testSourceLocation>src/e2e-test/java</testSourceLocation>
+      </properties>
+      <build>
+        <testResources>
+          <testResource>
+            <directory>src/e2e-test/resources</directory>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <skipTests>true</skipTests>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>3.0.0-M5</version>
+            <configuration>
+              <includes>
+                <include>TestRunner.java</include>
+              </includes>
+                <environmentVariables>
+                  <SALESFORCE_MARKETING_CLIENT_ID>
+                    ${SALESFORCE_MARKETING_CLIENT_ID}
+                  </SALESFORCE_MARKETING_CLIENT_ID>
+                  <SALESFORCE_MARKETING_CLIENT_SECRET>
+                    ${SALESFORCE_MARKETING_CLIENT_SECRET}
+                  </SALESFORCE_MARKETING_CLIENT_SECRET>
+                  <SALESFORCE_MARKETING_BASEURI>
+                    ${SALESFORCE_MARKETING_BASEURI}
+                  </SALESFORCE_MARKETING_BASEURI>
+                  <SALESFORCE_MARKETING_SOAP_API_ENDPOINT>
+                    ${SALESFORCE_MARKETING_SOAP_API_ENDPOINT}
+                  </SALESFORCE_MARKETING_SOAP_API_ENDPOINT>
+                  <SALESFORCE_MARKETING_REST_API_ENDPOINT>
+                    ${SALESFORCE_MARKETING_REST_API_ENDPOINT}
+                  </SALESFORCE_MARKETING_REST_API_ENDPOINT>
+                </environmentVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>net.masterthought</groupId>
+            <artifactId>maven-cucumber-reporting</artifactId>
+            <version>5.5.0</version>
+            <executions>
+              <execution>
+                <id>execution</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+                <configuration>
+                  <projectName>Cucumber Reports</projectName> <!-- Replace with project name -->
+                  <outputDirectory>target/cucumber-reports/advanced-reports</outputDirectory>
+                  <buildNumber>1</buildNumber>
+                  <skip>false</skip>
+                  <inputDirectory>${project.build.directory}/cucumber-reports</inputDirectory>
+                  <jsonFiles> <!-- supports wildcard or name pattern -->
+                    <param>**/*.json</param>
+                  </jsonFiles> <!-- optional, defaults to outputDirectory if not specified -->
+                  <classificationDirectory>${project.build.directory}/cucumber-reports</classificationDirectory>
+                  <checkBuildResult>true</checkBuildResult>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.0.1-jre</version>
+            <scope>compile</scope>
+          </dependency>
+          <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.8</version>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>io.cdap.tests.e2e</groupId>
+          <artifactId>cdap-e2e-framework</artifactId>
+          <version>0.2.0-SNAPSHOT</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
     </profile>
   </profiles>
 

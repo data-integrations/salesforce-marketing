@@ -14,18 +14,8 @@
  * the License.
  */
 
-package io.cdap.plugin.utils.enums;
-
 /**
- *
+ * Represent Test Setup/Clean up hooks.
  */
-public enum DataRetrievalMode {
-  SINGLE_OBJECT("Single Object"),
-  MULTI_OBJECT("Multi Object");
 
-  public final String value;
-
-  DataRetrievalMode(String value) {
-    this.value = value;
-  }
-}
+package io.cdap.plugin.tests.hooks;

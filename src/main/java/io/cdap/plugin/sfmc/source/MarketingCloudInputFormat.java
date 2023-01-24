@@ -17,6 +17,7 @@
 package io.cdap.plugin.sfmc.source;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.plugin.sfmc.connector.MarketingConnectorConfig;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudObjectInfo;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import io.cdap.plugin.sfmc.source.util.SourceQueryMode;
@@ -41,6 +42,10 @@ import java.util.List;
 public class MarketingCloudInputFormat extends InputFormat<NullWritable, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudInputFormat.class);
 
+  private static MarketingCloudSourceConfig conf;
+
+
+
   /**
    * Configure the input format to read tables from Salesforce. Should be called from the mapreduce client.
    *
@@ -62,6 +67,8 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
     LOG.debug("setInput::tableInfos = {}", tableInfos.size());
     return tableInfos;
   }
+
+
   /**
    * Depending on conf value fetch the list of fields for each object and create schema object.
    *
@@ -75,6 +82,7 @@ public class MarketingCloudInputFormat extends InputFormat<NullWritable, Structu
                                                                 conf.getConnection().getClientSecret(),
                                                                 conf.getConnection().getAuthEndpoint(),
                                                                 conf.getConnection().getSoapEndpoint());
+
       //When mode = SingleObject, fetch fields for the object selected in plugin config
       if (mode == SourceQueryMode.SINGLE_OBJECT) {
         MarketingCloudObjectInfo tableInfo = getTableMetaData(conf.getObject(), conf.getDataExtensionKey(), client);

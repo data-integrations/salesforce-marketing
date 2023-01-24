@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * Information about a Salesforce table.
  */
-public class MarketingCloudObjectInfo {
+public class  MarketingCloudObjectInfo {
   private final SourceObject object;
   private final String dataExtensionKey;
   private final Schema schema;

@@ -169,8 +169,7 @@ public class MarketingConnectorConfig extends PluginConfig {
       return null;
     }
   }
-
-  public String createGetterName(String name) {
+  private String createGetterName(String name) {
     StringBuilder sb = new StringBuilder("get");
     sb.append(name.substring(0, 1).toUpperCase());
     sb.append(name.substring(1));
@@ -237,8 +236,7 @@ public class MarketingConnectorConfig extends PluginConfig {
     }
   }
   public void convertRecord(SourceObject sourceObject, StructuredRecord.Builder recordBuilder, ETApiObject row,
-                            MarketingCloudClient marketingCloudClient)
-          throws ETSdkException {
+    MarketingCloudClient marketingCloudClient) throws ETSdkException {
     MarketingCloudObjectInfo sfObjectMetaData = marketingCloudClient.fetchObjectSchema(sourceObject);
     List<Schema.Field> tableFields = sfObjectMetaData.getSchema().getFields();
     for (Schema.Field field : tableFields) {

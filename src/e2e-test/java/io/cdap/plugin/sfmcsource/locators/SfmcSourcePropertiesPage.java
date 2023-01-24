@@ -26,49 +26,21 @@ import org.openqa.selenium.support.How;
  * Represents Salesforce Marketing Cloud - Source plugin - Properties page - Locators.
  */
 public class SfmcSourcePropertiesPage {
-  @FindBy(how = How.XPATH, using = "//div[contains(@class, 'label-input-container')]//input")
-  public static WebElement labelInput;
 
-  // Basic section
-  @FindBy(how = How.XPATH, using = "//input[@data-cy='referenceName']")
-  public static WebElement referenceNameInput;
-
-  @FindBy(how = How.XPATH, using = "//div[@data-cy='select-queryMode']")
-  public static WebElement dataRetrievalModeDropdown;
-
-  // Single Object Retrieval mode section
   @FindBy(how = How.XPATH, using = "//div[@data-cy='select-objectName']")
-  public static WebElement objectDropdown;
+  public static WebElement objectDropdownForSIngleObjectMode;
 
-  @FindBy(how = How.XPATH, using = "//button[@data-cy='get-schema-btn']")
-  public static WebElement getSchemaButton;
+  @FindBy(how = How.XPATH, using = "//div[@data-cy='multiselect-objectList']")
+  public static WebElement objectDropdownForMultiObjectMode;
 
-  @FindBy(how = How.XPATH, using = "//button[@data-cy='dataExtensionKey']")
-  public static WebElement dataExtensionExternalKeyInput;
+  @FindBy(how = How.XPATH, using = "//div[@data-cy='key']//input")
+  public static WebElement dataExtensionExternalKeyInputForMultiObjectMode;
 
-  // Filter section
-  @FindBy(how = How.XPATH, using = "//button[@data-cy='filter']")
-  public static WebElement filterInput;
+  @FindBy(how = How.XPATH, using = "//li[@data-cy='multioption-Data Extension']")
+  public static WebElement selectOptionDataExtension;
 
-  // Authentication section
-  @FindBy(how = How.XPATH, using = "//input[@data-cy='clientId']")
-  public static WebElement clientIdInput;
-
-  @FindBy(how = How.XPATH, using = "//input[@data-cy='clientSecret']")
-  public static WebElement clientSecretInput;
-
-  @FindBy(how = How.XPATH, using = "//input[@data-cy='authEndpoint']")
-  public static WebElement authenticationBaseUriInput;
-
-  @FindBy(how = How.XPATH, using = "//input[@data-cy='soapEndpoint']")
-  public static WebElement soapApiEndpointInput;
-
-  @FindBy(how = How.XPATH, using = "//input[@data-cy='restEndpoint']")
-  public static WebElement restApiBaseUriInput;
-
-  // Common
-  public static WebElement getDropdownOptionElement(String option) {
-    String xpath = "//li[@role='option'][normalize-space(text()) = '" + option + "']";
+  public static WebElement locateObjectCheckBoxInMultiObjectsSelector(String sobjects) {
+    String xpath = "//li[@data-cy='multioption-" + sobjects + "']";
     return SeleniumDriver.getDriver().findElement(By.xpath(xpath));
   }
 }

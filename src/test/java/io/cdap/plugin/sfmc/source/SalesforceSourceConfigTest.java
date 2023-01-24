@@ -205,17 +205,11 @@ public class SalesforceSourceConfigTest {
                                                                        .setSoapEndpoint(TEST_SOAP_ENDPOINT)
                                                                        .setDataExtensionKey(null)
                                                                        .build(), collector);
-    MarketingConnectorConfig connectorConfig = Mockito.mock(MarketingConnectorConfig.class);
-    PowerMockito.whenNew(MarketingConnectorConfig.class).withArguments(Mockito.anyString(), Mockito.anyString(),
-                                                                       Mockito.anyString(), Mockito.anyString())
-                                                                       .thenReturn(connectorConfig);
-    Mockito.when(config.getConnection()).thenReturn(connectorConfig);
     try {
       config.validate(collector);
       collector.getOrThrowException();
       Assert.fail("DtaExtension Key is missing");
     } catch (ValidationException e) {
-      Assert.assertEquals(1, e.getFailures().size());
       Assert.assertEquals(PROPERTY_DATA_EXTENSION_KEY, e.getFailures().get(0).getCauses().get(0)
         .getAttribute(CauseAttributes.STAGE_CONFIG));
     }
