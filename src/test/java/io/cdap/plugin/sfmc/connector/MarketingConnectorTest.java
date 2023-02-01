@@ -69,6 +69,7 @@ public class MarketingConnectorTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
+
   @Test
   public void testBrowse() {
     Assert.assertEquals(8, sourceObject.values().length);
