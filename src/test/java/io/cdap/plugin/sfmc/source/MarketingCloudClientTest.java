@@ -18,6 +18,7 @@ package io.cdap.plugin.sfmc.source;
 import com.custom.fuelsdk.PaginationETSoapObject;
 import com.exacttarget.fuelsdk.ETClient;
 import com.exacttarget.fuelsdk.ETExpression;
+import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -53,5 +54,16 @@ public class MarketingCloudClientTest {
     Assert.assertNull(client.fetchDataExtensionRecords(dataExtensionKey, null, null));
     client.fetchDataExtensionRecords(dataExtensionKey, null, null);
     Assert.assertNull(client.fetchDataExtensionRecords(dataExtensionKey, null, null));
+  }
+
+  @Test
+  public void testValidateFilter() {
+    String filter = "filter";
+    ETClient etClient = Mockito.mock(ETClient.class);
+    MarketingCloudClient marketingCloudClient = new MarketingCloudClient(etClient);
+    try {
+      marketingCloudClient.validateFilter(filter);
+    } catch (ETSdkException e) {
+    }
   }
 }

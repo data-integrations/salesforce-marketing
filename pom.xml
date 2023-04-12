@@ -283,6 +283,7 @@
       <version>${slf4j.version}</version>
     </dependency>
     <!-- tests -->
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -295,12 +296,12 @@
       <version>2.24.0</version>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.powermock</groupId>
-          <artifactId>powermock-module-junit4</artifactId>
-          <version>2.0.2</version>
-          <scope>test</scope>
-      </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>2.0.2</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito2</artifactId>
@@ -609,23 +610,23 @@
               <includes>
                 <include>TestRunner.java</include>
               </includes>
-                <environmentVariables>
-                  <SALESFORCE_MARKETING_CLIENT_ID>
-                    ${SALESFORCE_MARKETING_CLIENT_ID}
-                  </SALESFORCE_MARKETING_CLIENT_ID>
-                  <SALESFORCE_MARKETING_CLIENT_SECRET>
-                    ${SALESFORCE_MARKETING_CLIENT_SECRET}
-                  </SALESFORCE_MARKETING_CLIENT_SECRET>
-                  <SALESFORCE_MARKETING_BASEURI>
-                    ${SALESFORCE_MARKETING_BASEURI}
-                  </SALESFORCE_MARKETING_BASEURI>
-                  <SALESFORCE_MARKETING_SOAP_API_ENDPOINT>
-                    ${SALESFORCE_MARKETING_SOAP_API_ENDPOINT}
-                  </SALESFORCE_MARKETING_SOAP_API_ENDPOINT>
-                  <SALESFORCE_MARKETING_REST_API_ENDPOINT>
-                    ${SALESFORCE_MARKETING_REST_API_ENDPOINT}
-                  </SALESFORCE_MARKETING_REST_API_ENDPOINT>
-                </environmentVariables>
+              <environmentVariables>
+                <SALESFORCE_MARKETING_CLIENT_ID>
+                  ${SALESFORCE_MARKETING_CLIENT_ID}
+                </SALESFORCE_MARKETING_CLIENT_ID>
+                <SALESFORCE_MARKETING_CLIENT_SECRET>
+                  ${SALESFORCE_MARKETING_CLIENT_SECRET}
+                </SALESFORCE_MARKETING_CLIENT_SECRET>
+                <SALESFORCE_MARKETING_BASEURI>
+                  ${SALESFORCE_MARKETING_BASEURI}
+                </SALESFORCE_MARKETING_BASEURI>
+                <SALESFORCE_MARKETING_SOAP_API_ENDPOINT>
+                  ${SALESFORCE_MARKETING_SOAP_API_ENDPOINT}
+                </SALESFORCE_MARKETING_SOAP_API_ENDPOINT>
+                <SALESFORCE_MARKETING_REST_API_ENDPOINT>
+                  ${SALESFORCE_MARKETING_REST_API_ENDPOINT}
+                </SALESFORCE_MARKETING_REST_API_ENDPOINT>
+              </environmentVariables>
             </configuration>
             <executions>
               <execution>
@@ -667,12 +668,6 @@
       <dependencyManagement>
         <dependencies>
           <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>31.0.1-jre</version>
-            <scope>compile</scope>
-          </dependency>
-          <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.2.8</version>
@@ -681,9 +676,14 @@
       </dependencyManagement>
       <dependencies>
         <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>31.1-jre</version>
+        </dependency>
+        <dependency>
           <groupId>io.cdap.tests.e2e</groupId>
           <artifactId>cdap-e2e-framework</artifactId>
-          <version>0.1.0-SNAPSHOT</version>
+          <version>0.2.0-SNAPSHOT</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

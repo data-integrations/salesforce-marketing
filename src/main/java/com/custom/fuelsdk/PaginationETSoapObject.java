@@ -34,6 +34,7 @@ import com.exacttarget.fuelsdk.internal.RetrieveResponseMsg;
 import com.exacttarget.fuelsdk.internal.Soap;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
+
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -70,10 +71,8 @@ public class PaginationETSoapObject extends ETSoapObject {
    * @param dataExtension
    * @param filter
    * @return
-   * @throws ETSdkException
-   *
-   * This method is from ETDataExtension with fix for pagination
-   * of Data Extension object.
+   * @throws ETSdkException This method is from ETDataExtension with fix for pagination
+   *                        of Data Extension object.
    */
   public static ETResponse<ETDataExtensionRow> select(ETClient client,
                                                       String dataExtension,
@@ -103,7 +102,7 @@ public class PaginationETSoapObject extends ETSoapObject {
       // to retrieve columns
       if (filter.getProperties().isEmpty()) {
         throw new ETSdkException("columns must be specified "
-                                   + "when retrieving data extensions by name");
+          + "when retrieving data extensions by name");
       }
 
     } else {
@@ -155,7 +154,7 @@ public class PaginationETSoapObject extends ETSoapObject {
 
     /*Start BUG FIX*/
     ETResponse<ETDataExtensionRow> response = customRetrieve(client, "DataExtensionObject[" + name + "]",
-                                                             filter, null, ETDataExtensionRow.class);
+      filter, null, ETDataExtensionRow.class);
     /*End BUG FIX*/
     return response;
   }
@@ -172,9 +171,8 @@ public class PaginationETSoapObject extends ETSoapObject {
                                                                ETFilter filter) throws ETSdkException {
 
 
-
     ETResponse<ETDataExtensionRow> response = customRetrieve(client, soapObject, filter, requestID,
-                                                             ETDataExtensionRow.class);
+      ETDataExtensionRow.class);
     return response;
   }
 

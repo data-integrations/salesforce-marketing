@@ -15,6 +15,8 @@
  */
 package io.cdap.plugin.sfmc.sink;
 
+import com.exacttarget.fuelsdk.ETSdkException;
+
 public class MarketingCloudConfHelper {
 
   /**
@@ -106,10 +108,9 @@ public class MarketingCloudConfHelper {
       return this;
     }
 
-    public MarketingCloudConf build() {
+    public MarketingCloudConf build() throws ETSdkException {
       return new MarketingCloudConf(referenceName, clientId, clientSecret, dataExtension, authEndpoint, soapEndpoint,
-        maxBatchSize,
-        operation, columnMapping, failOnError, replaceWithSpaces, truncateText);
+        maxBatchSize, operation, columnMapping, failOnError, replaceWithSpaces, truncateText);
     }
   }
 }

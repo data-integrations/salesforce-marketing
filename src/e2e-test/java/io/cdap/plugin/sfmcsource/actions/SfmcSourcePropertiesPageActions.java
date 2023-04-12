@@ -115,6 +115,7 @@ public class SfmcSourcePropertiesPageActions {
     throws IOException, InterruptedException {
     String selectQuery = "SELECT TO_JSON(t) FROM `" + projectId + "." + dataset + "." + table + "` AS t WHERE " +
       "id='" + uniqueId + "' ";
+
     TableResult result = BigQueryClient.getQueryResult(selectQuery);
     result.iterateAll().forEach(value -> bigQueryRows.add(value.get(0).getValue().toString()));
   }

@@ -21,11 +21,10 @@ import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETResult;
 import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.format.StructuredRecord;
-import io.cdap.cdap.etl.api.validation.ValidationException;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +32,7 @@ import java.util.List;
 public class DataExtensionRecordWriterTest {
 
   @Test
-  public void testWriteBatchWithInsert() throws ETSdkException, IOException, NoSuchFieldException {
+  public void testWriteBatchWithInsert() throws ETSdkException, IOException {
     StructuredRecord record = Mockito.mock(StructuredRecord.class);
     ETResponse<ETDataExtensionRow> response = new ETResponse<>();
     response.setRequestId("id");
@@ -54,6 +53,33 @@ public class DataExtensionRecordWriterTest {
                                                                          Operation.INSERT, 0, false));
     dataExtensionRecordWriter.write(null, record);
     Mockito.verify(dataExtensionRecordWriter, Mockito.times(1)).writeBatch();
+  }
+
+  @Test
+  public void testWriteBatchWithNullOperation() throws ETSdkException, IOException {
+    StructuredRecord record = Mockito.mock(StructuredRecord.class);
+    ETResponse<ETDataExtensionRow> response = new ETResponse<>();
+    response.setRequestId("id");
+    response.setStatus(ETResult.Status.ERROR);
+    List<ETDataExtensionRow> batch = new ArrayList<>();
+    List<ETDataExtensionColumn> columnList = new ArrayList<>();
+    ETDataExtensionColumn column = new ETDataExtensionColumn();
+    column.setLength(123);
+    column.setName("Name");
+    columnList.add(column);
+    DataExtensionClient dataExtensionClient = Mockito.mock(DataExtensionClient.class);
+    Mockito.when(dataExtensionClient.insert(batch)).thenReturn(response);
+    DataExtensionInfo info = new DataExtensionInfo("externalKey", columnList);
+    RecordDataExtensionRowConverter recordDataExtensionRowConverter = new RecordDataExtensionRowConverter(info, true);
+    DataExtensionRecordWriter dataExtensionRecordWriter = Mockito.spy(new DataExtensionRecordWriter
+                                                                        (dataExtensionClient,
+                                                                         recordDataExtensionRowConverter, null, 0,
+                                                                         true));
+    try {
+      dataExtensionRecordWriter.writeBatch();
+    } catch (Exception e) {
+      Mockito.verify(dataExtensionRecordWriter, Mockito.times(1)).writeBatch();
+    }
   }
 
   @Test

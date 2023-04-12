@@ -30,7 +30,6 @@ Feature: Salesforce Marketing Cloud Source - Design time scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     Then Validate output schema with expectedSchema "<ExpectedSchema>"
     Examples:
       | ObjectName    | ExpectedSchema                |
@@ -52,7 +51,6 @@ Feature: Salesforce Marketing Cloud Source - Design time scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Multi Object"
     And fill Object List with below listed Objects in the Multi Object mode:
       | BOUNCE_EVENT | NOTSENT_EVENT |
@@ -68,7 +66,6 @@ Feature: Salesforce Marketing Cloud Source - Design time scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Select dropdown plugin property: "select-queryMode" with option value: "Single Object"
     And configure source plugin for Object: "<ObjectName>" in the Single Object mode
     And Enter input plugin property: "dataExtensionKey" with value: "New_Stores"
@@ -91,7 +88,6 @@ Feature: Salesforce Marketing Cloud Source - Design time scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Enter input plugin property Data Extension external key as: "key221"
     And Enter input plugin property: "tableNameField" with value: "tablename"
     Then Click on the Validate button
@@ -108,7 +104,6 @@ Feature: Salesforce Marketing Cloud Source - Design time scenarios
     And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
     And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
-    And Enter input plugin property: "restEndpoint" with value: "admin.rest.endpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "filter" with value: "<Filter>"
     Then Validate output schema with expectedSchema "<ExpectedSchema>"
     And Click on the Validate button

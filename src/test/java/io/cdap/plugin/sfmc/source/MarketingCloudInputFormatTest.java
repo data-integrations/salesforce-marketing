@@ -33,19 +33,18 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({MarketingCloudClient.class, MarketingCloudInputFormat.class, ETClient.class})
+@PrepareForTest({MarketingCloudClient.class, MarketingCloudInputFormat.class, ETClient.class,
+  MarketingCloudSourceConfig.class})
 public class MarketingCloudInputFormatTest {
   private static final String CLIENT_ID = "clientId";
   private static final String CLIENT_SECRET = "clientSecret";
   private static final String AUTH_ENDPOINT = "authEndPoint";
   private static final String SOAP_ENDPOINT = "soapEndPoint";
-  private static final Logger LOG = LoggerFactory.getLogger(MarketingCloudInputFormat.class);
   private MarketingCloudSourceConfig config;
 
   @Before
@@ -55,30 +54,31 @@ public class MarketingCloudInputFormatTest {
                                                         "dataExtensionKey", "objectList",
                                                         "dataExtensionKeys", "tableNameField",
                                                         "filter", CLIENT_ID, CLIENT_SECRET,
-                                                        "restEndPoint", AUTH_ENDPOINT, SOAP_ENDPOINT));
+                                                         AUTH_ENDPOINT, SOAP_ENDPOINT));
       config = Mockito.spy(new MarketingCloudSourceConfig("referenceName", "queryMode",
         "objectName",
         "dataExtensionKey", "objectList",
         "dataExtensionKeys", "tableNameField",
-        "filter", CLIENT_ID, CLIENT_SECRET, "restEndPoint", AUTH_ENDPOINT, SOAP_ENDPOINT));
+        "filter", CLIENT_ID, CLIENT_SECRET,  AUTH_ENDPOINT, SOAP_ENDPOINT));
 
     config = Mockito.spy(new MarketingCloudSourceConfig("referenceName", "queryMode",
                                                         "objectName",
                                                         "dataExtensionKey", "objectList",
                                                         "dataExtensionKeys", "tableNameField",
                                                         "filter", CLIENT_ID, CLIENT_SECRET,
-                                                        "restEndPoint", AUTH_ENDPOINT, SOAP_ENDPOINT));
+                                                         AUTH_ENDPOINT, SOAP_ENDPOINT));
   }
 
   @Test
   public void testFetchTableInfoWithDtaExtension() throws Exception {
     MarketingCloudSourceConfig config = new MarketingCloudSourceConfig("referenceName", "queryMode",
                                                                        "objectName",
-                                                                       "dataExtensionKey", "objectList",
+                                                                       "dataExtensionKey",
+                                                                       "objectList",
                                                                        "dataExtensionKeys",
                                                                        "tableNameField", "filter",
                                                                        CLIENT_ID, CLIENT_SECRET,
-                                                                       "restEndPoint", AUTH_ENDPOINT, SOAP_ENDPOINT);
+                                                                        AUTH_ENDPOINT, SOAP_ENDPOINT);
     SourceQueryMode mode = SourceQueryMode.SINGLE_OBJECT;
     SourceObject object = SourceObject.DATA_EXTENSION;
     ETConfiguration conf = Mockito.spy(new ETConfiguration());
@@ -108,12 +108,14 @@ public class MarketingCloudInputFormatTest {
   @Test
   public void testFetchTableInfoWithMultiObject() throws Exception {
     MarketingCloudSourceConfig config = new MarketingCloudSourceConfig("referenceName", "queryMode",
-                                                                       "objectName", "dataExtensionKey",
+                                                                       "objectName",
+                                                                       "dataExtensionKey",
                                                                        "Data Extension,Unsub Event",
-                                                                       "dataExtensionKeys1,dataExtensionKey2",
+                                                                       "dataExtensionKeys1," +
+                                                                         "dataExtensionKey2",
                                                                        "tableNameField",
                                                                        "filter", CLIENT_ID, CLIENT_SECRET,
-                                                                       "restEndPoint", AUTH_ENDPOINT, SOAP_ENDPOINT);
+                                                                        AUTH_ENDPOINT, SOAP_ENDPOINT);
     SourceQueryMode mode = SourceQueryMode.MULTI_OBJECT;
     SourceObject object = SourceObject.DATA_EXTENSION;
     ETConfiguration conf = Mockito.spy(new ETConfiguration());

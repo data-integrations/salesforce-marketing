@@ -27,4 +27,19 @@ public class MarketingCloudJobConfigurationTest {
     Assert.assertSame(configuration, (new MarketingCloudJobConfiguration(configuration)).getConf());
   }
 
+  @Test
+  public void testPluginConf() {
+    Configuration configuration = new Configuration();
+    MarketingCloudJobConfiguration marketingCloudJobConfiguration = new MarketingCloudJobConfiguration(configuration);
+    marketingCloudJobConfiguration.getPluginConf();
+  }
+
+  @Test
+  public void testPluginInfo() {
+    Configuration configuration = new Configuration();
+    MarketingCloudJobConfiguration marketingCloudJobConfiguration = new MarketingCloudJobConfiguration(configuration);
+    marketingCloudJobConfiguration.getTableInfos();
+  }
+
+
 }
