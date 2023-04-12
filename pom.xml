@@ -60,7 +60,7 @@
     <junit.version>4.12</junit.version>
     <hadoop.version>2.10.2</hadoop.version>
     <hydrator.version>2.10.0</hydrator.version>
-    <guava.version>27.0.1-jre</guava.version>
+    <guava.version>29.0-jre</guava.version>
     <salesforce.marketing.cloud.version>1.6.0</salesforce.marketing.cloud.version>
     <slf4j.version>1.7.36</slf4j.version>
     <stax2.version>4.2.1</stax2.version>
@@ -678,7 +678,7 @@
         <dependency>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
-          <version>31.1-jre</version>
+          <version>29.0-jre</version>
         </dependency>
         <dependency>
           <groupId>io.cdap.tests.e2e</groupId>
