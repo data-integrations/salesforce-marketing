@@ -117,12 +117,14 @@ public class MarketingCloudClient {
    * Fetch records for passed object from Salesforce Marketing Cloud.
    *
    * @param object The SourceObject which tells what data to be fetched from Salesforce Marketing Cloud
-   * @return The list of ETApiObject representing the records from requested object
+   * @param filterStr The filter string to filter the records
+   * @return The list of ETApiObject representing the records from requested object.
    */
-  public ETResponse<? extends ETSoapObject> fetchObjectRecords(SourceObject object, @Nullable String requestId)
+  public ETResponse<? extends ETSoapObject> fetchObjectRecords(SourceObject object, @Nullable String filterStr,
+                                                               @Nullable String requestId)
     throws ETSdkException {
     ETFilter filter = new ETFilter();
-    filter.setExpression(getExpressionfromString(object.getFilter()));
+    filter.setExpression(getExpressionfromString(filterStr));
     return fetchObjectData(client, object.getClassRef(), filter, requestId);
   }
 
@@ -145,7 +147,7 @@ public class MarketingCloudClient {
    * @return The list of ETDataExtensionRow representing the records from requested data extension
    * @throws ETSdkException The FuelSDKException
    */
-  public ETResponse<ETDataExtensionRow> fetchDataExtensionRecords(String dataExtensionKey, String filterStr,
+  public ETResponse<ETDataExtensionRow> fetchDataExtensionRecords(String dataExtensionKey, @Nullable String filterStr,
                                                                   @Nullable String requestId) throws ETSdkException {
 
     ETFilter filter = new ETFilter();

@@ -40,7 +40,7 @@ public class MarketingCloudClientTest {
     ETClient etClient = PowerMockito.mock(ETClient.class);
     PowerMockito.whenNew(ETClient.class).withArguments(Mockito.anyString()).thenReturn(etClient);
     MarketingCloudClient client = new MarketingCloudClient(etClient);
-    Assert.assertNull(client.fetchObjectRecords(object, null));
+    Assert.assertNull(client.fetchObjectRecords(object, "IsUnique = 1", null));
   }
 
   @Test
