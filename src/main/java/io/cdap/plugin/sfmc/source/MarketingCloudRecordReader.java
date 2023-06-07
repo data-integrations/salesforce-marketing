@@ -139,13 +139,14 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
                                        pluginConf.getConnection().getClientSecret(),
                                        pluginConf.getConnection().getAuthEndpoint(),
                                        pluginConf.getConnection().getSoapEndpoint());
+    String filterStr = pluginConf.getFilter();
     //Fetch data
     if (object == SourceObject.DATA_EXTENSION) {
-      response = marketingCloudInputFormat.fetchDataExtensionRecords(dataExtensionKey, object.getFilter(), requestId);
+      response = marketingCloudInputFormat.fetchDataExtensionRecords(dataExtensionKey, filterStr, requestId);
       results = response.getObjects();
       requestId = response.getRequestId();
     } else {
-      response = marketingCloudInputFormat.fetchObjectRecords(object, requestId);
+      response = marketingCloudInputFormat.fetchObjectRecords(object, filterStr, requestId);
       results = response.getObjects();
       requestId = response.getRequestId();
     }
@@ -182,4 +183,3 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     schema = Schema.recordOf(tableName.replaceAll("-", "_"), schemaFields);
   }
 }
-

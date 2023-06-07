@@ -196,7 +196,7 @@ public class MarketingCloudConnector implements DirectConnector {
                                                    MarketingCloudClient marketingCloudClient)
     throws ETSdkException {
     List<StructuredRecord> sampleList = new ArrayList<>();
-    response = marketingCloudClient.fetchObjectRecords(sourceObject, null);
+    response = marketingCloudClient.fetchObjectRecords(sourceObject, null, null);
     schema = config.getSchema(sourceObject);
     MarketingCloudObjectInfo sfObjectMetaData = marketingCloudClient.fetchObjectSchema(sourceObject);
     iterator = response.getObjects().iterator();

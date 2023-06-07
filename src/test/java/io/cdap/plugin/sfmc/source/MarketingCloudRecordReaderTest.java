@@ -145,7 +145,8 @@ public class MarketingCloudRecordReaderTest {
     PowerMockito.mockStatic(ClassLoader.class);
     Mockito.when(client.fetchObjectSchema(object)).thenReturn(sObjectInfo);
     Mockito.when(sObjectInfo.getSchema()).thenReturn(schema);
-    Mockito.doReturn(response).when(client).fetchObjectRecords(object, null);
+    String filterStr = marketingCloudSourceConfig.getFilter();
+    Mockito.doReturn(response).when(client).fetchObjectRecords(object, filterStr, null);
     Mockito.doReturn(results).when(response).getObjects();
     marketingCloudRecordReader.initialize(split, null);
     try {
@@ -316,7 +317,9 @@ public class MarketingCloudRecordReaderTest {
     PowerMockito.mockStatic(ClassLoader.class);
     Mockito.when(client.fetchObjectSchema(object)).thenReturn(sObjectInfo);
     Mockito.when(sObjectInfo.getSchema()).thenReturn(schema);
-    Mockito.when(client.fetchObjectRecords(object, null)).thenReturn(etResponse);
+    String filterStr = marketingCloudSourceConfig.getFilter();
+    Mockito.when(client.fetchObjectRecords(object, filterStr, null))
+      .thenReturn(etResponse);
     Mockito.when(responses.getObjects()).thenReturn((List<ETDataExtensionRow>) results);
     marketingCloudRecordReader.initialize(split, null);
     try {
@@ -498,7 +501,8 @@ public class MarketingCloudRecordReaderTest {
     PowerMockito.mockStatic(ClassLoader.class);
     Mockito.when(client.fetchObjectSchema(object)).thenReturn(sObjectInfo);
     Mockito.when(sObjectInfo.getSchema()).thenReturn(schema);
-    Mockito.doReturn(response).when(client).fetchObjectRecords(object, null);
+    String filterStr = marketingCloudSourceConfig.getFilter();
+    Mockito.doReturn(response).when(client).fetchObjectRecords(object, filterStr, null);
     Mockito.doReturn(results).when(response).getObjects();
     marketingCloudRecordReader.initialize(split, null);
     marketingCloudRecordReader.nextKeyValue();

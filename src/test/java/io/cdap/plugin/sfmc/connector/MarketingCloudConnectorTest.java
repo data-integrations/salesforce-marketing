@@ -267,7 +267,8 @@ public class MarketingCloudConnectorTest {
     Mockito.when(MarketingCloudClient.getOrCreate(connectorConfig.getClientId(), connectorConfig.getClientSecret(),
                                                   connectorConfig.getAuthEndpoint(), connectorConfig.getSoapEndpoint()))
       .thenReturn(marketingCloudClient);
-    Mockito.doReturn(response).when(marketingCloudClient).fetchObjectRecords(SourceObject.MAILING_LIST, null);
+    Mockito.doReturn(response).when(marketingCloudClient).fetchObjectRecords(SourceObject.MAILING_LIST, null,
+      null);
     Mockito.doReturn(result).when(response).getObjects();
     FieldSetter.setField(connector, MarketingCloudConnector.class.getDeclaredField("schema"), schema);
     Mockito.when(marketingCloudClient.fetchObjectSchema(SourceObject.MAILING_LIST)).thenReturn(objectInfo);
