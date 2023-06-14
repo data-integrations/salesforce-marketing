@@ -151,4 +151,9 @@ public class SfmcSourcePropertiesPageActions {
       Assert.assertTrue(compareValueOfBothResponses(expectedOutput.get(row), bigQueryRows.get(row)));
     }
   }
+
+  public static void clickOnMarketingConnection() {
+    String connectionName = PluginPropertyUtils.pluginProp("connection.name");
+    ElementHelper.clickOnElement(CdfPluginPropertiesLocators.locateElementContainingText(connectionName));
+  }
 }

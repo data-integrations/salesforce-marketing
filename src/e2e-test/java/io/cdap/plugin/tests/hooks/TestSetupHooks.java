@@ -159,4 +159,13 @@ public class TestSetupHooks {
     String dropQuery = "DROP TABLE `" + projectId + "." + datasetName + "." + table + "`";
     BigQueryClient.getSoleQueryResult(dropQuery);
   }
+  @Before(order = 1, value = "@CONNECTION")
+  public static void setNewConnectionName() {
+    String connectionName = "Connection" + RandomStringUtils.randomAlphanumeric(10);
+    PluginPropertyUtils.addPluginProp("connection.name", connectionName);
+    BeforeActions.scenario.write("New Connection name: " + connectionName);
+
+    String connectionMacros = "${conn(" + connectionName + ")}";
+    PluginPropertyUtils.addPluginProp("connectionMacros", connectionMacros);
+  }
 }
