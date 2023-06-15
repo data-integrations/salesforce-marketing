@@ -18,7 +18,7 @@ Properties
 For example, `https://instance.auth.marketingcloudapis.com/`
 
 **SOAP API Endpoint**: The SOAP Endpoint URL associated for the Server-to-Server API integration. For example,
-`https://instance.soap.marketingcloudapis.com/Service.asmx`
+`https://instance.soap.marketingcloudapis.com/`
 
 Path of the connection
 ----------------------

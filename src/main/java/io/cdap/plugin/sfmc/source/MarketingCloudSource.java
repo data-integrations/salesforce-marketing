@@ -121,7 +121,7 @@ public class MarketingCloudSource extends BatchSource<NullWritable, StructuredRe
   }
 
   private void recordLineage(BatchSourceContext context, MarketingCloudObjectInfo tableInfo) {
-    String tableName = tableInfo.getFormattedTableName();
+    String tableName = tableInfo.getFormattedTableName().replaceAll("-|\\s", "_");
     String outputName = String.format("%s-%s", conf.getReferenceName(), tableName);
     Schema schema = tableInfo.getSchema();
     LineageRecorder lineageRecorder = new LineageRecorder(context, outputName);

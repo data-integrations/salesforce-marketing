@@ -34,7 +34,6 @@ import com.exacttarget.fuelsdk.internal.RetrieveResponseMsg;
 import com.exacttarget.fuelsdk.internal.Soap;
 import io.cdap.plugin.sfmc.source.util.MarketingCloudConstants;
 import io.cdap.plugin.sfmc.source.util.SourceObject;
-
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -67,10 +66,12 @@ public class PaginationETSoapObject extends ETSoapObject {
   private static Logger logger = Logger.getLogger(PaginationETSoapObject.class);
 
   /**
-   * @param client
-   * @param dataExtension
-   * @param filter
-   * @return
+   * Filter and retrieve the records from requested data extension
+   *
+   * @param client        The ETClient object
+   * @param dataExtension The data extension key. For example, `54068FF1-E1A6-4207-8184-09C61D420DC7`
+   * @param filter        The filter string to filter the records
+   * @return The list of ETDataExtensionRow representing the records from requested data extension
    * @throws ETSdkException This method is from ETDataExtension with fix for pagination
    *                        of Data Extension object.
    */
@@ -78,24 +79,28 @@ public class PaginationETSoapObject extends ETSoapObject {
                                                       String dataExtension,
                                                       ETFilter filter)
     throws ETSdkException {
-    String name = null;
-
     //
     // The data extension can be specified using key or name:
     //
 
-    ETExpression e = ETExpression.parse(dataExtension);
+    ETExpression e = ETExpression.parse(String.format("key=%s", dataExtension));
     if (e.getProperty().toLowerCase().equals("key")
       && e.getOperator() == ETExpression.Operator.EQUALS) {
-      name = e.getValue();
+
+      // Discussion pending with the Salesforce team regarding their SOAP API.
+      // name = e.getValue();
+
       // if no columns are explicitly requested
       // retrieve all columns
       if (filter.getProperties().isEmpty()) {
-        filter.setProperties(retrieveColumnNames(client, name));
+        filter.setProperties(retrieveColumnNames(client, dataExtension));
       }
     } else if (e.getProperty().toLowerCase().equals("name")
       && e.getOperator() == ETExpression.Operator.EQUALS) {
-      name = e.getValue();
+
+      // Discussion pending with the Salesforce team regarding their SOAP API.
+      // name = e.getValue();
+
       // if no columns are explicitly requested
       // throw an exception
       // because we need the key
@@ -153,8 +158,8 @@ public class PaginationETSoapObject extends ETSoapObject {
      */
 
     /*Start BUG FIX*/
-    ETResponse<ETDataExtensionRow> response = customRetrieve(client, "DataExtensionObject[" + name + "]",
-      filter, null, ETDataExtensionRow.class);
+    ETResponse<ETDataExtensionRow> response = customRetrieve(client,
+      "DataExtensionObject[" + dataExtension + "]", filter, null, ETDataExtensionRow.class);
     /*End BUG FIX*/
     return response;
   }

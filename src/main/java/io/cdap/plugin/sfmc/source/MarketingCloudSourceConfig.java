@@ -16,6 +16,8 @@
 
 package io.cdap.plugin.sfmc.source;
 
+import com.exacttarget.fuelsdk.ETDataExtension;
+import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -30,7 +32,7 @@ import io.cdap.plugin.sfmc.source.util.Util;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 
@@ -97,9 +99,9 @@ public class MarketingCloudSourceConfig extends SalesforceMarketingCloudBaseConf
   @Name(MarketingCloudConstants.PROPERTY_TABLE_NAME_FIELD)
   @Macro
   @Nullable
-  @Description("The name of the field that holds the object name to which the data belongs to. Must not be the name" +
+  @Description("The name of the field that holds the object name to which the data belongs to. Must not be the name " +
     "of any column for any of the objects that will be read. For the Data Extension object, this field will have a " +
-    "value in dataextension_[Data Extension Key] format. Note, the Table Name property value is ignored if the mode" +
+    "value in dataextension_[Data Extension Key] format. Note, the Table Name property value is ignored if the mode " +
     "is set to Single Object.")
   private String tableNameField;
 
@@ -319,6 +321,14 @@ public class MarketingCloudSourceConfig extends SalesforceMarketingCloudBaseConf
       if (dataExtensionKeyList.isEmpty()) {
         collector.addFailure("At least 1 Data Extension Key must be specified.", null)
           .withConfigProperty(MarketingCloudConstants.PROPERTY_DATA_EXTENSION_KEY_LIST);
+      } else {
+        if (getConnection().shouldConnect()) {
+          if (!getActualDataExtensionKeys(collector).containsAll(dataExtensionKeyList)) {
+            collector.addFailure("Data Extension Keys provided, are invalid.",
+                                 "Please specify valid data extension keys.")
+              .withConfigProperty(MarketingCloudConstants.PROPERTY_DATA_EXTENSION_KEY_LIST);
+          }
+        }
       }
     }
 
@@ -336,9 +346,19 @@ public class MarketingCloudSourceConfig extends SalesforceMarketingCloudBaseConf
 
     SourceObject object = getObject(collector);
 
-    if (object == SourceObject.DATA_EXTENSION && Util.isNullOrEmpty(dataExtensionKey)) {
-      collector.addFailure("Data Extension Key must be specified.", null)
-        .withConfigProperty(MarketingCloudConstants.PROPERTY_DATA_EXTENSION_KEY);
+    if (object == SourceObject.DATA_EXTENSION) {
+      if (Util.isNullOrEmpty(dataExtensionKey)) {
+        collector.addFailure("Data Extension Key must be specified.", null)
+          .withConfigProperty(MarketingCloudConstants.PROPERTY_DATA_EXTENSION_KEY);
+      } else {
+        if (getConnection().shouldConnect()) {
+          if (!getActualDataExtensionKeys(collector).contains(dataExtensionKey)) {
+            collector.addFailure("Data Extension Key provided, is invalid.",
+                                 "Please specify a valid data extension key.")
+              .withConfigProperty(MarketingCloudConstants.PROPERTY_DATA_EXTENSION_KEY);
+          }
+        }
+      }
     }
   }
 
@@ -354,5 +374,31 @@ public class MarketingCloudSourceConfig extends SalesforceMarketingCloudBaseConf
         .withConfigProperty(MarketingCloudConstants.PROPERTY_FILTER)
         .withStacktrace(e.getStackTrace());
     }
+  }
+
+  public List<String> getActualDataExtensionKeys(FailureCollector collector) {
+    List<String> actualDataExtensionKeys = new ArrayList<>();
+    try {
+      MarketingCloudClient marketingCloudClient = MarketingCloudClient.getOrCreate(getConnection().getClientId(),
+                                                                                   getConnection().getClientSecret(),
+                                                                                   getConnection().getAuthEndpoint(),
+                                                                                   getConnection().getSoapEndpoint());
+
+      ETResponse<ETDataExtension> response = marketingCloudClient.retrieveDataExtensionKeys();
+      actualDataExtensionKeys = response.getObjects().stream().map(e -> e.getKey())
+        .collect(Collectors.toList());
+    } catch (ETSdkException e) {
+      collector.addFailure("Unable to connect to Salesforce Instance.",
+                           "Ensure properties like Client ID, Client Secret, API Endpoint, " +
+                             "Soap Endpoint, Auth Endpoint are correct.")
+        .withConfigProperty(MarketingCloudConstants.PROPERTY_CLIENT_ID)
+        .withConfigProperty(MarketingCloudConstants.PROPERTY_CLIENT_SECRET)
+        .withConfigProperty(MarketingCloudConstants.PROPERTY_AUTH_API_ENDPOINT)
+        .withConfigProperty(MarketingCloudConstants.PROPERTY_SOAP_API_ENDPOINT)
+        .withStacktrace(e.getStackTrace());
+      collector.getOrThrowException();
+    }
+    return actualDataExtensionKeys;
+
   }
 }

@@ -162,7 +162,7 @@ public class MarketingCloudConfTest {
     MarketingCloudConf config = new MarketingCloudConf("referenceName", CLIENT_ID,
                                                        CLIENT_SECRET, "DE", AUTH_ENDPOINT,
                                                        SOAP_ENDPOINT, 500, null,
-                                                       "column=mapping", null,
+                                                       null, null,
                                                        null, null);
     config.shouldFailOnError();
     config.shouldTruncateText();

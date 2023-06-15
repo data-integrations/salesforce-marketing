@@ -76,11 +76,11 @@ public class MarketingCloudObjectInfo {
   }
 
   /**
-   * Replaces all hyphen (-) characters in column name with single underscore
+   * Replaces all hyphen (-) and space characters in column name with single underscore
    * @return table name with all characters replaced.
    */
   public String getFormattedTableName() {
-    return getTableName().replaceAll("-", "_");
+    return getTableName().replaceAll("-|\\s", "_");
   }
 
   public Schema getSchema() {

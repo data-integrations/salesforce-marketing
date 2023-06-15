@@ -60,7 +60,7 @@
           "label": "SOAP API Endpoint",
           "name": "soapEndpoint",
           "widget-attributes" : {
-            "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com/Service.asmx"
+            "placeholder": "Salesforce SOAP API Endpoint e.g. https://instance.Salesforce.soap.marketingcloudapis.com"
           }
         }
       ]

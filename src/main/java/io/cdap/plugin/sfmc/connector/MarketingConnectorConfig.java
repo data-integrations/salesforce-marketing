@@ -52,7 +52,7 @@ public class MarketingConnectorConfig extends PluginConfig {
   @Name(MarketingCloudConstants.PROPERTY_SOAP_API_ENDPOINT)
   @Macro
   @Description("The SOAP Endpoint URL associated for the Server-to-Server API integration. " +
-    "For example, https://instance.soap.marketingcloudapis.com/Service.asmx")
+    "For example, https://instance.soap.marketingcloudapis.com/")
   private final String soapEndpoint;
 
   public MarketingConnectorConfig(String clientId, String clientSecret, String authEndpoint, String soapEndpoint) {

@@ -16,6 +16,7 @@
 
 package io.cdap.plugin.sfmc.sink;
 
+import com.exacttarget.fuelsdk.ETClient;
 import com.exacttarget.fuelsdk.ETSdkException;
 import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.Description;
@@ -146,7 +147,30 @@ public class MarketingCloudConf extends SalesforceMarketingCloudBaseConfig {
           throw collector.getOrThrowException();
         }
         if (fieldNames.contains(parts[0])) {
-          mapping.put(parts[0], parts[1]);
+          if (getConnection().shouldConnect()) {
+            try {
+              DataExtensionClient client = DataExtensionClient.create(dataExtension, getConnection().getClientId(),
+                                                                      getConnection().getClientSecret(),
+                                                                      getConnection().getAuthEndpoint(),
+                                                                      getConnection().getSoapEndpoint());
+              if (client.getDataExtensionInfo().getColumn(parts[1]) != null) {
+                mapping.put(parts[0], parts[1]);
+              } else {
+                collector.addFailure(String.format("Invalid data extension column name: %s", parts[1]),
+                                     "Make sure column name exists in the data extension")
+                  .withConfigProperty(COLUMN_MAPPING);
+                throw collector.getOrThrowException();
+              }
+            } catch (ETSdkException e) {
+              collector.addFailure("Error while validating Marketing Cloud client: " + e.getMessage(), null)
+                .withStacktrace(e.getStackTrace());
+            }
+          }
+        } else {
+          collector.addFailure(String.format("Invalid column name: %s", parts[0]),
+                               "Make sure column name exists in the input schema")
+            .withConfigProperty(COLUMN_MAPPING);
+          throw collector.getOrThrowException();
         }
       }
     }
