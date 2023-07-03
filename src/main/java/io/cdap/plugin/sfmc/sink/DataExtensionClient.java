@@ -130,8 +130,7 @@ public class DataExtensionClient {
                 collector.addFailure(
                   String.format("Column '%s' is a boolean in data extension '%s', but is a '%s' in the input schema.",
                                 originalName, dataExtensionKey, schemaTypeStr),
-                  "Change the field schema to ensure it is a boolean or string type.")
-                  .withInputSchemaField(fieldName);
+                  "Change the field schema to ensure it is a boolean or string type.");
               }
               break;
             case DECIMAL:
@@ -139,7 +138,7 @@ public class DataExtensionClient {
                 collector.addFailure(
                   String.format("Column '%s' is a decimal in data extension '%s', but is a '%s' in the input schema.",
                                 originalName, dataExtensionKey, schemaTypeStr),
-                  "Change the field schema to ensure it is a decimal or string type.").withInputSchemaField(fieldName);
+                  "Change the field schema to ensure it is a decimal or string type.");
               }
               break;
             case PHONE:
@@ -149,14 +148,14 @@ public class DataExtensionClient {
               collector.addFailure(
                 String.format("Column '%s' is a %s in data extension '%s', but is a '%s' in the input schema.",
                               originalName, column.getType().name().toLowerCase(), dataExtensionKey, schemaTypeStr),
-                "Change the field schema to ensure it is a string type.").withInputSchemaField(fieldName);
+                "Change the field schema to ensure it is a string type.");
               break;
             case DATE:
               if (fieldSchema.getLogicalType() != Schema.LogicalType.DATE) {
                 collector.addFailure(
                   String.format("Column '%s' is a date in data extension '%s', but is a '%s' in the input schema.",
                                 originalName, dataExtensionKey, schemaTypeStr),
-                  "Change the field schema to ensure it is a date or string type.").withInputSchemaField(fieldName);
+                  "Change the field schema to ensure it is a date or string type.");
               }
               break;
             case NUMBER:
@@ -164,18 +163,18 @@ public class DataExtensionClient {
                 collector.addFailure(
                   String.format("Column '%s' is a number in data extension '%s', but is a '%s' in the input schema.",
                                 originalName, dataExtensionKey, schemaTypeStr),
-                  "Change the field schema to ensure it is an integer or string type.").withInputSchemaField(fieldName);
+                  "Change the field schema to ensure it is an integer or string type.");
               }
               break;
             default:
               collector.addFailure(
                 String.format("Unknown type '%s' for column '%s' in data extension '%s'.",
                               column.getType(), column.getName(), dataExtensionKey),
-                "Supported types are: boolean, decimal, phone, text, email_address, locale, date and number.")
-                .withInputSchemaField(fieldName);
+                "Supported types are: boolean, decimal, phone, text, email_address, locale, date and number.");
           }
         }
       }
+      collector.getOrThrowException();
       return null;
     });
   }

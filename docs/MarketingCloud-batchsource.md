@@ -26,7 +26,7 @@ You also can use the macro function ${conn(connection-name)}.
 For example, `https://instance.auth.marketingcloudapis.com/`
 
 **SOAP API Endpoint**: The SOAP Endpoint URL associated for the Server-to-Server API integration. For example,
-`https://instance.soap.marketingcloudapis.com/Service.asmx`
+`https://instance.soap.marketingcloudapis.com/`
 
 **Reference Name**: Name used to uniquely identify this source for lineage, annotating metadata, etc.
 

@@ -128,7 +128,7 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
   private void fetchData() throws Exception {
     object = SourceObject.valueOf(split.getObjectName());
     tableName = split.getTableName();
-    formattedTableName = tableName.replaceAll("-", "_");
+    formattedTableName = tableName.replaceAll("-|\\s", "_");
 
     if (object == SourceObject.DATA_EXTENSION) {
       dataExtensionKey = tableName.replaceAll(MarketingCloudConstants.DATA_EXTENSION_PREFIX, "");
@@ -180,6 +180,6 @@ public class MarketingCloudRecordReader extends RecordReader<NullWritable, Struc
     } catch (Exception e) {
       schemaFields = Collections.emptyList();
     }
-    schema = Schema.recordOf(tableName.replaceAll("-", "_"), schemaFields);
+    schema = Schema.recordOf(tableName.replaceAll("-|\\s", "_"), schemaFields);
   }
 }

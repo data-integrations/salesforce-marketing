@@ -155,7 +155,7 @@ public class MarketingCloudClient {
     ETResponse<ETDataExtensionRow> response = null;
 
     if (requestId == null) {
-      response = PaginationETSoapObject.select(client, "key=" + dataExtensionKey,
+      response = PaginationETSoapObject.select(client, dataExtensionKey,
                                                filter);
     } else {
       response = PaginationETSoapObject.continueRequest(client, null, requestId,

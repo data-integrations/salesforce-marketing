@@ -40,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -122,26 +123,40 @@ public class MarketingCloudDataExtensionSinkTest {
   }
 
   @Test
-  public void testConfigurePipeline() {
+  public void testConfigurePipelineWithInvalidColumnMapping() {
     BatchRuntimeContext context = Mockito.mock(BatchRuntimeContext.class);
     Map<String, Object> plugins = new HashMap<>();
     MockFailureCollector mockFailureCollector = new MockFailureCollector();
     Mockito.when(context.getFailureCollector()).thenReturn(mockFailureCollector);
     MockPipelineConfigurer mockPipelineConfigurer = new MockPipelineConfigurer(null, plugins);
-    marketingCloudDataExtensionSink.initialize(context);
-    marketingCloudDataExtensionSink.configurePipeline(mockPipelineConfigurer);
-    Assert.assertEquals(0, mockFailureCollector.getValidationFailures().size());
+    try {
+      marketingCloudDataExtensionSink.initialize(context);
+      marketingCloudDataExtensionSink.configurePipeline(mockPipelineConfigurer);
+      mockFailureCollector.getOrThrowException();
+      Assert.fail("Exception is thrown for invalid column mapping");
+    } catch (ValidationException e) {
+      Assert.assertEquals(1, mockFailureCollector.getValidationFailures().size());
+      Assert.assertEquals("Errors were encountered during validation. Invalid column name: <key",
+                          e.getMessage());
+    }
   }
 
   @Test
-  public void testPrepareRun() {
+  public void testPrepareRunWithInvalidColumnMapping() {
     MockFailureCollector mockFailureCollector = new MockFailureCollector();
     MockArguments mockArguments = new MockArguments();
     BatchSinkContext context = Mockito.mock(BatchSinkContext.class);
     Mockito.when(context.getFailureCollector()).thenReturn(mockFailureCollector);
     Mockito.when(context.getArguments()).thenReturn(mockArguments);
-    marketingCloudDataExtensionSink.prepareRun(context);
-    Assert.assertEquals(0, mockFailureCollector.getValidationFailures().size());
+    try {
+      marketingCloudDataExtensionSink.prepareRun(context);
+      mockFailureCollector.getOrThrowException();
+      Assert.fail("Exception is thrown for invalid column mapping");
+    } catch (ValidationException e) {
+      Assert.assertEquals(1, mockFailureCollector.getValidationFailures().size());
+      Assert.assertEquals("Errors were encountered during validation. Invalid column name: <key",
+                          e.getMessage());
+    }
   }
 
   @Test
@@ -155,6 +170,8 @@ public class MarketingCloudDataExtensionSinkTest {
     Mockito.when(batchSinkContext.getInputSchema()).thenReturn(inputSchema);
     Mockito.when(batchSinkContext.getFailureCollector()).thenReturn(mockFailureCollector);
     Mockito.when(batchSinkContext.getArguments()).thenReturn(mockArguments);
+    Map<String, String> columnMapping = new HashMap<>();
+    Mockito.doReturn(columnMapping).when(marketingCloudConf).getColumnMapping(inputSchema, mockFailureCollector);
     try {
       marketingCloudDataExtensionSink.prepareRun(batchSinkContext);
       mockFailureCollector.getOrThrowException();

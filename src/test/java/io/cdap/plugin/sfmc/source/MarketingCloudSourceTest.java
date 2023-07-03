@@ -16,7 +16,10 @@
 package io.cdap.plugin.sfmc.source;
 
 
+import com.exacttarget.fuelsdk.ETApiObject;
 import com.exacttarget.fuelsdk.ETClient;
+import com.exacttarget.fuelsdk.ETDataExtension;
+import com.exacttarget.fuelsdk.ETResponse;
 import com.exacttarget.fuelsdk.ETSdkException;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.dataset.lib.KeyValue;
@@ -115,6 +118,18 @@ public class MarketingCloudSourceTest {
     PowerMockito.whenNew(ETClient.class).withArguments(Mockito.anyString()).thenReturn(etClient);
     PowerMockito.whenNew(MarketingCloudClient.class).withArguments(Mockito.any()).thenReturn(client);
     PowerMockito.when(client.fetchDataExtensionSchema("dataExtensionKey")).thenReturn(sObjectInfo);
+    List<? extends ETApiObject> etApiObjects = new ArrayList<>();
+    List<ETDataExtension> etDataExtensions = new ArrayList<>();
+    ETApiObject row = new ETDataExtension();
+    row.setId("id");
+    ETDataExtension etDataExtension = new ETDataExtension();
+    etDataExtension.setKey("DE");
+    etDataExtension.setName("DE");
+    etDataExtensions.add(etDataExtension);
+    etApiObjects = etDataExtensions;
+    ETResponse<ETDataExtension> etResponse = Mockito.mock(ETResponse.class);
+    PowerMockito.when(client.retrieveDataExtensionKeys()).thenReturn(etResponse);
+    Mockito.doReturn(etApiObjects).when(etResponse).getObjects();
     marketingCloudSource.configurePipeline(mockPipelineConfigurer);
     Assert.assertNull(mockPipelineConfigurer.getOutputSchema());
     Assert.assertEquals(0, mockFailureCollector.getValidationFailures().size());
