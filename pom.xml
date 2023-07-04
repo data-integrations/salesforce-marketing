@@ -58,7 +58,7 @@
     <!-- version properties -->
     <cdap.version>6.8.0</cdap.version>
     <junit.version>4.12</junit.version>
-    <hadoop.version>2.10.2</hadoop.version>
+    <hadoop.version>3.2.4</hadoop.version>
     <hydrator.version>2.10.0</hydrator.version>
     <guava.version>27.0.1-jre</guava.version>
     <salesforce.marketing.cloud.version>1.6.0</salesforce.marketing.cloud.version>
