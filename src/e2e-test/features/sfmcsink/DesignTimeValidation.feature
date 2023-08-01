@@ -70,7 +70,7 @@ Feature: Salesforce Marketing Cloud Sink - Design time validation scenarios
     Then Verify mandatory property error for below listed properties:
       | dataExtension |
 
-  @BATCH-TS-SFMC-DSGN-ERROR-04
+  @BATCH-TS-SFMC-DSGN-ERROR-04 @CONNECTION
   Scenario: Verify user should be able to get invalid credentials validation message when using invalid credentials in the connection manager functionality
     When Open Datafusion Project to configure pipeline
     And Select Sink plugin: "SalesforceDataExtension" from the plugins list

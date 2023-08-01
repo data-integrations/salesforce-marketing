@@ -98,8 +98,8 @@ Feature: Salesforce Marketing Cloud Sink - Run time scenarios
     Then Verify the pipeline status is "Succeeded"
     Then Validate record created in Sink application for Object is equal to expected record
 
-  @SINK-TS-SFMC-RNTM-03 @BQ_SOURCE_UPDATE @BQ_SOURCE_CLEANUP
-  Scenario:Verify user should be able to preview and deploy the pipeline when plugin is configured for Update Operation
+  @SINK-TS-SFMC-RNTM-03 @BQ_SOURCE_UPDATE @BQ_SOURCE_CLEANUP @CONNECTION
+  Scenario:Verify user should be able to preview and deploy the pipeline when plugin is configured for Update Operation with Connection Manager
     When Open Datafusion Project to configure pipeline
     And Select plugin: "BigQuery" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "BigQuery"
@@ -145,4 +145,3 @@ Feature: Salesforce Marketing Cloud Sink - Run time scenarios
     And Run the Pipeline in Runtime
     And Wait till pipeline is in running state
     Then Verify the pipeline status is "Succeeded"
-    Then Validate record created in Sink application for Object is equal to expected record

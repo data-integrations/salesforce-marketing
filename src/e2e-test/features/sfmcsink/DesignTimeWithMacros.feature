@@ -64,7 +64,7 @@ Feature: Salesforce Marketing Cloud Sink - Design time scenarios (macros)
     And Click on the Macro button of Property: "columnMapping" and set the value to: "columnMapping"
     Then Validate "Salesforce Marketing" plugin properties
 
-  @BATCH-TS-SFMC-DSGN-MACRO-04
+  @BATCH-TS-SFMC-DSGN-MACRO-04 @CONNECTION
   Scenario: Verify user should be able to validate the plugin when configured for Connection Manager property with macros
     When Open Datafusion Project to configure pipeline
     And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"

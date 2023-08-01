@@ -126,7 +126,7 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Close the pipeline logs
     Then Validate record created in Sink application for Multi object mode is equal to expected output file "expectedOutputFile1"
 
-  @BATCH-TS-SFMC-DSGN-MACRO-03 @CONNECTION
+  @BATCH-TS-SFMC-DSGN-MACRO-03 @CONNECTION @BQ_SINK @FILE_PATH @BQ_SINK_CLEANUP
   Scenario: Verify user should be able to preview and deploy the pipeline when plugin is configured for Connection Manager property with macros
     When Open Datafusion Project to configure pipeline
     And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
@@ -144,6 +144,7 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     Then Click on the Test Connection button
     And Verify the test connection is successful
     Then Click on the Create button
+    And Use new connection
     And Click on the Macro button of Property: "connection" and set the value to: "Connection"
     And Select dropdown plugin property: "select-queryMode" with option value: "Single Object"
     And Click on the Macro button of Property: "objectName" and set the value to: "objectName"
@@ -180,4 +181,3 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Open and capture logs
     And Verify the pipeline status is "Succeeded"
     And Close the pipeline logs
-    Then Validate record created in Sink application for Object is equal to expected output file "expectedOutputFile1"

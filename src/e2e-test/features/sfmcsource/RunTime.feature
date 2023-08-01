@@ -143,10 +143,11 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios
       | MAILING_LIST | filter.value |
 
   @BATCH-TS-SFMC-RNTM-04 @BQ_SINK @FILE_PATH @BQ_SINK_CLEANUP @CONNECTION
-  Scenario: Verify user should be able to create the valid connection using connection manager functionality
+  Scenario Outline: Verify user should be able to create the valid connection using connection manager functionality
     When Open Datafusion Project to configure pipeline
     And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Salesforce Marketing"
+    And Enter input plugin property: "referenceName" with value: "Referencename"
     And Click plugin property: "switch-useConnection"
     And Click on the Browse Connections button
     And Click on the Add Connection button
@@ -189,4 +190,7 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios
     And Verify the pipeline status is "Succeeded"
     And Close the pipeline logs
     Then Validate record created in Sink application for Object is equal to expected output file "expectedOutputFile1"
+    Examples:
+      | ObjectName   | Filter       |
+      | MAILING_LIST | filter.value |
 

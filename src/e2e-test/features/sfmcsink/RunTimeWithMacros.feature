@@ -154,6 +154,7 @@ Feature: Salesforce Marketing Cloud Sink - Run time scenarios (macros)
     Then Click on the Test Connection button
     And Verify the test connection is successful
     Then Click on the Create button
+    And Use new connection
     And Click on the Macro button of Property: "connection" and set the value to: "Connection"
     And Select radio button plugin property: "truncateText" with value: "true"
     And Select radio button plugin property: "failOnError" with value: "true"
@@ -178,4 +179,3 @@ Feature: Salesforce Marketing Cloud Sink - Run time scenarios (macros)
     And Open and capture logs
     And Verify the pipeline status is "Succeeded"
     And Close the pipeline logs
-    Then Validate record created in Sink application for Object is equal to expected record

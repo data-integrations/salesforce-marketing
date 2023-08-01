@@ -127,4 +127,3 @@ Feature: Salesforce Marketing Cloud Source - Design time scenarios
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
     Then Click on the Test Connection button
     And Verify the test connection is successful
-    Then Click on the Create button

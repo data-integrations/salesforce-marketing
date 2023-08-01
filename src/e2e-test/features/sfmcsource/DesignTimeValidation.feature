@@ -79,7 +79,7 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
     And Click on the Validate button
     Then Verify that the Plugin Property: "dataExtensionKeyList" is displaying an in-line error message: "required.property.dataextensionkeymultiobject"
 
-  @BATCH-TS-SFMC-DSGN-ERROR-05
+  @BATCH-TS-SFMC-DSGN-ERROR-05 @CONNECTION
   Scenario: Verify user should be able to get invalid credentials validation message when using invalid credentials in the connection manager functionality
     When Open Datafusion Project to configure pipeline
     And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
