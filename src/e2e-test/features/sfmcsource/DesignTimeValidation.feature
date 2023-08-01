@@ -78,3 +78,20 @@ Feature: Salesforce Marketing Cloud Source - Design time Validation scenarios
       | DATA_EXTENSION | BOUNCE_EVENT |
     And Click on the Validate button
     Then Verify that the Plugin Property: "dataExtensionKeyList" is displaying an in-line error message: "required.property.dataextensionkeymultiobject"
+
+  @BATCH-TS-SFMC-DSGN-ERROR-05 @CONNECTION
+  Scenario: Verify user should be able to get invalid credentials validation message when using invalid credentials in the connection manager functionality
+    When Open Datafusion Project to configure pipeline
+    And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
+    And Navigate to the properties page of plugin: "Salesforce Marketing"
+    And Click plugin property: "switch-useConnection"
+    And Click on the Browse Connections button
+    And Click on the Add Connection button
+    And Click plugin property: "connector-MarketingCloud"
+    And Enter input plugin property: "name" with value: "connection.name"
+    And Enter input plugin property: "clientId" with value: "invalid.clientid"
+    And Enter input plugin property: "clientSecret" with value: "invalid.clientsecret"
+    And Enter input plugin property: "authEndpoint" with value: "invalid.authenticationbase.uri"
+    And Enter input plugin property: "soapEndpoint" with value: "invalid.soapapi.endpoint"
+    Then Click on the Test Connection button
+    Then Verify the invalid connection error message: "invalid.testconnection.logmessage" on the footer
