@@ -125,3 +125,59 @@ Feature: Salesforce Marketing Cloud Source - Run time Scenarios (macros)
     And Verify the pipeline status is "Succeeded"
     And Close the pipeline logs
     Then Validate record created in Sink application for Multi object mode is equal to expected output file "expectedOutputFile1"
+
+  @BATCH-TS-SFMC-DSGN-MACRO-03 @CONNECTION @BQ_SINK @FILE_PATH @BQ_SINK_CLEANUP
+  Scenario: Verify user should be able to preview and deploy the pipeline when plugin is configured for Connection Manager property with macros
+    When Open Datafusion Project to configure pipeline
+    And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
+    And Navigate to the properties page of plugin: "Salesforce Marketing"
+    And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Click plugin property: "switch-useConnection"
+    And Click on the Browse Connections button
+    And Click on the Add Connection button
+    And Click plugin property: "connector-MarketingCloud"
+    And Enter input plugin property: "name" with value: "connection.name"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
+    Then Click on the Test Connection button
+    And Verify the test connection is successful
+    Then Click on the Create button
+    And Use new connection
+    And Click on the Macro button of Property: "connection" and set the value to: "Connection"
+    And Select dropdown plugin property: "select-queryMode" with option value: "Single Object"
+    And Click on the Macro button of Property: "objectName" and set the value to: "objectName"
+    And Click on the Macro button of Property: "filter" and set the value to: "filter"
+    Then Validate "Salesforce Marketing" plugin properties
+    And Close the Plugin Properties page
+    And Select Sink plugin: "BigQueryTable" from the plugins list
+    And Navigate to the properties page of plugin: "BigQuery"
+    And Enter input plugin property: "referenceName" with value: "Reference"
+    And Replace input plugin property: "project" with value: "project.id" for Credentials and Authorization related fields
+    And Enter input plugin property: "datasetProject" with value: "datasetprojectId" for Credentials and Authorization related fields
+    And Enter input plugin property: "dataset" with value: "dataset" for Credentials and Authorization related fields
+    And Enter input plugin property: "table" with value: "bqtarget.table"
+    Then Validate "BigQuery" plugin properties
+    And Close the Plugin Properties page
+    And Connect source as "Salesforce-Marketing" and sink as "BigQueryTable" to establish connection
+    And Save the pipeline
+    And Preview and run the pipeline
+    And Enter runtime argument value "singleobjectmode.objectname" for key "objectName"
+    And Enter runtime argument value "filter.value" for key "filter"
+    And Enter runtime argument value "connectionMacros" for key "Connection"
+    And Run the preview of pipeline with runtime arguments
+    And Open and capture pipeline preview logs
+    And Verify the preview run status of pipeline in the logs is "succeeded"
+    And Close the pipeline logs
+    And Close the preview
+    And Save and Deploy Pipeline
+    And Run the Pipeline in Runtime
+    And Enter runtime argument value "singleobjectmode.objectname" for key "objectName"
+    And Enter runtime argument value "filter.value" for key "filter"
+    And Enter runtime argument value "connectionMacros" for key "Connection"
+    And Run the Pipeline in Runtime with runtime arguments
+    And Wait till pipeline is in running state
+    And Open and capture logs
+    And Verify the pipeline status is "Succeeded"
+    And Close the pipeline logs

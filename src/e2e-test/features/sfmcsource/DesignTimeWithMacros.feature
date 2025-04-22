@@ -45,7 +45,7 @@ Feature: Salesforce Marketing Cloud Source - Design time Scenarios (macros)
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "queryMode" and set the value to: "queryMode"
     And Click on the Macro button of Property: "objectName" and set the value to: "objectName"
-    And Click on the Macro button of Property: "dataExtensionKey" and set the value to: "dataExtensionKey"
+    And Click on the Macro button of Property: "dataExtensionKey" and set the value to: "DataExtensionKey"
     Then Validate "Salesforce Marketing" plugin properties
 
   @BATCH-TS-SFMC-DSGN-MACRO-03
@@ -60,7 +60,7 @@ Feature: Salesforce Marketing Cloud Source - Design time Scenarios (macros)
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "queryMode" and set the value to: "queryMode"
     And Click on the Macro button of Property: "objectList" and set the value to: "objectList"
-    And Click on the Macro button of Property: "dataExtensionKeyList" and set the value to: "dataExtensionKeyList"
+    And Click on the Macro button of Property: "dataExtensionKey" and set the value to: "DataExtensionKey"
     And Click on the Macro button of Property: "tableNameField" and set the value to: "tablename"
     Then Validate "Salesforce Marketing" plugin properties
 
@@ -76,4 +76,15 @@ Feature: Salesforce Marketing Cloud Source - Design time Scenarios (macros)
     And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "objectName" and set the value to: "objectName"
     And Click on the Macro button of Property: "filter" and set the value to: "filter"
+    Then Validate "Salesforce Marketing" plugin properties
+
+  @BATCH-TS-SFMC-DSGN-MACRO-05 @CONNECTION
+  Scenario: Verify user should be able to validate the plugin when configured for Connection Manager property with macros
+    When Open Datafusion Project to configure pipeline
+    And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
+    And Navigate to the properties page of plugin: "Salesforce Marketing"
+    And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Click plugin property: "switch-useConnection"
+    And Click on the Macro button of Property: "connection" and set the value to: "Connection"
+    And Click on the Macro button of Property: "dataExtensionKey" and set the value to: "DataExtensionKey"
     Then Validate "Salesforce Marketing" plugin properties

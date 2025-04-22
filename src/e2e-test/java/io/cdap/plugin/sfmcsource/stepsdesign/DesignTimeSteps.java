@@ -64,4 +64,9 @@ public class DesignTimeSteps implements CdfHelper {
   expectedOutputFile) throws IOException, InterruptedException {
     SfmcSourcePropertiesPageActions.verifyIfRecordCreatedInSinkForMultipleObjectsAreCorrect(expectedOutputFile);
   }
+
+  @Then("Use new connection")
+  public void clickOnMarketingConnection() {
+    SfmcSourcePropertiesPageActions.clickOnMarketingConnection();
+  }
 }

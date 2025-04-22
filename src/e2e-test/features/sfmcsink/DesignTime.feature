@@ -40,3 +40,20 @@ Feature: Salesforce Marketing Cloud Sink - Design time scenarios
       | INSERT        | TRUE         | FALSE       | TRUE              |
       | UPDATE        | FALSE        | TRUE        | TRUE              |
       | UPSERT        | FALSE        | FALSE       | TRUE              |
+
+  @BATCH-TS-SFMC-DSGN-02 @CONNECTION
+  Scenario: Verify user should be able to successfully validate the sink for All Operation Types
+    When Open Datafusion Project to configure pipeline
+    And Select Sink plugin: "SalesforceDataExtension" from the plugins list
+    And Navigate to the properties page of plugin: "Salesforce Marketing"
+    And Click plugin property: "switch-useConnection"
+    And Click on the Browse Connections button
+    And Click on the Add Connection button
+    And Click plugin property: "connector-MarketingCloud"
+    And Enter input plugin property: "name" with value: "connection.name"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
+    Then Click on the Test Connection button
+    And Verify the test connection is successful

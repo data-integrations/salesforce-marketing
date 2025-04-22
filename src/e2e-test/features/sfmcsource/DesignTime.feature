@@ -110,3 +110,20 @@ Feature: Salesforce Marketing Cloud Source - Design time scenarios
     Examples:
       | ObjectName   | ExpectedSchema               | Filter       |
       | BOUNCE_EVENT | sfmcSourceSchema.bounceevent | filter.value |
+
+  @BATCH-TS-SFMC-DSGN-06 @CONNECTION
+  Scenario: Verify user should be able to create the valid connection using connection manager functionality
+    When Open Datafusion Project to configure pipeline
+    And Select plugin: "Salesforce Marketing" from the plugins list as: "Source"
+    And Navigate to the properties page of plugin: "Salesforce Marketing"
+    And Click plugin property: "switch-useConnection"
+    And Click on the Browse Connections button
+    And Click on the Add Connection button
+    And Click plugin property: "connector-MarketingCloud"
+    And Enter input plugin property: "name" with value: "connection.name"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "authEndpoint" with value: "admin.base.uri" for Credentials and Authorization related fields
+    And Enter input plugin property: "soapEndpoint" with value: "admin.soap.endpoint" for Credentials and Authorization related fields
+    Then Click on the Test Connection button
+    And Verify the test connection is successful
