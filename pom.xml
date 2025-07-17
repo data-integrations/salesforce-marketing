@@ -64,7 +64,7 @@
     <salesforce.marketing.cloud.version>1.6.0</salesforce.marketing.cloud.version>
     <slf4j.version>1.7.36</slf4j.version>
     <stax2.version>4.2.1</stax2.version>
-    <beanutils.version>1.9.4</beanutils.version>
+    <beanutils.version>1.11.0</beanutils.version>
     <testSourceLocation>${project.basedir}/src/test/java/</testSourceLocation>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
